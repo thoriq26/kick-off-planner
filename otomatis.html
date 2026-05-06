@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Acak Tim - DC98</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+        <style>
+            body {
+                font-family: "Segoe UI", sans-serif;
+                background-color: #f0f2f5;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* NAVBAR */
+            .navbar {
+                background: #34495e;
+                width: 100%;
+                max-width: 800px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                position: relative;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .ul-navbar {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .home-box {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .home-link {
+                font-size: 24px;
+                color: white;
+                transition: 0.3s;
+                text-decoration: none;
+            }
+
+            .home-link:hover {
+                color: #f39c12;
+            }
+
+            .li-navbar a {
+                color: white;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .btn-active-nav {
+                background-color: #f39c12 !important;
+                padding: 6px 20px;
+                border-radius: 5px;
+                transition: 0.3s;
+                color: white !important;
+            }
+
+            /* KONTEN UTAMA */
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 20px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 800px;
+                text-align: center;
+            }
+
+            h2 {
+                color: #2c3e50;
+            }
+            #infoData {
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+
+            .button-group {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            .btn-kocok {
+                background: #f39c12;
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 50px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 18px;
+                transition: all 0.3s;
+            }
+
+            .btn-kocok:hover:not(:disabled) {
+                background: #e67e22;
+            }
+            .btn-kocok:disabled {
+                background: #bdc3c7;
+                cursor: not-allowed;
+            }
+
+            .btn-reset {
+                background: #e74c3c;
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 50px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 18px;
+                display: none;
+                transition: background 0.3s;
+            }
+
+            .team-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                width: 100%;
+            }
+
+            .team-card {
+                border-radius: 15px;
+                padding: 20px;
+                color: white;
+                min-height: 200px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .merah {
+                background: linear-gradient(135deg, #ff5f6d, #ffc371);
+            }
+            .biru {
+                background: linear-gradient(135deg, #2193b0, #6dd5ed);
+            }
+            .hijau {
+                background: linear-gradient(135deg, #11998e, #38ef7d);
+            }
+
+            ul.res-list {
+                list-style: none;
+                padding: 0;
+                text-align: left;
+            }
+            ul.res-list li {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 8px;
+                margin-bottom: 5px;
+                border-radius: 5px;
+                font-size: 14px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <div class="home-box">
+                <a href="KickOff%20Planner.html" class="home-link">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+            <ul class="ul-navbar">
+                <li class="li-navbar">
+                    <a href="otomatis.html" class="btn-active-nav">Acak Tim</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="container">
+            <h2>Team Generator</h2>
+            <p id="infoData">Menunggu data pemain...</p>
+
+            <div class="button-group">
+                <button
+                    class="btn-kocok"
+                    id="btnKocok"
+                    onclick="kocokTim()"
+                    disabled
+                >
+                    SHUFFLE TEAMS!
+                </button>
+                <button
+                    class="btn-reset"
+                    id="btnReset"
+                    onclick="resetShuffle()"
+                >
+                    RESET SHUFFLE
+                </button>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card merah">
+                    <h3>Tim Merah</h3>
+                    <ul id="resMerah" class="res-list"></ul>
+                </div>
+                <div class="team-card biru">
+                    <h3>Tim Biru</h3>
+                    <ul id="resBiru" class="res-list"></ul>
+                </div>
+                <div class="team-card hijau">
+                    <h3>Tim Hijau</h3>
+                    <ul id="resHijau" class="res-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Password Admin
+            const ADMIN_PASS = "admin";
+
+            function checkData() {
+                const data =
+                    JSON.parse(localStorage.getItem("daftarDC98")) || [];
+                const pemainAktif = data.filter((p) => p.posisi !== "Penonton");
+                const info = document.getElementById("infoData");
+                const btn = document.getElementById("btnKocok");
+
+                if (btn.innerText !== "GOOD LUCK!") {
+                    info.innerText = `Pemain Siap: ${pemainAktif.length} (Minimal 15 untuk 3 Tim)`;
+                    if (pemainAktif.length >= 15) {
+                        btn.disabled = false;
+                        info.style.color = "#27ae60";
+                    } else {
+                        btn.disabled = true;
+                        info.style.color = "#e74c3c";
+                    }
+                }
+            }
+
+            function kocokTim() {
+                const btn = document.getElementById("btnKocok");
+                const btnReset = document.getElementById("btnReset");
+                const dataSemua =
+                    JSON.parse(localStorage.getItem("daftarDC98")) || [];
+                let daftarKocok = dataSemua.filter(
+                    (p) => p.posisi !== "Penonton",
+                );
+
+                for (let i = daftarKocok.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [daftarKocok[i], daftarKocok[j]] = [
+                        daftarKocok[j],
+                        daftarKocok[i],
+                    ];
+                }
+
+                renderTim("resMerah", daftarKocok.slice(0, 5));
+                renderTim("resBiru", daftarKocok.slice(5, 10));
+                renderTim("resHijau", daftarKocok.slice(10, 15));
+
+                btn.innerText = "GOOD LUCK!";
+                btn.disabled = true;
+                btnReset.style.display = "block";
+            }
+
+            function resetShuffle() {
+                // Tambahan Validasi Password
+                const inputPass = prompt(
+                    "Masukkan Password Admin untuk reset:",
+                );
+
+                if (inputPass === ADMIN_PASS) {
+                    const btn = document.getElementById("btnKocok");
+                    const btnReset = document.getElementById("btnReset");
+
+                    document.getElementById("resMerah").innerHTML = "";
+                    document.getElementById("resBiru").innerHTML = "";
+                    document.getElementById("resHijau").innerHTML = "";
+
+                    btn.innerText = "SHUFFLE TEAMS!";
+                    btnReset.style.display = "none";
+                    checkData();
+                    alert("Hasil kocokan berhasil direset.");
+                } else if (inputPass !== null) {
+                    alert("Password Salah!");
+                }
+            }
+
+            function renderTim(id, list) {
+                const el = document.getElementById(id);
+                el.innerHTML = "";
+                list.forEach((p) => {
+                    el.innerHTML += `<li><strong>${p.nama}</strong><br><small>${p.posisi}</small></li>`;
+                });
+            }
+
+            window.onload = checkData;
+        </script>
+    </body>
+</html>

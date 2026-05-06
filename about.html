@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Kehadiran - DC98</title>
+        <!-- Link Font Awesome untuk Ikon Rumah -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+        <style>
+            body {
+                font-family: "Segoe UI", sans-serif;
+                background-color: #f0f2f5;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* NAVBAR */
+            .navbar {
+                background: #34495e;
+                width: 100%;
+                max-width: 800px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                position: relative;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .ul-navbar {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .home-box {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .home-link {
+                font-size: 24px;
+                color: white;
+                transition: 0.3s;
+                text-decoration: none;
+            }
+
+            .home-link:hover {
+                color: #f39c12;
+            }
+
+            .li-navbar a {
+                color: white;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+            .btn-active-nav {
+                background-color: #f39c12 !important;
+                padding: 6px 20px;
+                border-radius: 5px;
+                transition: 0.3s;
+                color: white !important;
+            }
+
+            /* KONTEN UTAMA */
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 20px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 800px;
+                text-align: center;
+            }
+
+            h2 {
+                color: #2c3e50;
+                margin-bottom: 10px;
+            }
+            #statusSlot {
+                font-weight: bold;
+                color: #27ae60;
+                margin-bottom: 20px;
+                font-size: 18px;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            input,
+            select,
+            .btn {
+                padding: 12px;
+                border-radius: 8px;
+                border: 2px solid #ddd;
+                font-size: 16px;
+            }
+
+            .btn {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            .btn-reset {
+                background: #e74c3c;
+                margin-top: 5px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            th,
+            td {
+                padding: 12px;
+                border-bottom: 1px solid #eee;
+                text-align: center;
+            }
+            th {
+                background: #34495e;
+                color: white;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <div class="home-box">
+                <a href="KickOff%20Planner.html" class="home-link">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+            <ul class="ul-navbar">
+                <li class="li-navbar">
+                    <a href="about.html" class="btn-active-nav">Kehadiran</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="container">
+            <h2>Daftar Kehadiran</h2>
+            <p id="statusSlot">Slot tersedia: 20</p>
+
+            <div class="form-group">
+                <input
+                    type="text"
+                    id="inputNama"
+                    placeholder="Nama Pemain..."
+                />
+                <select id="pilihPosisi">
+                    <option value="Kiper">Kiper</option>
+                    <option value="Bek">Bek</option>
+                    <option value="Gelandang">Gelandang</option>
+                    <option value="Sayap">Sayap</option>
+                    <option value="Penyerang">Penyerang</option>
+                    <option value="Penonton">Penonton</option>
+                </select>
+                <button class="btn" onclick="tambahPemain()">
+                    Saya Ikut Main!
+                </button>
+
+                <!-- Tombol Reset tetap ada, tapi diproteksi fungsi resetData() -->
+                <button class="btn btn-reset" onclick="resetData()">
+                    Reset Daftar
+                </button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Posisi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBody"></tbody>
+            </table>
+        </div>
+
+        <script>
+            let daftarPemain =
+                JSON.parse(localStorage.getItem("daftarDC98")) || [];
+
+            function tambahPemain() {
+                const nama = document.getElementById("inputNama").value.trim();
+                const posisi = document.getElementById("pilihPosisi").value;
+                if (nama === "") return alert("Mohon isi nama kamu!");
+                if (daftarPemain.length >= 20) return alert("Kuota penuh!");
+
+                daftarPemain.push({ nama, posisi });
+                localStorage.setItem(
+                    "daftarDC98",
+                    JSON.stringify(daftarPemain),
+                );
+                document.getElementById("inputNama").value = "";
+                renderTabel();
+            }
+
+            function renderTabel() {
+                const tbody = document.getElementById("tabelBody");
+                tbody.innerHTML = "";
+                daftarPemain.forEach((p, i) => {
+                    tbody.innerHTML += `<tr><td>${i + 1}</td><td>${p.nama}</td><td>${p.posisi}</td></tr>`;
+                });
+                const sisaSlot = 20 - daftarPemain.length;
+                const statusEl = document.getElementById("statusSlot");
+                statusEl.innerText = `Slot tersedia: ${sisaSlot}`;
+                statusEl.style.color = sisaSlot <= 0 ? "#e74c3c" : "#27ae60";
+            }
+
+            // SISTEM PROTEKSI ADMIN (OPSI 1)
+            function resetData() {
+                // 1. Tentukan password admin
+                const passwordAdmin = "admin";
+
+                // 2. Munculkan kotak input password
+                const inputUser = prompt(
+                    "Masukkan Password Admin untuk mereset daftar:",
+                );
+
+                // 3. Cek apakah input cocok dengan password
+                if (inputUser === passwordAdmin) {
+                    // Jika benar, konfirmasi sekali lagi
+                    if (
+                        confirm(
+                            "Password Benar. Apakah Anda yakin ingin menghapus semua daftar pemain?",
+                        )
+                    ) {
+                        localStorage.removeItem("daftarDC98");
+                        daftarPemain = [];
+                        renderTabel();
+                        alert("Daftar berhasil dikosongkan.");
+                    }
+                } else if (inputUser !== null) {
+                    // Jika salah (dan bukan menekan tombol Cancel)
+                    alert("Password Salah! Anda tidak memiliki akses admin.");
+                }
+            }
+
+            window.onload = renderTabel;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,115 @@
+KickOff Planner
+
+Aplikasi ini bertujuan untuk memudahkan koordinasi main bola bareng teman-teman, mulai dari daftar hadir hingga bagi tim, tanpa perlu ribet lewat chat WhatsApp.
+
+1. Teknologi yang Harus Dipelajari
+Untuk membuat website, Anda butuh "Tiga Serangkai":
+
+HTML: Ibarat tulang (untuk membuat struktur, seperti tombol dan teks).
+
+CSS: Ibarat baju/kulit (untuk memberi warna dan mengatur tata letak agar cantik).
+
+JavaScript: Ibarat otak (untuk membuat website bisa berpikir, misalnya menghitung kuota atau mengacak tim).
+
+2. Proyek Pertama: "Static KickOff Page"
+Langkah awal buatlah satu halaman website sederhana yang menampilkan info jadwal bola.
+
+Step-by-Step Cara Belajarnya:
+Instal Tools Visual Studio Code (VS Code)
+
+Buat File: Buat folder baru, lalu buat file bernama index.html.
+
+Mulai Menulis Struktur (HTML):
+Ketik kode untuk memunculkan judul "Jadwal Main Bola", foto lapangan, dan daftar pemain.
+
+Menghias (CSS):
+Buat file style.css untuk mengatur supaya tombol RSVP berwarna hijau, tulisannya rapi, dan fotonya pas di tengah.
+
+Membuat Logika (JavaScript):
+Ini bagian ngoding yang sesungguhnya. Anda belajar menulis perintah seperti:
+
+"Jika tombol diklik, tambahkan nama saya ke dalam daftar."
+
+3. Kenapa Ini Jauh Lebih Baik untuk Belajar?
+Berbeda dengan Glide (No-Code), dengan ngoding sendiri Anda akan paham:
+
+Struktur Data: Bagaimana komputer menyimpan nama pemain.
+
+Logic: Bagaimana cara membuat sistem "Jika kuota > 15, maka munculkan peringatan".
+
+Hosting Manual: Anda akan belajar cara mengunggah kode Anda ke internet (misalnya lewat GitHub Pages atau Netlify) agar bisa diakses orang lain.
+
+4. Contoh Sederhana "Kode" yang Akan Anda Tulis
+Nantinya, Anda akan menulis sesuatu yang terlihat seperti ini:
+
+HTML
+<!-- Contoh HTML untuk Tombol -->
+<button id="tombolDaftar">Klik untuk Ikut Main</button>
+
+<script>
+  // Contoh JavaScript sederhana
+  let jumlahPemain = 0;
+  const tombol = document.getElementById("tombolDaftar");
+
+  tombol.onclick = function() {
+    jumlahPemain = jumlahPemain + 1;
+    alert("Berhasil daftar! Jumlah pemain sekarang: " + jumlahPemain);
+  };
+</script>
+
+Rekomendasi Langkah Pertama:
+Jangan langsung pusing. Coba buka YouTube dan cari tutorial: "Cara membuat website HTML CSS sederhana untuk pemula".
+
+
+
+
+1. Halaman Utama (Home / Hero Section)
+Ini adalah halaman yang pertama kali dilihat saat website dibuka. Isinya harus menarik agar teman-teman semangat untuk main.
+
+Judul: "KickOff Planner: [Nama Komunitas Anda]"
+
+Gambar: Foto lapangan sepak bola atau futsal yang estetik.
+
+Countdown: Teks sederhana yang menunjukkan kapan jadwal main berikutnya (Contoh: "Minggu ini: 20 Mei 2026").
+
+Status Kuota: Tulisan dinamis seperti "Tersisa 3 slot lagi!".
+
+2. Halaman Info Lapangan (Field Info)
+Bagian ini memberikan informasi teknis agar tidak ada yang tersasar atau salah jam.
+
+Nama Tempat: Misal, "Champion Futsal Kuningan".
+
+Waktu: "19.00 - 21.00 WIB".
+
+Peta Interaktif: Nantinya Anda akan belajar memasukkan kode <iframe> dari Google Maps agar peta muncul di website.
+
+Status Pembayaran: Label bertuliskan "Lunas" (warna hijau) atau "Belum Bayar" (warna merah).
+
+3. Halaman Daftar Hadir (RSVP & Player List)
+Ini adalah jantung dari aplikasi Anda. Di sini logika pemrograman (JavaScript) mulai bermain.
+
+Tombol Daftar: Tombol besar bertuliskan "Saya Ikut Main!".
+
+Input Nama: Kotak teks tempat pemain mengetik namanya sendiri.
+
+Pilihan Posisi: Menu dropdown (pilih: Kiper, Bek, Gelandang, Penyerang).
+
+Daftar Nama: Tabel yang menampilkan siapa saja yang sudah klik tombol tadi.
+
+Logika Coding: Jika daftar sudah berisi 15 nama, tombol daftar akan otomatis terkunci atau berubah warna menjadi abu-abu.
+
+4. Halaman Bagi Tim (Team Generator)
+Halaman terakhir yang digunakan saat semua orang sudah berkumpul di lapangan.
+
+Tombol "Kocok Tim": Saat diklik, sistem akan mengambil daftar nama dari Halaman 3 dan mengacaknya secara adil.
+
+Hasil Acak: Tampilan 3 kolom warna (Merah, Biru, Hijau) yang masing-masing berisi 5 nama pemain.
+
+Rencana Belajar (Tech Stack):
+Untuk membuat semua ini secara manual, Anda akan melewati 3 tahap belajar:
+
+HTML (Struktur): Membuat tombol, membuat tabel daftar pemain, dan memasukkan teks judul.
+
+CSS (Tampilan): Memberi warna hijau seperti rumput lapangan, mengatur agar tulisan rapi di tengah, dan membuat tombol terlihat keren saat ditekan.
+
+JavaScript (Logika): Ini yang paling seru! Anda akan belajar cara "menangkap" nama yang diketik orang, menyimpannya di daftar, dan membuat fungsi pengocok tim otomatis.

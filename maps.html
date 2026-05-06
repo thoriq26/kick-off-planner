@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Info Lapangan - DC98</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+        <style>
+            body {
+                font-family: "Segoe UI", sans-serif;
+                background-color: #f0f2f5;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* NAVBAR */
+            .navbar {
+                background: #34495e;
+                width: 100%;
+                max-width: 800px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                position: relative;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .home-box {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .home-link {
+                font-size: 24px;
+                color: white;
+                text-decoration: none;
+            }
+
+            .btn-active-nav {
+                background-color: #f39c12;
+                padding: 6px 20px;
+                border-radius: 5px;
+                color: white;
+                font-weight: bold;
+                text-decoration: none;
+            }
+
+            /* CONTAINER & UMUM */
+            .container {
+                background: white;
+                padding: 25px;
+                border-radius: 20px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 800px;
+                margin-bottom: 20px;
+                box-sizing: border-box;
+            }
+
+            h2 {
+                color: #2c3e50;
+                border-left: 5px solid #f39c12;
+                padding-left: 10px;
+                text-align: left;
+                margin-top: 0;
+            }
+
+            /* ADMIN PANEL (Hidden by Default) */
+            #adminSection {
+                display: none; /* Disembunyikan awalnya */
+                background: #fef9e7;
+                border: 2px dashed #f39c12;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            input,
+            .btn {
+                padding: 12px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+                font-size: 14px;
+            }
+
+            .btn {
+                background: #2980b9;
+                color: white;
+                border: none;
+                cursor: pointer;
+                font-weight: bold;
+                transition: 0.3s;
+            }
+
+            .btn:hover {
+                background: #3498db;
+            }
+            .btn-reset {
+                background: #e74c3c;
+                margin-top: 5px;
+            }
+            .btn-reset:hover {
+                background: #c0392b;
+            }
+
+            /* DISPLAY AREA */
+            .info-card {
+                text-align: left;
+            }
+            .map-frame {
+                width: 100%;
+                height: 350px;
+                border-radius: 15px;
+                border: none;
+                margin-top: 15px;
+                background: #eee;
+                overflow: hidden;
+            }
+
+            .detail-jadwal {
+                background: #ecf0f1;
+                padding: 15px;
+                border-radius: 10px;
+                margin-top: 15px;
+            }
+
+            .detail-jadwal span {
+                display: block;
+                margin-bottom: 5px;
+                font-size: 16px;
+            }
+
+            .badge {
+                background: #e67e22;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 5px;
+                font-size: 12px;
+            }
+
+            /* TOMBOL LOGIN ADMIN (Floating) */
+            .login-admin-trigger {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #34495e;
+                color: white;
+                width: 45px;
+                height: 45px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                transition: 0.3s;
+                border: none;
+            }
+
+            .login-admin-trigger:hover {
+                background: #f39c12;
+                transform: scale(1.1);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- NAVBAR -->
+        <div class="navbar">
+            <div class="home-box">
+                <a href="KickOff%20Planner.html" class="home-link">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+            <a href="#" class="btn-active-nav">Info Lapangan</a>
+        </div>
+
+        <!-- ADMIN PANEL (Hidden) -->
+        <div id="adminSection" class="container">
+            <h3 style="margin-top: 0">🛠 Admin: Update Jadwal & Lokasi</h3>
+            <div class="form-group">
+                <input
+                    type="text"
+                    id="linkMaps"
+                    placeholder="Paste link iframe Google Maps..."
+                />
+                <input type="datetime-local" id="jadwalMain" />
+                <input
+                    type="text"
+                    id="namaLapangan"
+                    placeholder="Nama Lapangan..."
+                />
+                <button class="btn" onclick="updateInfo()">
+                    Update Info Lapangan
+                </button>
+                <button class="btn btn-reset" onclick="resetInfo()">
+                    Hapus/Reset Info Jadwal
+                </button>
+                <button
+                    class="btn"
+                    style="background: #7f8c8d"
+                    onclick="toggleAdmin()"
+                >
+                    Tutup Panel Admin
+                </button>
+            </div>
+        </div>
+
+        <!-- USER DISPLAY PANEL -->
+        <div class="container">
+            <div class="info-card">
+                <h2 id="displayNama">Belum Ada Lokasi</h2>
+                <div class="detail-jadwal">
+                    <span
+                        ><strong>📅 Tanggal:</strong>
+                        <span id="displayTgl">-</span></span
+                    >
+                    <span
+                        ><strong>⏰ Jam:</strong>
+                        <span id="displayJam">-</span></span
+                    >
+                    <span
+                        ><strong>📍 Status:</strong>
+                        <span id="displayStatus" class="badge"
+                            >Confirmed</span
+                        ></span
+                    >
+                </div>
+                <div id="mapContainer" class="map-frame">
+                    <p
+                        style="
+                            color: #95a5a6;
+                            padding: 20px;
+                            text-align: center;
+                        "
+                    >
+                        Peta belum diset oleh admin.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Rahasia Login Admin -->
+        <button
+            class="login-admin-trigger"
+            onclick="loginAdmin()"
+            title="Login Admin"
+        >
+            <i class="fa-solid fa-user-gear"></i>
+        </button>
+
+        <script>
+            const ADMIN_PASSWORD = "dc98admin";
+
+            function loginAdmin() {
+                const pass = prompt("Masukkan Password Admin:");
+                if (pass === ADMIN_PASSWORD) {
+                    document.getElementById("adminSection").style.display =
+                        "block";
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                } else if (pass !== null) {
+                    alert("Password Salah!");
+                }
+            }
+
+            function toggleAdmin() {
+                document.getElementById("adminSection").style.display = "none";
+            }
+
+            function updateInfo() {
+                const link = document.getElementById("linkMaps").value;
+                const jadwal = document.getElementById("jadwalMain").value;
+                const nama = document.getElementById("namaLapangan").value;
+
+                if (!link || !jadwal || !nama)
+                    return alert("Mohon isi semua data!");
+
+                let finalURL = link;
+                if (link.includes("<iframe")) {
+                    const regex = /src="([^"]+)"/;
+                    const match = link.match(regex);
+                    if (match) finalURL = match[1];
+                }
+
+                const infoLapangan = {
+                    mapsUrl: finalURL,
+                    waktu: jadwal,
+                    namaLp: nama,
+                };
+
+                localStorage.setItem("infoDC98", JSON.stringify(infoLapangan));
+                alert("Info Lapangan Berhasil Diperbarui!");
+                loadInfo();
+                toggleAdmin(); // Tutup panel setelah update
+            }
+
+            function resetInfo() {
+                if (confirm("Hapus info lapangan dan jadwal?")) {
+                    localStorage.removeItem("infoDC98");
+                    alert("Info Berhasil Dihapus!");
+                    location.reload();
+                }
+            }
+
+            function loadInfo() {
+                const data = JSON.parse(localStorage.getItem("infoDC98"));
+                if (data) {
+                    document.getElementById("displayNama").innerText =
+                        data.namaLp;
+                    const dateObj = new Date(data.waktu);
+                    const options = {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    };
+                    document.getElementById("displayTgl").innerText =
+                        dateObj.toLocaleDateString("id-ID", options);
+                    document.getElementById("displayJam").innerText =
+                        dateObj.toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }) + " WIB";
+                    document.getElementById("displayStatus").style.display =
+                        "inline-block";
+                    document.getElementById("mapContainer").innerHTML =
+                        `<iframe src="${data.mapsUrl}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+                } else {
+                    document.getElementById("displayStatus").style.display =
+                        "none";
+                }
+            }
+
+            window.onload = loadInfo;
+        </script>
+    </body>
+</html>
