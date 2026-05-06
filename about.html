@@ -2,43 +2,59 @@
 <html lang="id">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Kehadiran - DC98</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Kehadiran - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <style>
+            /* --- RESET & BACKGROUND FULL RESPONSIF --- */
+            html,
             body {
-                font-family: "Segoe UI", sans-serif;
-                /* --- PENAMBAHAN BACKGROUND --- */
-                background-image: url("DC98-transformed.jpeg");
-                background-size: 99%; /* Sesuai permintaan */
-                background-position: center;
-                background-attachment: fixed;
-                background-repeat: no-repeat;
-                background-color: #f0f2f5;
-
+                height: 100%;
                 margin: 0;
-                padding: 20px;
+                padding: 0;
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 20px;
+
+                background-image:
+                    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                    url("DC98-transformed.jpeg");
+                background-size: cover !important;
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: #f0f2f5;
             }
 
             /* NAVBAR */
             .navbar {
-                background: #34495e;
+                background: rgba(52, 73, 94, 0.95);
+                backdrop-filter: blur(10px);
                 width: 100%;
                 max-width: 800px;
-                border-radius: 10px;
+                border-radius: 12px;
                 margin-bottom: 20px;
                 position: relative;
-                height: 50px;
+                height: 60px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                z-index: 10;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             }
 
             .home-box {
@@ -52,28 +68,31 @@
                 font-size: 24px;
                 color: white;
                 text-decoration: none;
+                transition: 0.3s;
             }
 
-            .li-navbar a {
+            .home-link:hover {
+                color: #2ecc71;
+            }
+
+            /* JUDUL HALAMAN (Bukan Button Lagi) */
+            .page-title-label {
+                background-color: #2ecc71; /* Warna Emerald Green yang lebih sporty */
+                padding: 8px 25px;
+                border-radius: 8px;
                 color: white;
-                text-decoration: none;
                 font-weight: bold;
-            }
-
-            .btn-active-nav {
-                background-color: #f39c12 !important;
-                padding: 6px 20px;
-                border-radius: 5px;
-                color: white !important;
+                cursor: default; /* Mouse tidak berubah jadi tangan */
+                user-select: none; /* Teks tidak bisa di-highlight */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             }
 
             /* KONTEN UTAMA */
             .container {
-                /* MODIFIKASI: Ditambah transparansi (0.9) agar background terlihat */
-                background: rgba(255, 255, 255, 0.9);
-                padding: 30px;
+                background: rgba(255, 255, 255, 0.95);
+                padding: 25px;
                 border-radius: 20px;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 width: 100%;
                 max-width: 800px;
                 text-align: center;
@@ -82,27 +101,41 @@
 
             h2 {
                 color: #2c3e50;
+                margin-top: 0;
             }
+
             #statusSlot {
                 font-weight: bold;
                 font-size: 18px;
                 margin-bottom: 20px;
+                padding: 10px;
+                border-radius: 8px;
+                background: rgba(0, 0, 0, 0.05);
+                display: inline-block;
             }
 
             .form-group {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
-                margin-bottom: 20px;
+                gap: 12px;
+                margin-bottom: 25px;
             }
 
             input,
             select,
             .btn {
-                padding: 12px;
-                border-radius: 8px;
+                padding: 14px;
+                border-radius: 10px;
                 border: 2px solid #ddd;
                 font-size: 16px;
+                width: 100%;
+                box-sizing: border-box;
+                outline: none;
+            }
+
+            input:focus,
+            select:focus {
+                border-color: #2ecc71;
             }
 
             .btn {
@@ -112,39 +145,70 @@
                 cursor: pointer;
                 font-weight: bold;
                 transition: 0.3s;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }
+
             .btn:hover {
                 background-color: #219150;
+                transform: translateY(-2px);
             }
 
             .btn-reset {
                 background: #e74c3c;
+                font-size: 14px;
+                padding: 10px;
                 margin-top: 5px;
             }
             .btn-reset:hover {
                 background: #c0392b;
             }
 
+            /* TABEL RESPONSIF */
+            .table-wrapper {
+                overflow-x: auto;
+                margin-top: 10px;
+                border-radius: 10px;
+            }
+
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-top: 20px;
                 background: white;
-                border-radius: 10px;
-                overflow: hidden;
+                min-width: 400px;
             }
+
             th,
             td {
-                padding: 12px;
+                padding: 12px 10px;
                 border-bottom: 1px solid #eee;
                 text-align: center;
+                font-size: 15px;
             }
+
             th {
                 background: #34495e;
                 color: white;
+                text-transform: uppercase;
+                font-size: 13px;
             }
+
             tr:nth-child(even) {
                 background-color: #f9f9f9;
+            }
+
+            /* --- MEDIA QUERY HP --- */
+            @media screen and (max-width: 480px) {
+                body {
+                    padding: 10px;
+                    background-attachment: scroll;
+                }
+                .container {
+                    padding: 20px 15px;
+                }
+                h2 {
+                    font-size: 20px;
+                }
             }
         </style>
     </head>
@@ -155,15 +219,11 @@
                     <i class="fa-solid fa-house"></i>
                 </a>
             </div>
-            <ul style="list-style: none; padding: 0">
-                <li class="li-navbar">
-                    <a href="about.html" class="btn-active-nav">Kehadiran</a>
-                </li>
-            </ul>
+            <div class="page-title-label">CONFIRMATION LIST</div>
         </div>
 
         <div class="container">
-            <h2>Daftar Kehadiran</h2>
+            <h2><i class="fa-solid fa-clipboard-user"></i> CHECK-IN</h2>
             <p id="statusSlot">Memuat kuota...</p>
 
             <div class="form-group">
@@ -181,33 +241,32 @@
                     <option value="Penonton">Penonton</option>
                 </select>
                 <button class="btn" onclick="tambahPemain()">
-                    Saya Ikut Main!
+                    <i class="fa-solid fa-paper-plane"></i> Saya Ikut Main!
                 </button>
                 <button class="btn btn-reset" onclick="resetData()">
-                    Reset Daftar
+                    <i class="fa-solid fa-trash-can"></i> Reset Daftar
                 </button>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama</th>
-                        <th>Posisi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelBody"></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Posisi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelBody"></tbody>
+                </table>
+            </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
         <script>
-            // KONFIGURASI SUPABASE
             const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SUPABASE_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
-
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             let daftarPemain = [];
@@ -221,7 +280,7 @@
                 if (error) {
                     console.error("Gagal mengambil data:", error);
                     document.getElementById("statusSlot").innerText =
-                        "Gagal memuat data!";
+                        "Gagal memuat!";
                 } else {
                     daftarPemain = data;
                     renderTabel();
@@ -240,7 +299,7 @@
                     .insert([{ nama: nama, posisi: posisi }]);
 
                 if (error) {
-                    alert("Gagal mendaftar: " + error.message);
+                    alert("Gagal mendaftar!");
                 } else {
                     document.getElementById("inputNama").value = "";
                     fetchPemain();
@@ -249,27 +308,16 @@
 
             async function resetData() {
                 const passwordAdmin = "admin";
-                const inputUser = prompt(
-                    "Masukkan Password Admin untuk mereset daftar:",
-                );
+                const inputUser = prompt("Masukkan Password Admin:");
 
                 if (inputUser === passwordAdmin) {
-                    if (
-                        confirm(
-                            "Apakah Anda yakin ingin menghapus SEMUA daftar pemain?",
-                        )
-                    ) {
+                    if (confirm("Hapus SEMUA daftar pemain?")) {
                         const { error } = await _supabase
                             .from("pemain")
                             .delete()
                             .neq("id", 0);
-
-                        if (error) {
-                            alert("Gagal reset data!");
-                        } else {
-                            alert("Daftar berhasil dikosongkan.");
-                            fetchPemain();
-                        }
+                        if (error) alert("Gagal reset!");
+                        else fetchPemain();
                     }
                 } else if (inputUser !== null) {
                     alert("Password Salah!");
@@ -294,9 +342,7 @@
                 .on(
                     "postgres_changes",
                     { event: "*", schema: "public", table: "pemain" },
-                    () => {
-                        fetchPemain();
-                    },
+                    () => fetchPemain(),
                 )
                 .subscribe();
 

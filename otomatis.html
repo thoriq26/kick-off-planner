@@ -2,44 +2,60 @@
 <html lang="id">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Acak Tim - KickOff Planner</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Draft Tim - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <style>
+            /* --- RESET & BACKGROUND FULL RESPONSIF --- */
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
             body {
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                /* MODIFIKASI BACKGROUND */
-                background-image: url("DC98-transformed.jpeg");
-                background-size: 99%;
-                background-position: center;
-                background-attachment: fixed;
-                background-repeat: no-repeat;
-                /* Background cadangan jika gambar gagal muat */
-                background-color: #f0f2f5;
-
-                margin: 0;
-                padding: 20px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 20px;
+
+                /* Konfigurasi Background */
+                background-image:
+                    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+                    url("DC98-transformed.jpeg");
+                background-size: cover !important;
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: #1a1a1a;
             }
 
+            /* --- NAVBAR (TEMA NAVY & EMERALD) --- */
             .navbar {
-                background: #34495e;
+                background: rgba(44, 62, 80, 0.95);
+                backdrop-filter: blur(10px);
                 width: 100%;
                 max-width: 800px;
-                border-radius: 10px;
+                border-radius: 12px;
                 margin-bottom: 20px;
                 position: relative;
-                height: 50px;
+                height: 60px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 10;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             }
 
             .home-box {
@@ -53,35 +69,47 @@
                 font-size: 24px;
                 color: white;
                 text-decoration: none;
-            }
-            .btn-active-nav {
-                background-color: #f39c12;
-                padding: 6px 20px;
-                border-radius: 5px;
-                color: white;
-                text-decoration: none;
-                font-weight: bold;
+                transition: 0.3s;
             }
 
+            .home-link:hover {
+                color: #2ecc71;
+            }
+
+            /* Label Navigasi Aktif Emerald */
+            .btn-active-nav {
+                background-color: #2ecc71;
+                padding: 8px 25px;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+                box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+                cursor: default;
+                user-select: none;
+            }
+
+            /* --- KONTEN UTAMA --- */
             .container {
-                /* MODIFIKASI AGAR AGAK TRANSPARAN (0.95) */
                 background: rgba(255, 255, 255, 0.95);
-                padding: 30px;
+                padding: 25px;
                 border-radius: 20px;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 width: 100%;
                 max-width: 800px;
                 text-align: center;
                 box-sizing: border-box;
+                margin-bottom: 20px;
             }
 
             h2 {
                 color: #2c3e50;
                 margin-bottom: 10px;
             }
+
             #statusInfo {
                 margin-bottom: 20px;
                 font-weight: bold;
+                color: #34495e;
             }
 
             .btn-group {
@@ -99,6 +127,8 @@
                 cursor: pointer;
                 font-size: 16px;
                 transition: 0.3s;
+                flex: 1;
+                max-width: 200px;
             }
 
             .btn-shuffle {
@@ -106,6 +136,7 @@
                 color: white;
                 box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
             }
+
             .btn-shuffle:disabled {
                 background: #bdc3c7;
                 cursor: not-allowed;
@@ -117,12 +148,14 @@
                 color: white;
                 cursor: not-allowed;
             }
+
             .btn-reset.active {
                 background: #e74c3c;
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
             }
 
+            /* --- TEAM GRID & CARDS --- */
             .team-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -135,6 +168,7 @@
                 padding: 15px;
                 color: white;
                 min-height: 250px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             }
 
             .merah {
@@ -152,6 +186,7 @@
                 padding: 0;
                 text-align: left;
             }
+
             ul.res-list li {
                 background: rgba(255, 255, 255, 0.2);
                 padding: 10px;
@@ -160,13 +195,35 @@
                 font-size: 14px;
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
+                backdrop-filter: blur(5px);
             }
 
             .pos-tag {
                 font-size: 10px;
-                background: rgba(0, 0, 0, 0.2);
-                padding: 2px 6px;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 2px 8px;
                 border-radius: 4px;
+                text-transform: uppercase;
+                font-weight: bold;
+            }
+
+            @media screen and (max-width: 480px) {
+                body {
+                    padding: 15px 10px;
+                    background-attachment: scroll;
+                }
+                .btn-group {
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .btn-action {
+                    width: 100%;
+                    max-width: none;
+                }
+                .team-grid {
+                    grid-template-columns: 1fr;
+                }
             }
         </style>
     </head>
@@ -177,11 +234,13 @@
                     <i class="fa-solid fa-house"></i>
                 </a>
             </div>
-            <a href="otomatis.html" class="btn-active-nav">Acak Tim</a>
+            <!-- Label navigasi diubah menjadi Draft Tim -->
+            <span class="btn-active-nav">DRAFT TIM</span>
         </div>
 
         <div class="container">
-            <h2><i class="fa-solid fa-shuffle"></i> Team Generator</h2>
+            <!-- Judul konten diubah menjadi Draft Tim Otomatis -->
+            <h2><i class="fa-solid fa-shuffle"></i> Draft Tim Otomatis</h2>
             <p id="statusInfo">Menghubungkan ke Database...</p>
 
             <div class="btn-group">
@@ -221,7 +280,6 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
-            // --- SCRIPT TETAP SAMA SEPERTI SEBELUMNYA ---
             const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SUPABASE_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
@@ -251,7 +309,7 @@
 
                     if (sudahDiacak) {
                         btnShuffle.disabled = true;
-                        btnShuffle.innerText = "ALREADY SHUFFLED";
+                        btnShuffle.innerText = "DRAFT SELESAI";
                         btnReset.disabled = false;
                         btnReset.classList.add("active");
                     } else {
@@ -269,12 +327,11 @@
             async function kocokTim() {
                 const pin = prompt("Input Admin PIN to SHUFFLE:");
                 if (pin !== ADMIN_PIN) {
-                    alert("Only admin can use this button!");
+                    alert("Hanya admin yang bisa melakukan draft!");
                     return;
                 }
 
                 const btnShuffle = document.getElementById("btnShuffle");
-                const btnReset = document.getElementById("btnReset");
                 btnShuffle.innerText = "Processing...";
                 btnShuffle.disabled = true;
 
@@ -301,13 +358,13 @@
                 });
 
                 await Promise.all(janjiUpdate);
-                btnReset.disabled = false;
-                btnReset.classList.add("active");
                 muatPemain();
             }
 
             async function resetTim() {
-                const yakin = confirm("Apakah Anda yakin ingin me-reset tim?");
+                const yakin = confirm(
+                    "Apakah Anda yakin ingin me-reset hasil draft?",
+                );
                 if (!yakin) return;
 
                 const btnReset = document.getElementById("btnReset");
@@ -321,9 +378,6 @@
                 });
 
                 await Promise.all(janjiReset);
-                btnReset.disabled = true;
-                btnReset.classList.remove("active");
-                btnReset.innerText = "RESET";
                 muatPemain();
             }
 
