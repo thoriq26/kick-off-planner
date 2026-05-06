@@ -1,4 +1,4 @@
-/* RESET */
+/* --- RESET & DASAR --- */
 *,
 html {
     margin: 0;
@@ -6,32 +6,35 @@ html {
     box-sizing: border-box;
 }
 
-/* CONTAINER */
+body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- CONTAINER UTAMA --- */
 .container-utama {
     background-image:
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
         url("lapangan.jpg");
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-attachment: fixed; /* Background tetap diam saat scroll */
     width: 100%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Memaksa container setinggi layar */
 }
 
-/* NAVBAR */
+/* --- NAVBAR & HERO --- */
 .navbar-content {
     display: flex;
-    align-items: start;
+    align-items: center;
     justify-content: space-between;
     padding: 20px;
-    flex-direction: center;
-    /*background-color: rgba(255, 0, 0, 0.4);*/
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-
-    position: relative; /* penting untuk center hero */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .logo {
@@ -39,135 +42,123 @@ html {
     height: 5vh;
 }
 
-/* HERO (JUDUL TENGAH) */
 .hero {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     color: white;
-    padding: 5px 15px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
     background: linear-gradient(
         to bottom,
         rgba(0, 128, 0, 0.8),
         rgba(0, 0, 0, 0.6)
     );
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* JUDUL */
 .hero h1 {
-    font-size: 3rem;
+    font-size: clamp(1.5rem, 5vw, 3rem); /* Ukuran font adaptif */
     margin: 0;
     text-shadow: 2px 2px 10px black;
 }
 
-/* SUBTITLE */
 .hero p {
-    font-size: 1.5rem;
-    margin-top: -5px;
+    font-size: clamp(0.9rem, 2vw, 1.3rem);
+    margin-top: 5px;
     text-shadow: 2px 2px 10px black;
 }
 
-/* NAV MENU */
-.ul-navbar {
-    display: flex;
-    list-style: none;
-    gap: 30px;
-}
-
-.li-navbar2 a {
-    font-family: "Helvetica Neue Bold", sans-serif;
-    text-decoration: none;
-    color: grey;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-shadow: 1px 1px 5px grey;
-    transition: 0.3s;
-}
-
-.li-navbar2 a:hover {
-    color: white;
-}
-
+/* --- ISI KONTEN (TOMBOL) --- */
 .isi-konten {
-    font-family: "Helvetica Neue Bold", sans-serif;
-    text-decoration: none;
-    color: grey;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-shadow: 1px 1px 5px grey;
-    transition: 0.3s;
-    height: 100%;
+    flex: 1; /* Mengambil sisa ruang agar footer tetap di bawah */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Menengahkan tombol secara vertikal & horizontal */
+    padding: 20px;
 }
 
 .button-menu {
-    /* Menghapus margin-top 500px jika ingin benar-benar di tengah layar secara vertikal */
-    /* Atau biarkan jika Anda memang ingin ada jarak jauh dari atas */
-    font-size: 2rem;
-    margin-top: 300px;
     display: flex;
-    justify-content: center; /* Menengahkan secara horizontal */
-    align-items: center; /* Menengahkan secara vertikal */
-    width: 100%; /* Memastikan container mengambil lebar penuh */
-    gap: 80px;
+    flex-wrap: wrap; /* Supaya otomatis turun jika layar sempit */
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
 }
 
 .button {
-    /* Properti yang sudah ada */
     text-align: center;
-    color: darkgrey; /* Warna awal: Abu-abu gelap */
-    margin: 20px; /* Saran: Kecilkan margin agar tidak merusak layout */
-    padding: 10px 20px;
-    border-radius: 8px;
+    color: #e0e0e0;
+    min-width: 200px;
+    padding: 15px 30px;
+    font-weight: 700;
+    border-radius: 12px;
     background: linear-gradient(
         to bottom,
-        rgba(0, 128, 0, 0.8),
-        rgba(0, 0, 0, 0.6)
+        rgba(0, 128, 0, 0.9),
+        rgba(0, 0, 0, 0.7)
     );
-    border: none;
-    cursor: pointer;
     text-decoration: none;
-
-    /* TAMBAHAN UNTUK TRANSISI HALUS */
     transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
 }
 
-/* SAAT KURSOR DI ATAS TOMBOL (HOVER) */
 .button:hover {
-    color: white; /* Berubah jadi putih */
-    text-shadow:
-        0 0 10px white,
-        0 0 20px white; /* Efek menyala */
-    transform: scale(1.05); /* Sedikit membesar agar stylish */
+    color: white;
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
-/* SAAT TOMBOL DIKLIK/DIPENCET (ACTIVE) */
 .button:active {
-    color: #fff;
-    text-shadow:
-        0 0 15px #fff,
-        0 0 30px #fff; /* Lebih menyala lagi */
-    transform: scale(0.98); /* Efek tertekan ke dalam */
+    transform: scale(0.95);
 }
 
-/* FOOTER */
+/* --- FOOTER --- */
 .footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 10vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    text-align: center;
 }
 
 .h1-footer {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 300;
+    opacity: 0.8;
+}
+
+/* --- MEDIA QUERIES (RESPONSIF) --- */
+
+/* Tablet (Maks 768px) */
+@media screen and (max-width: 768px) {
+    .button-menu {
+        gap: 20px;
+    }
+
+    .button {
+        min-width: 80%;
+    }
+}
+
+/* Smartphone (Maks 480px) */
+@media screen and (max-width: 480px) {
+    .navbar-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .hero {
+        width: 100%;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .isi-konten {
+        align-items: flex-start; /* Di HP jangan terlalu tengah agar tidak tertutup keyboard/UI */
+        padding-top: 50px;
+    }
 }
