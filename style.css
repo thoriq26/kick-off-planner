@@ -17,7 +17,7 @@ body {
         url("lapangan.jpg");
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* Background tetap diam saat scroll */
+    background-attachment: fixed;
     width: 100%;
     min-height: 100vh;
     display: flex;
@@ -27,19 +27,22 @@ body {
 /* --- NAVBAR & HERO --- */
 .navbar-content {
     display: flex;
+    justify-content: center; /* Menjaga Hero tetap di tengah */
     align-items: center;
-    justify-content: space-between;
     padding: 20px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
     z-index: 1000;
 }
 
+/* LOGO RESPONSIVE POJOK KIRI ATAS */
 .logo {
-    width: 5vh;
-    height: 5vh;
+    position: absolute; /* Keluar dari alur agar tidak mendorong Hero */
+    left: 20px;
+    top: 20px;
+    width: 60px; /* Ukuran yang pas, tidak terlalu kecil */
+    height: auto;
+    transition: all 0.3s ease;
 }
 
 .hero {
@@ -48,50 +51,51 @@ body {
     align-items: center;
     text-align: center;
     color: white;
-    padding: 10px 20px;
-    border-radius: 12px;
+    padding: 15px 30px;
+    border-radius: 15px;
     background: linear-gradient(
         to bottom,
         rgba(0, 128, 0, 0.8),
         rgba(0, 0, 0, 0.6)
     );
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
 }
 
 .hero h1 {
-    font-size: clamp(1.5rem, 5vw, 3rem); /* Ukuran font adaptif */
+    font-size: clamp(1.5rem, 5vw, 3rem);
     margin: 0;
     text-shadow: 2px 2px 10px black;
 }
 
 .hero p {
-    font-size: clamp(0.9rem, 2vw, 1.3rem);
+    font-size: clamp(0.8rem, 2vw, 1.1rem);
     margin-top: 5px;
     text-shadow: 2px 2px 10px black;
 }
 
 /* --- ISI KONTEN (TOMBOL) --- */
 .isi-konten {
-    flex: 1; /* Mengambil sisa ruang agar footer tetap di bawah */
+    flex: 1;
     display: flex;
     justify-content: center;
-    align-items: center; /* Menengahkan tombol secara vertikal & horizontal */
+    align-items: center;
     padding: 20px;
 }
 
 .button-menu {
     display: flex;
-    flex-wrap: wrap; /* Supaya otomatis turun jika layar sempit */
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 40px;
+    gap: 30px;
     width: 100%;
 }
 
 .button {
     text-align: center;
     color: #e0e0e0;
-    min-width: 200px;
-    padding: 15px 30px;
+    min-width: 220px;
+    padding: 18px 30px;
     font-weight: 700;
     border-radius: 12px;
     background: linear-gradient(
@@ -102,63 +106,67 @@ body {
     text-decoration: none;
     transition: all 0.3s ease;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .button:hover {
     color: white;
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-.button:active {
-    transform: scale(0.95);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 128, 0, 0.4);
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 150, 0, 1),
+        rgba(0, 0, 0, 0.8)
+    );
 }
 
 /* --- FOOTER --- */
 .footer {
     padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
+    background: none;
     color: white;
     text-align: center;
 }
 
 .h1-footer {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 300;
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
-/* --- MEDIA QUERIES (RESPONSIF) --- */
+/* --- MEDIA QUERIES --- */
 
-/* Tablet (Maks 768px) */
 @media screen and (max-width: 768px) {
+    .logo {
+        width: 50px; /* Sedikit mengecil di tablet */
+        left: 15px;
+        top: 15px;
+    }
+
     .button-menu {
         gap: 20px;
     }
-
-    .button {
-        min-width: 80%;
-    }
 }
 
-/* Smartphone (Maks 480px) */
 @media screen and (max-width: 480px) {
     .navbar-content {
-        flex-direction: column;
-        gap: 15px;
+        padding-top: 70px; /* Beri ruang agar Hero tidak menabrak Logo yang di atas */
     }
 
-    .hero {
-        width: 100%;
+    .logo {
+        width: 45px;
+        left: 50%;
+        transform: translateX(
+            -50%
+        ); /* Di HP sangat kecil, logo pindah ke tengah atas agar rapi */
+        top: 15px;
     }
 
     .hero h1 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
     }
 
-    .isi-konten {
-        align-items: flex-start; /* Di HP jangan terlalu tengah agar tidak tertutup keyboard/UI */
-        padding-top: 50px;
+    .button {
+        min-width: 90%;
     }
 }

@@ -8,10 +8,20 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
+        <!-- Library Supabase -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
         <style>
             body {
                 font-family: "Segoe UI", sans-serif;
+                /* --- PENAMBAHAN BACKGROUND --- */
+                background-image: url("DC98-transformed.jpeg");
+                background-size: 99%;
+                background-position: center;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
                 background-color: #f0f2f5;
+
                 margin: 0;
                 padding: 20px;
                 display: flex;
@@ -57,7 +67,8 @@
 
             /* CONTAINER & UMUM */
             .container {
-                background: white;
+                /* MODIFIKASI: Transparansi agar background terlihat */
+                background: rgba(255, 255, 255, 0.9);
                 padding: 25px;
                 border-radius: 20px;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -75,10 +86,10 @@
                 margin-top: 0;
             }
 
-            /* ADMIN PANEL (Hidden by Default) */
+            /* ADMIN PANEL */
             #adminSection {
-                display: none; /* Disembunyikan awalnya */
-                background: #fef9e7;
+                display: none;
+                background: rgba(254, 249, 231, 0.95);
                 border: 2px dashed #f39c12;
             }
 
@@ -131,7 +142,7 @@
             }
 
             .detail-jadwal {
-                background: #ecf0f1;
+                background: rgba(236, 240, 241, 0.8);
                 padding: 15px;
                 border-radius: 10px;
                 margin-top: 15px;
@@ -168,6 +179,7 @@
                 box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
                 transition: 0.3s;
                 border: none;
+                z-index: 1000;
             }
 
             .login-admin-trigger:hover {
@@ -221,7 +233,7 @@
         <!-- USER DISPLAY PANEL -->
         <div class="container">
             <div class="info-card">
-                <h2 id="displayNama">Belum Ada Lokasi</h2>
+                <h2 id="displayNama">Memuat data...</h2>
                 <div class="detail-jadwal">
                     <span
                         ><strong>📅 Tanggal:</strong>
@@ -246,7 +258,7 @@
                             text-align: center;
                         "
                     >
-                        Peta belum diset oleh admin.
+                        Memuat peta lapangan...
                     </p>
                 </div>
             </div>
@@ -262,7 +274,13 @@
         </button>
 
         <script>
-            const ADMIN_PASSWORD = "dc98admin";
+            // --- KONFIGURASI SUPABASE KICKOFF PLANNER ---
+            const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
+            const SB_KEY =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
+            const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+            const ADMIN_PASSWORD = "admin";
 
             function loginAdmin() {
                 const pass = prompt("Masukkan Password Admin:");
@@ -279,7 +297,7 @@
                 document.getElementById("adminSection").style.display = "none";
             }
 
-            function updateInfo() {
+            async function updateInfo() {
                 const link = document.getElementById("linkMaps").value;
                 const jadwal = document.getElementById("jadwalMain").value;
                 const nama = document.getElementById("namaLapangan").value;
@@ -294,31 +312,50 @@
                     if (match) finalURL = match[1];
                 }
 
-                const infoLapangan = {
-                    mapsUrl: finalURL,
-                    waktu: jadwal,
-                    namaLp: nama,
-                };
+                const { error } = await _supabase
+                    .from("jadwal_lapangan")
+                    .upsert({
+                        id: 1,
+                        nama_lp: nama,
+                        waktu: jadwal,
+                        maps_url: finalURL,
+                    });
 
-                localStorage.setItem("infoDC98", JSON.stringify(infoLapangan));
-                alert("Info Lapangan Berhasil Diperbarui!");
-                loadInfo();
-                toggleAdmin(); // Tutup panel setelah update
-            }
-
-            function resetInfo() {
-                if (confirm("Hapus info lapangan dan jadwal?")) {
-                    localStorage.removeItem("infoDC98");
-                    alert("Info Berhasil Dihapus!");
-                    location.reload();
+                if (error) {
+                    alert("Gagal memperbarui database: " + error.message);
+                } else {
+                    alert("Info Lapangan Berhasil Diperbarui!");
+                    loadInfo();
+                    toggleAdmin();
                 }
             }
 
-            function loadInfo() {
-                const data = JSON.parse(localStorage.getItem("infoDC98"));
+            async function resetInfo() {
+                if (confirm("Hapus info lapangan dan jadwal?")) {
+                    const { error } = await _supabase
+                        .from("jadwal_lapangan")
+                        .delete()
+                        .eq("id", 1);
+
+                    if (error) {
+                        alert("Gagal menghapus: " + error.message);
+                    } else {
+                        alert("Info Berhasil Dihapus!");
+                        location.reload();
+                    }
+                }
+            }
+
+            async function loadInfo() {
+                const { data, error } = await _supabase
+                    .from("jadwal_lapangan")
+                    .select("*")
+                    .eq("id", 1)
+                    .single();
+
                 if (data) {
                     document.getElementById("displayNama").innerText =
-                        data.namaLp;
+                        data.nama_lp;
                     const dateObj = new Date(data.waktu);
                     const options = {
                         weekday: "long",
@@ -333,13 +370,18 @@
                             hour: "2-digit",
                             minute: "2-digit",
                         }) + " WIB";
+
                     document.getElementById("displayStatus").style.display =
                         "inline-block";
                     document.getElementById("mapContainer").innerHTML =
-                        `<iframe src="${data.mapsUrl}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+                        `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
                 } else {
+                    document.getElementById("displayNama").innerText =
+                        "Belum Ada Lokasi";
                     document.getElementById("displayStatus").style.display =
                         "none";
+                    document.getElementById("mapContainer").innerHTML =
+                        `<p style="color: #95a5a6; padding: 20px; text-align: center;">Peta belum diset oleh admin.</p>`;
                 }
             }
 

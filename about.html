@@ -4,7 +4,6 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Kehadiran - DC98</title>
-        <!-- Link Font Awesome untuk Ikon Rumah -->
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -12,12 +11,20 @@
         <style>
             body {
                 font-family: "Segoe UI", sans-serif;
+                /* --- PENAMBAHAN BACKGROUND --- */
+                background-image: url("DC98-transformed.jpeg");
+                background-size: 99%; /* Sesuai permintaan */
+                background-position: center;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
                 background-color: #f0f2f5;
+
                 margin: 0;
                 padding: 20px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                min-height: 100vh;
             }
 
             /* NAVBAR */
@@ -34,15 +41,6 @@
                 justify-content: center;
             }
 
-            .ul-navbar {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
             .home-box {
                 position: absolute;
                 left: 15px;
@@ -53,12 +51,7 @@
             .home-link {
                 font-size: 24px;
                 color: white;
-                transition: 0.3s;
                 text-decoration: none;
-            }
-
-            .home-link:hover {
-                color: #f39c12;
             }
 
             .li-navbar a {
@@ -71,30 +64,29 @@
                 background-color: #f39c12 !important;
                 padding: 6px 20px;
                 border-radius: 5px;
-                transition: 0.3s;
                 color: white !important;
             }
 
             /* KONTEN UTAMA */
             .container {
-                background: white;
+                /* MODIFIKASI: Ditambah transparansi (0.9) agar background terlihat */
+                background: rgba(255, 255, 255, 0.9);
                 padding: 30px;
                 border-radius: 20px;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
                 width: 100%;
                 max-width: 800px;
                 text-align: center;
+                box-sizing: border-box;
             }
 
             h2 {
                 color: #2c3e50;
-                margin-bottom: 10px;
             }
             #statusSlot {
                 font-weight: bold;
-                color: #27ae60;
-                margin-bottom: 20px;
                 font-size: 18px;
+                margin-bottom: 20px;
             }
 
             .form-group {
@@ -119,19 +111,28 @@
                 border: none;
                 cursor: pointer;
                 font-weight: bold;
+                transition: 0.3s;
+            }
+            .btn:hover {
+                background-color: #219150;
             }
 
             .btn-reset {
                 background: #e74c3c;
                 margin-top: 5px;
             }
+            .btn-reset:hover {
+                background: #c0392b;
+            }
 
             table {
                 width: 100%;
                 border-collapse: collapse;
                 margin-top: 20px;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
             }
-
             th,
             td {
                 padding: 12px;
@@ -154,7 +155,7 @@
                     <i class="fa-solid fa-house"></i>
                 </a>
             </div>
-            <ul class="ul-navbar">
+            <ul style="list-style: none; padding: 0">
                 <li class="li-navbar">
                     <a href="about.html" class="btn-active-nav">Kehadiran</a>
                 </li>
@@ -163,7 +164,7 @@
 
         <div class="container">
             <h2>Daftar Kehadiran</h2>
-            <p id="statusSlot">Slot tersedia: 20</p>
+            <p id="statusSlot">Memuat kuota...</p>
 
             <div class="form-group">
                 <input
@@ -182,8 +183,6 @@
                 <button class="btn" onclick="tambahPemain()">
                     Saya Ikut Main!
                 </button>
-
-                <!-- Tombol Reset tetap ada, tapi diproteksi fungsi resetData() -->
                 <button class="btn btn-reset" onclick="resetData()">
                     Reset Daftar
                 </button>
@@ -201,23 +200,80 @@
             </table>
         </div>
 
-        <script>
-            let daftarPemain =
-                JSON.parse(localStorage.getItem("daftarDC98")) || [];
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-            function tambahPemain() {
+        <script>
+            // KONFIGURASI SUPABASE
+            const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
+            const SUPABASE_KEY =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
+
+            const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            let daftarPemain = [];
+
+            async function fetchPemain() {
+                const { data, error } = await _supabase
+                    .from("pemain")
+                    .select("*")
+                    .order("created_at", { ascending: true });
+
+                if (error) {
+                    console.error("Gagal mengambil data:", error);
+                    document.getElementById("statusSlot").innerText =
+                        "Gagal memuat data!";
+                } else {
+                    daftarPemain = data;
+                    renderTabel();
+                }
+            }
+
+            async function tambahPemain() {
                 const nama = document.getElementById("inputNama").value.trim();
                 const posisi = document.getElementById("pilihPosisi").value;
+
                 if (nama === "") return alert("Mohon isi nama kamu!");
                 if (daftarPemain.length >= 20) return alert("Kuota penuh!");
 
-                daftarPemain.push({ nama, posisi });
-                localStorage.setItem(
-                    "daftarDC98",
-                    JSON.stringify(daftarPemain),
+                const { error } = await _supabase
+                    .from("pemain")
+                    .insert([{ nama: nama, posisi: posisi }]);
+
+                if (error) {
+                    alert("Gagal mendaftar: " + error.message);
+                } else {
+                    document.getElementById("inputNama").value = "";
+                    fetchPemain();
+                }
+            }
+
+            async function resetData() {
+                const passwordAdmin = "admin";
+                const inputUser = prompt(
+                    "Masukkan Password Admin untuk mereset daftar:",
                 );
-                document.getElementById("inputNama").value = "";
-                renderTabel();
+
+                if (inputUser === passwordAdmin) {
+                    if (
+                        confirm(
+                            "Apakah Anda yakin ingin menghapus SEMUA daftar pemain?",
+                        )
+                    ) {
+                        const { error } = await _supabase
+                            .from("pemain")
+                            .delete()
+                            .neq("id", 0);
+
+                        if (error) {
+                            alert("Gagal reset data!");
+                        } else {
+                            alert("Daftar berhasil dikosongkan.");
+                            fetchPemain();
+                        }
+                    }
+                } else if (inputUser !== null) {
+                    alert("Password Salah!");
+                }
             }
 
             function renderTabel() {
@@ -226,42 +282,25 @@
                 daftarPemain.forEach((p, i) => {
                     tbody.innerHTML += `<tr><td>${i + 1}</td><td>${p.nama}</td><td>${p.posisi}</td></tr>`;
                 });
+
                 const sisaSlot = 20 - daftarPemain.length;
                 const statusEl = document.getElementById("statusSlot");
                 statusEl.innerText = `Slot tersedia: ${sisaSlot}`;
                 statusEl.style.color = sisaSlot <= 0 ? "#e74c3c" : "#27ae60";
             }
 
-            // SISTEM PROTEKSI ADMIN (OPSI 1)
-            function resetData() {
-                // 1. Tentukan password admin
-                const passwordAdmin = "admin";
+            _supabase
+                .channel("pemain_changes")
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "pemain" },
+                    () => {
+                        fetchPemain();
+                    },
+                )
+                .subscribe();
 
-                // 2. Munculkan kotak input password
-                const inputUser = prompt(
-                    "Masukkan Password Admin untuk mereset daftar:",
-                );
-
-                // 3. Cek apakah input cocok dengan password
-                if (inputUser === passwordAdmin) {
-                    // Jika benar, konfirmasi sekali lagi
-                    if (
-                        confirm(
-                            "Password Benar. Apakah Anda yakin ingin menghapus semua daftar pemain?",
-                        )
-                    ) {
-                        localStorage.removeItem("daftarDC98");
-                        daftarPemain = [];
-                        renderTabel();
-                        alert("Daftar berhasil dikosongkan.");
-                    }
-                } else if (inputUser !== null) {
-                    // Jika salah (dan bukan menekan tombol Cancel)
-                    alert("Password Salah! Anda tidak memiliki akses admin.");
-                }
-            }
-
-            window.onload = renderTabel;
+            window.onload = fetchPemain;
         </script>
     </body>
 </html>
