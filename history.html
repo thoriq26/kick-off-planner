@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Event History - KickOff Planner</title>
+
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <style>
+            :root {
+                --primary-color: #2ecc71;
+                --dark-blue: #031c26;
+                --text-dark: #2c3e50;
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 15px;
+                /* --- Background Lapangan --- */
+                background-color: var(--dark-blue);
+                background-image:
+                    linear-gradient(rgba(3, 28, 38, 0.8), rgba(3, 28, 38, 0.9)),
+                    url("lapangan.jpg");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* --- Navbar Responsif --- */
+            .navbar {
+                background: rgba(4, 41, 58, 0.9);
+                backdrop-filter: blur(10px);
+                width: 100%;
+                max-width: 800px;
+                border-radius: 15px;
+                margin-bottom: 20px;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .home-box {
+                position: absolute;
+                left: 20px;
+            }
+            .home-link {
+                color: white;
+                font-size: 20px;
+                text-decoration: none;
+            }
+            .nav-label {
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                font-size: 1rem;
+            }
+
+            /* --- Container Card --- */
+            .container {
+                width: 100%;
+                max-width: 800px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .history-card {
+                background: rgba(255, 255, 255, 0.98);
+                color: #1a1a1a;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                overflow: hidden;
+                transition: transform 0.2s;
+            }
+
+            summary {
+                padding: 15px;
+                cursor: pointer;
+                list-style: none;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: 800;
+                text-transform: uppercase;
+                color: var(--dark-blue);
+                font-size: 1rem;
+                /* Penomoran Otomatis di Samping */
+                border-left: 45px solid var(--primary-color);
+                position: relative;
+            }
+
+            summary::-webkit-details-marker {
+                display: none;
+            }
+
+            summary::before {
+                content: attr(data-number);
+                position: absolute;
+                left: -33px;
+                color: white;
+                font-size: 1.1rem;
+                font-weight: 900;
+            }
+
+            summary::after {
+                content: "\f078";
+                font-family: "Font Awesome 6 Free";
+                font-weight: 900;
+                font-size: 0.8rem;
+                color: #94a3b8;
+                transition: 0.3s;
+            }
+
+            details[open] summary::after {
+                transform: rotate(180deg);
+            }
+
+            /* --- Detail Content --- */
+            .detail-content {
+                padding: 15px;
+                border-top: 1px solid #e2e8f0;
+                background: white;
+                position: relative;
+            }
+
+            .info-grid {
+                display: grid;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .match-info {
+                font-size: 0.85rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #475569;
+            }
+
+            .match-info i {
+                color: var(--primary-color);
+                width: 16px;
+                text-align: center;
+            }
+
+            /* --- Squad List --- */
+            .squad-section {
+                background: #f8fafc;
+                padding: 12px;
+                border-radius: 8px;
+                border: 1px solid #edf2f7;
+            }
+
+            .squad-label {
+                font-weight: 700;
+                font-size: 0.75rem;
+                color: #64748b;
+                margin-bottom: 8px;
+                display: block;
+            }
+
+            .player-badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .player-badge {
+                background: white;
+                color: var(--dark-blue);
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                border: 1px solid #e2e8f0;
+                font-weight: 600;
+            }
+
+            .delete-btn {
+                margin-top: 15px;
+                display: flex;
+                justify-content: flex-end;
+                color: #ef4444;
+                cursor: pointer;
+                font-size: 1rem;
+                opacity: 0.7;
+            }
+
+            /* --- Pagination akan muncul jika lebih dari 10 --- */
+            .pagination {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                margin: 25px 0;
+            }
+
+            .page-btn {
+                background: rgba(255, 255, 255, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+            }
+
+            .page-btn.active {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                font-weight: bold;
+            }
+
+            /* --- Media Queries (Responsivitas) --- */
+            @media (max-width: 480px) {
+                body {
+                    padding: 10px;
+                }
+                summary {
+                    font-size: 0.9rem;
+                    border-left-width: 40px;
+                }
+                summary::before {
+                    left: -30px;
+                    font-size: 1rem;
+                }
+                .nav-label {
+                    font-size: 0.9rem;
+                }
+                .player-badge {
+                    font-size: 0.7rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <div class="home-box">
+                <a href="index.html" class="home-link"
+                    ><i class="fa-solid fa-arrow-left"></i
+                ></a>
+            </div>
+            <div class="nav-label">Event History</div>
+        </div>
+
+        <div class="container" id="historyList"></div>
+        <div class="pagination" id="paginationControls"></div>
+
+        <script>
+            const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
+            const SB_KEY =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
+            const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+            let currentPage = 1;
+            const itemsPerPage = 10;
+            let totalData = [];
+
+            function formatDateTime(dateString) {
+                if (!dateString || dateString === "N/A") return "N/A";
+                return dateString.replace("T", " | ").substring(0, 21);
+            }
+
+            function getPlayerBadges(listString) {
+                if (
+                    !listString ||
+                    listString === "-" ||
+                    listString === "No list recorded"
+                ) {
+                    return `<span style="color:#94a3b8; font-size: 0.8rem;">No players</span>`;
+                }
+                return listString
+                    .split(",")
+                    .map((p) => `<span class="player-badge">${p.trim()}</span>`)
+                    .join("");
+            }
+
+            async function loadData() {
+                const { data, error } = await _supabase
+                    .from("event_history")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+
+                if (error) return;
+                totalData = data;
+                renderPage(1);
+            }
+
+            function renderPage(page) {
+                currentPage = page;
+                const container = document.getElementById("historyList");
+                container.innerHTML = "";
+
+                const startIndex = (page - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const pageData = totalData.slice(startIndex, endIndex);
+
+                if (pageData.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; opacity:0.6; padding: 20px;">No history records found.</div>`;
+                    return;
+                }
+
+                pageData.forEach((item, index) => {
+                    const matchNumber = totalData.length - (startIndex + index);
+                    const card = document.createElement("details");
+                    card.className = "history-card";
+                    card.innerHTML = `
+                        <summary data-number="${matchNumber}">${item.event_name}</summary>
+                        <div class="detail-content">
+                            <div class="info-grid">
+                                <div class="match-info"><i class="fa-solid fa-location-dot"></i> ${item.location_name}</div>
+                                <div class="match-info"><i class="fa-solid fa-calendar"></i> ${formatDateTime(item.match_date)}</div>
+                                <div class="match-info"><i class="fa-solid fa-users"></i> ${item.player_count} Participants</div>
+                            </div>
+                            <div class="squad-section">
+                                <span class="squad-label">SQUAD LIST</span>
+                                <div class="player-badges">${getPlayerBadges(item.player_list)}</div>
+                            </div>
+                            <div class="delete-btn" onclick="deleteHistory(${item.id})">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                renderPagination();
+            }
+
+            function renderPagination() {
+                const controls = document.getElementById("paginationControls");
+                controls.innerHTML = "";
+                const totalPages = Math.ceil(totalData.length / itemsPerPage);
+
+                if (totalPages <= 1) return;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement("button");
+                    btn.className = `page-btn ${i === currentPage ? "active" : ""}`;
+                    btn.innerText = i;
+                    btn.onclick = () => {
+                        renderPage(i);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    };
+                    controls.appendChild(btn);
+                }
+            }
+
+            async function deleteHistory(id) {
+                if (confirm("Hapus history ini secara permanen?")) {
+                    const { error } = await _supabase
+                        .from("event_history")
+                        .delete()
+                        .eq("id", id);
+                    if (!error) loadData();
+                }
+            }
+
+            window.onload = loadData;
+        </script>
+    </body>
+</html>

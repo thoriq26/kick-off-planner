@@ -1,28 +1,31 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>Info Lapangan - DC98</title>
+        <title>Match Info - KickOff Planner</title>
+
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
-        <!-- Library Supabase -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
         <style>
-            /* --- RESET & BACKGROUND FULL RESPONSIF --- */
             html,
             body {
                 height: 100%;
                 margin: 0;
                 padding: 0;
             }
-
             body {
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
@@ -32,74 +35,54 @@
                 width: 100%;
                 box-sizing: border-box;
                 padding: 20px;
-
-                /* Konfigurasi Background */
                 background-image:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
                     url("DC98-transformed.jpeg");
                 background-size: cover !important;
-                background-position: center center;
+                background-position: center;
                 background-repeat: no-repeat;
                 background-attachment: fixed;
                 background-color: #1a1a1a;
             }
 
-            /* NAVBAR */
             .navbar {
-                background: rgba(
-                    44,
-                    62,
-                    80,
-                    0.95
-                ); /* Sedikit lebih gelap agar emerald kontras */
+                background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
                 width: 100%;
                 max-width: 800px;
-                border-radius: 15px;
-                margin-bottom: 20px;
+                border-radius: 20px;
+                margin-bottom: 25px;
                 position: relative;
-                height: 65px;
+                height: 70px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-                flex-shrink: 0;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
                 border: 1px solid rgba(255, 255, 255, 0.1);
             }
-
             .home-box {
                 position: absolute;
-                left: 20px;
-                top: 50%;
-                transform: translateY(-50%);
+                left: 25px;
+                display: flex;
+                align-items: center;
             }
-
             .home-link {
-                font-size: 24px;
                 color: white;
+                font-size: 28px;
                 text-decoration: none;
                 transition: 0.3s;
             }
-
             .home-link:hover {
-                color: #2ecc71; /* Emerald saat hover */
+                color: #2ecc71;
             }
-
-            /* Label Pajangan Emerald */
             .nav-label {
-                background-color: #2ecc71; /* Warna Emerald */
-                padding: 10px 25px;
-                border-radius: 12px;
                 color: white;
-                font-weight: 800;
+                font-weight: 900;
                 text-transform: uppercase;
-                letter-spacing: 1px;
-                cursor: default;
-                user-select: none;
-                box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+                letter-spacing: 3px;
+                font-size: 1.5rem;
             }
 
-            /* CONTAINER KONTEN */
             .container {
                 background: rgba(255, 255, 255, 0.98);
                 padding: 25px;
@@ -107,87 +90,122 @@
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 width: 100%;
                 max-width: 800px;
-                margin-bottom: 20px;
                 box-sizing: border-box;
+                margin-bottom: 20px;
             }
 
-            h2 {
-                color: #2c3e50;
-                border-left: 6px solid #2ecc71; /* Garis samping Emerald */
-                padding-left: 15px;
-                margin-top: 0;
-            }
-
-            /* DISPLAY AREA */
-            .map-frame {
-                width: 100%;
-                height: 380px;
-                border-radius: 15px;
-                border: 2px solid #ecf0f1;
-                margin-top: 15px;
-                background: #f9f9f9;
-                overflow: hidden;
-            }
-
-            .detail-jadwal {
-                background: #f1f8f4; /* Background soft green */
-                padding: 18px;
-                border-radius: 12px;
-                margin-top: 15px;
-                border: 1px solid #d1eadd;
-            }
-
-            .detail-jadwal span {
-                display: block;
-                margin-bottom: 8px;
-                font-size: 16px;
-                color: #2c3e50;
-            }
-
-            .badge {
-                background: #27ae60;
-                color: white;
-                padding: 4px 12px;
-                border-radius: 6px;
-                font-size: 13px;
-                font-weight: 600;
-            }
-
-            /* ADMIN PANEL */
             #adminSection {
                 display: none;
                 border: 2px dashed #2ecc71;
                 background: #f0fff4;
+                margin-bottom: 20px;
             }
-
             .form-group {
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
             }
-
             input,
             .btn {
-                padding: 14px;
+                padding: 12px;
                 border-radius: 10px;
                 border: 1px solid #ddd;
                 font-size: 15px;
             }
 
             .btn {
-                background: #2ecc71;
                 color: white;
                 border: none;
                 font-weight: bold;
                 cursor: pointer;
-                transition: 0.2s;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
             }
-
-            .btn:hover {
+            .btn-save {
+                background: #2ecc71;
+            }
+            .btn-save:hover {
                 background: #27ae60;
             }
+            .btn-archive {
+                background: #e67e22;
+            }
+            .btn-archive:hover {
+                background: #d35400;
+            }
+            .btn-cancel {
+                background: #95a5a6;
+                margin-top: 5px;
+            }
 
-            /* FLOATING ACTION BUTTON */
+            .detail-jadwal {
+                background: #f8fafc;
+                padding: 20px;
+                border-radius: 15px;
+                border: 1px solid #e2e8f0;
+            }
+            .info-row {
+                display: flex;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px dashed #e2e8f0;
+            }
+            .info-row:last-child {
+                border-bottom: none;
+            }
+            .info-icon {
+                width: 35px;
+                font-size: 18px;
+                color: #27ae60;
+                text-align: center;
+                margin-right: 15px;
+            }
+            .info-content {
+                display: flex;
+                flex-direction: column;
+            }
+            .info-label {
+                font-size: 11px;
+                text-transform: uppercase;
+                font-weight: 800;
+                color: #94a3b8;
+                letter-spacing: 1px;
+            }
+            .info-value {
+                font-size: 15px;
+                color: #1e293b;
+                font-weight: 600;
+            }
+
+            .badge {
+                background: #27ae60;
+                color: white;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+            .stadium-name {
+                text-align: center;
+                color: #1e293b;
+                font-size: 22px;
+                font-weight: 800;
+                margin: 20px 0 10px 0;
+                text-transform: uppercase;
+            }
+            .map-frame {
+                width: 100%;
+                height: 280px;
+                border-radius: 15px;
+                border: 2px solid #f1f5f9;
+                background: #f9f9f9;
+                overflow: hidden;
+            }
+
             .login-admin-trigger {
                 position: fixed;
                 bottom: 25px;
@@ -202,86 +220,126 @@
                 justify-content: center;
                 border: none;
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-                z-index: 1000;
                 cursor: pointer;
-                transition: 0.3s;
-            }
-
-            .login-admin-trigger:hover {
-                transform: scale(1.1);
-                background: #2ecc71;
-            }
-
-            @media screen and (max-width: 480px) {
-                body {
-                    padding: 10px;
-                }
-                .nav-label {
-                    font-size: 13px;
-                    padding: 8px 18px;
-                }
+                z-index: 1000;
             }
         </style>
     </head>
     <body>
         <div class="navbar">
             <div class="home-box">
-                <a href="index.html" class="home-link">
-                    <i class="fa-solid fa-house"></i>
-                </a>
+                <a href="index.html" class="home-link"
+                    ><i class="fa-solid fa-house"></i
+                ></a>
             </div>
             <div class="nav-label">Match Day</div>
         </div>
 
         <div id="adminSection" class="container">
-            <h3 style="color: #27ae60">🛠 Panel Admin</h3>
+            <h3 style="color: #27ae60; margin-top: 0">🛠 Admin Panel</h3>
             <div class="form-group">
-                <input
-                    type="text"
-                    id="linkMaps"
-                    placeholder="Tempel Link Iframe Google Maps"
-                />
-                <input type="datetime-local" id="jadwalMain" />
+                <input type="text" id="eventInput" placeholder="Event Name" />
                 <input
                     type="text"
                     id="namaLapangan"
-                    placeholder="Nama Lapangan"
+                    placeholder="Stadium Name"
                 />
-                <button class="btn" onclick="updateInfo()">
-                    Simpan Perubahan
+                <input
+                    type="text"
+                    id="jadwalMain"
+                    placeholder="Click to select Date & Time"
+                    readonly
+                />
+                <input type="text" id="jerseyInfo" placeholder="Jersey Color" />
+                <input type="text" id="htmInfo" placeholder="Admission Fee" />
+                <input
+                    type="text"
+                    id="rekeningInfo"
+                    placeholder="Payment Details"
+                />
+                <input
+                    type="text"
+                    id="linkMaps"
+                    placeholder="Google Maps Iframe Link"
+                />
+
+                <button class="btn btn-archive" onclick="archiveMatch()">
+                    <i class="fa-solid fa-box-archive"></i> ARCHIVE MATCH (SEND
+                    TO HISTORY)
                 </button>
-                <button
-                    class="btn"
-                    style="background: #95a5a6"
-                    onclick="toggleAdmin()"
-                >
-                    Batal
+                <button class="btn btn-save" onclick="updateInfo()">
+                    <i class="fa-solid fa-floppy-disk"></i> SAVE CHANGES
+                </button>
+                <button class="btn btn-cancel" onclick="toggleAdmin()">
+                    CANCEL
                 </button>
             </div>
         </div>
 
         <div class="container">
-            <h2 id="displayNama">Memuat Nama Lapangan...</h2>
             <div class="detail-jadwal">
-                <span
-                    ><strong>📅 Tanggal:</strong>
-                    <span id="displayTgl">-</span></span
-                >
-                <span
-                    ><strong>⏰ Waktu:</strong>
-                    <span id="displayJam">-</span></span
-                >
-                <span
-                    ><strong>📍 Status:</strong>
-                    <span class="badge"
-                        ><i class="fa-solid fa-circle-check"></i>
-                        Terkonfirmasi</span
-                    ></span
-                >
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Event Name</span>
+                        <span id="displayEvent" class="info-value">-</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Date & Time</span>
+                        <span id="displayDateTime" class="info-value">-</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fa-solid fa-shirt"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Jersey Color</span>
+                        <span id="displayJersey" class="info-value">-</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Admission Fee</span>
+                        <span class="info-value"
+                            >Rp. <span id="displayHtm">-</span></span
+                        >
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Payment Gateway</span>
+                        <span id="displayRekening" class="info-value">-</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Status</span>
+                        <div><span class="badge">Confirmed</span></div>
+                    </div>
+                </div>
             </div>
+
+            <div class="stadium-name" id="displayNama">Loading...</div>
             <div id="mapContainer" class="map-frame">
-                <p style="text-align: center; line-height: 380px; color: #999">
-                    Sedang memuat peta...
+                <p style="text-align: center; line-height: 280px; color: #999">
+                    Loading Map...
                 </p>
             </div>
         </div>
@@ -291,20 +349,30 @@
         </button>
 
         <script>
-            // Inisialisasi Supabase
             const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SB_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
             const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+            flatpickr("#jadwalMain", {
+                enableTime: true,
+                dateFormat: "Y-m-d | H:i",
+                time_24hr: true,
+            });
+
             function loginAdmin() {
-                const pass = prompt("Masukkan Password Admin:");
+                const pass = prompt("Admin Password:");
+
+                // Menangani jika user menekan 'Cancel'
+                if (pass === null) return;
+
                 if (pass === "admin") {
                     document.getElementById("adminSection").style.display =
                         "block";
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                } else if (pass !== null) {
-                    alert("Password Salah!");
+                    alert("Access Granted! Welcome Admin.");
+                } else {
+                    // Popup peringatan akses ditolak dalam Bahasa Inggris
+                    alert("Access Denied! Incorrect Password.");
                 }
             }
 
@@ -313,18 +381,17 @@
             }
 
             async function updateInfo() {
-                const link = document.getElementById("linkMaps").value;
-                const jadwal = document.getElementById("jadwalMain").value;
+                const event = document.getElementById("eventInput").value;
                 const nama = document.getElementById("namaLapangan").value;
+                const jadwal = document.getElementById("jadwalMain").value;
+                const jersey = document.getElementById("jerseyInfo").value;
+                const htm = document.getElementById("htmInfo").value;
+                const rekening = document.getElementById("rekeningInfo").value;
+                const maps = document.getElementById("linkMaps").value;
 
-                if (!nama || !jadwal) {
-                    alert("Mohon isi Nama Lapangan dan Jadwal!");
-                    return;
-                }
-
-                let finalURL = link;
-                if (link.includes("<iframe")) {
-                    const match = link.match(/src="([^"]+)"/);
+                let finalURL = maps;
+                if (maps.includes("<iframe")) {
+                    const match = maps.match(/src="([^"]+)"/);
                     if (match) finalURL = match[1];
                 }
 
@@ -332,51 +399,122 @@
                     .from("jadwal_lapangan")
                     .upsert({
                         id: 1,
+                        event_name: event,
                         nama_lp: nama,
                         waktu: jadwal,
+                        jersey: jersey,
+                        htm: htm,
+                        rekening: rekening,
                         maps_url: finalURL,
                     });
 
                 if (!error) {
-                    alert("Data berhasil diperbarui!");
-                    loadInfo();
-                    toggleAdmin();
-                } else {
-                    alert("Gagal memperbarui data.");
+                    alert("Information Updated!");
+                    location.reload();
+                }
+            }
+
+            async function archiveMatch() {
+                const confirmArchive = confirm(
+                    "Are you sure you want to archive this match? The data will be moved to Event History and Match Day will be reset.",
+                );
+                if (!confirmArchive) return;
+
+                try {
+                    const { data: currentMatch, error: matchError } =
+                        await _supabase
+                            .from("jadwal_lapangan")
+                            .select("*")
+                            .eq("id", 1)
+                            .single();
+
+                    if (matchError || !currentMatch) {
+                        alert("Gagal mengambil data jadwal lapangan.");
+                        return;
+                    }
+
+                    const { data: players, error: playersError } =
+                        await _supabase.from("pemain").select("nama");
+
+                    if (playersError) {
+                        alert("Gagal mengambil daftar pemain.");
+                        return;
+                    }
+
+                    let listNama = "-";
+                    let jumlahPemain = 0;
+
+                    if (players && players.length > 0) {
+                        listNama = players.map((p) => p.nama).join(", ");
+                        jumlahPemain = players.length;
+                    }
+
+                    const { error: insertError } = await _supabase
+                        .from("event_history")
+                        .insert({
+                            event_name: currentMatch.event_name,
+                            location_name: currentMatch.nama_lp,
+                            match_date: currentMatch.waktu,
+                            player_list: listNama,
+                            player_count: jumlahPemain,
+                        });
+
+                    if (!insertError) {
+                        await _supabase
+                            .from("jadwal_lapangan")
+                            .update({
+                                event_name: "TBA",
+                                nama_lp: "TBA",
+                                waktu: null,
+                                jersey: "-",
+                                htm: "0",
+                                rekening: "-",
+                                maps_url: "",
+                            })
+                            .eq("id", 1);
+
+                        await _supabase.from("pemain").delete().neq("id", 0);
+
+                        alert(
+                            "Match Berhasil di-Archive! Squad List telah tersimpan di riwayat.",
+                        );
+                        location.reload();
+                    } else {
+                        alert(
+                            "Gagal menyimpan ke history: " +
+                                insertError.message,
+                        );
+                    }
+                } catch (err) {
+                    alert("System Error: " + err.message);
                 }
             }
 
             async function loadInfo() {
-                const { data, error } = await _supabase
+                const { data } = await _supabase
                     .from("jadwal_lapangan")
                     .select("*")
                     .eq("id", 1)
                     .single();
-
                 if (data) {
+                    document.getElementById("displayEvent").innerText =
+                        data.event_name || "-";
                     document.getElementById("displayNama").innerText =
-                        data.nama_lp;
-                    const d = new Date(data.waktu);
-                    document.getElementById("displayTgl").innerText =
-                        d.toLocaleDateString("id-ID", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                        });
-                    document.getElementById("displayJam").innerText =
-                        d.toLocaleTimeString("id-ID", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        }) + " WIB";
-
-                    if (data.maps_url) {
+                        data.nama_lp || "-";
+                    document.getElementById("displayJersey").innerText =
+                        data.jersey || "-";
+                    document.getElementById("displayHtm").innerText =
+                        data.htm || "-";
+                    document.getElementById("displayRekening").innerText =
+                        data.rekening || "-";
+                    if (data.waktu)
+                        document.getElementById("displayDateTime").innerText =
+                            data.waktu.replace("T", " | ") + " WIB";
+                    if (data.maps_url)
                         document.getElementById("mapContainer").innerHTML =
                             `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
-                    }
                 }
             }
-
             window.onload = loadInfo;
         </script>
     </body>

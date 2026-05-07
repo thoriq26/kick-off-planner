@@ -5,35 +5,76 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>KickOff Planner</title>
         <link rel="stylesheet" href="style.css" />
+        <style>
+            /* CSS Tambahan Khusus untuk Button History agar terlihat keren */
+            .btn-history {
+                background-color: #2c3e50 !important; /* Warna Biru Navy Profesional */
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                margin-top: 10px;
+                transition: all 0.3s ease !important;
+            }
+
+            .btn-history:hover {
+                background-color: #34495e !important;
+                transform: scale(1.05);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            /* Animasi saat tombol ditekan */
+            .btn-history:active {
+                transform: scale(0.95);
+            }
+        </style>
     </head>
     <body>
         <div class="container-utama">
-            <!-- NAVIGATION BAR -->
             <nav class="navbar-content">
-                <!-- Logo diletakkan di luar Hero agar bisa diposisikan absolut -->
                 <img class="logo" src="favicon.ico" alt="Logo" />
 
                 <header class="hero">
                     <h1>KickOff Planner</h1>
                     <p>Sepak Bola Menyatukan Kita Semua</p>
                 </header>
-
-                <!-- Spacer dihilangkan karena kita pakai teknik Absolute -->
             </nav>
 
-            <!-- CONTENT -->
             <main class="isi-konten">
                 <div class="button-menu">
                     <a class="button" href="about.html">CONFIRMATION LIST</a>
-                    <a class="button" href="otomatis.html">DRAFT TIM</a>
+                    <a class="button" href="otomatis.html">TEAM DRAFT</a>
                     <a class="button" href="maps.html">MATCH DAY</a>
+
+                    <a
+                        class="button btn-history"
+                        href="#"
+                        onclick="aksesHistory(event)"
+                        >EVENT HISTORY</a
+                    >
                 </div>
             </main>
 
-            <!-- FOOTER -->
             <footer class="footer">
                 <h1 class="h1-footer">KickOff Planner © 2026 by Thoriq.</h1>
             </footer>
         </div>
+
+        <script>
+            function aksesHistory(event) {
+                // Mencegah link langsung berpindah halaman
+                event.preventDefault();
+
+                // Munculkan notif masukkan password
+                const password = prompt(
+                    "Masukkan Password Admin untuk akses History:",
+                );
+
+                if (password === "admin") {
+                    // Jika benar, arahkan ke halaman history
+                    window.location.href = "history.html";
+                } else if (password !== null) {
+                    // Jika salah (dan bukan menekan tombol cancel)
+                    alert("Password Salah! Akses Ditolak.");
+                }
+            }
+        </script>
     </body>
 </html>

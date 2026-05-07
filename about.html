@@ -1,27 +1,26 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>Kehadiran - KickOff Planner</title>
+        <title>Match Day - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <style>
-            /* --- RESET & BACKGROUND FULL RESPONSIF --- */
+            /* --- RESET & BACKGROUND FULL --- */
             html,
             body {
                 height: 100%;
                 margin: 0;
                 padding: 0;
             }
-
             body {
-                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -29,235 +28,270 @@
                 width: 100%;
                 box-sizing: border-box;
                 padding: 20px;
-
-                background-image:
-                    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                background:
+                    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
                     url("DC98-transformed.jpeg");
-                background-size: cover !important;
                 background-position: center center;
                 background-repeat: no-repeat;
                 background-attachment: fixed;
-                background-color: #f0f2f5;
+                background-size: cover;
+                background-color: #1a1a1a;
             }
 
-            /* NAVBAR */
+            /* --- NAVBAR (CONFIRMATION LIST) --- */
             .navbar {
-                background: rgba(52, 73, 94, 0.95);
+                background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
                 width: 100%;
-                max-width: 800px;
+                max-width: 1000px;
                 border-radius: 12px;
                 margin-bottom: 20px;
-                position: relative;
-                height: 60px;
+                height: 75px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                z-index: 10;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                position: relative;
             }
 
-            .home-box {
-                position: absolute;
-                left: 15px;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-
+            /* Tombol Home - Hijau saat Hover/Klik */
             .home-link {
-                font-size: 24px;
+                position: absolute;
+                left: 20px;
                 color: white;
+                font-size: 26px;
                 text-decoration: none;
                 transition: 0.3s;
             }
-
-            .home-link:hover {
-                color: #2ecc71;
+            .home-link:hover,
+            .home-link:active {
+                color: #27ae60;
             }
 
-            /* JUDUL HALAMAN (Bukan Button Lagi) */
-            .page-title-label {
-                background-color: #2ecc71; /* Warna Emerald Green yang lebih sporty */
-                padding: 8px 25px;
-                border-radius: 8px;
+            .nav-title {
                 color: white;
-                font-weight: bold;
-                cursor: default; /* Mouse tidak berubah jadi tangan */
-                user-select: none; /* Teks tidak bisa di-highlight */
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                font-weight: 900;
+                letter-spacing: 2px;
+                font-size: 1.6rem;
+                text-transform: uppercase;
             }
 
-            /* KONTEN UTAMA */
+            /* --- REGISTRATION FORM (Ramping) --- */
             .container {
-                background: rgba(255, 255, 255, 0.95);
-                padding: 25px;
+                background: rgba(255, 255, 255, 0.98);
+                padding: 20px 30px;
                 border-radius: 20px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
                 width: 100%;
-                max-width: 800px;
-                text-align: center;
+                max-width: 750px; /* Lebih kecil agar tidak penuh layar */
                 box-sizing: border-box;
+                margin-bottom: 25px;
             }
 
             h2 {
                 color: #2c3e50;
-                margin-top: 0;
+                text-align: center;
+                margin: 0 0 15px 0;
+                font-size: 1.2rem;
             }
 
-            #statusSlot {
+            .input-group {
+                margin-bottom: 12px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
                 font-weight: bold;
-                font-size: 18px;
-                margin-bottom: 20px;
-                padding: 10px;
-                border-radius: 8px;
-                background: rgba(0, 0, 0, 0.05);
-                display: inline-block;
+                color: #34495e;
+                font-size: 0.8rem;
             }
-
-            .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                margin-bottom: 25px;
-            }
-
             input,
-            select,
-            .btn {
-                padding: 14px;
-                border-radius: 10px;
-                border: 2px solid #ddd;
-                font-size: 16px;
+            select {
                 width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
                 box-sizing: border-box;
+                font-size: 15px;
                 outline: none;
             }
 
-            input:focus,
-            select:focus {
-                border-color: #2ecc71;
+            .btn-group {
+                display: flex;
+                gap: 12px;
+                margin: 15px 0 5px 0;
             }
-
-            .btn {
-                background-color: #27ae60;
-                color: white;
+            .btn-action {
+                flex: 1;
+                padding: 12px;
                 border: none;
-                cursor: pointer;
+                border-radius: 50px;
                 font-weight: bold;
+                cursor: pointer;
+                font-size: 0.85rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
                 transition: 0.3s;
-                text-transform: uppercase;
-                letter-spacing: 1px;
             }
-
-            .btn:hover {
-                background-color: #219150;
-                transform: translateY(-2px);
+            .btn-submit {
+                background: #27ae60;
+                color: white;
             }
-
             .btn-reset {
                 background: #e74c3c;
-                font-size: 14px;
-                padding: 10px;
-                margin-top: 5px;
-            }
-            .btn-reset:hover {
-                background: #c0392b;
+                color: white;
             }
 
-            /* TABEL RESPONSIF */
-            .table-wrapper {
+            /* --- TABLE SQUAD LIST (Tetap Gagah) --- */
+            .table-container-outer {
+                width: 100%;
+                max-width: 1000px;
+                background: rgba(255, 255, 255, 0.98);
+                border-radius: 20px;
+                padding: 25px;
+                box-sizing: border-box;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+            .table-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+            .table-container {
+                width: 100%;
                 overflow-x: auto;
-                margin-top: 10px;
-                border-radius: 10px;
+                border-radius: 12px;
+                border: 1px solid #eee;
             }
-
             table {
                 width: 100%;
                 border-collapse: collapse;
                 background: white;
-                min-width: 400px;
             }
-
-            th,
-            td {
-                padding: 12px 10px;
-                border-bottom: 1px solid #eee;
-                text-align: center;
-                font-size: 15px;
-            }
-
             th {
                 background: #34495e;
                 color: white;
-                text-transform: uppercase;
-                font-size: 13px;
+                padding: 18px;
+                text-align: left;
+                font-size: 0.9rem;
+            }
+            td {
+                padding: 18px;
+                border-bottom: 1px solid #eee;
+                color: #2c3e50;
+                font-size: 1rem;
             }
 
-            tr:nth-child(even) {
-                background-color: #f9f9f9;
+            .action-cell {
+                display: flex;
+                gap: 8px;
+            }
+            .btn-table {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .btn-edit {
+                background: #27ae60;
+            }
+            .btn-delete {
+                background: #e74c3c;
             }
 
-            /* --- MEDIA QUERY HP --- */
-            @media screen and (max-width: 480px) {
-                body {
-                    padding: 10px;
-                    background-attachment: scroll;
+            @media (max-width: 600px) {
+                .btn-group {
+                    flex-direction: column;
                 }
-                .container {
-                    padding: 20px 15px;
-                }
-                h2 {
-                    font-size: 20px;
+                .nav-title {
+                    font-size: 1.2rem;
                 }
             }
         </style>
     </head>
     <body>
         <div class="navbar">
-            <div class="home-box">
-                <a href="index.html" class="home-link">
-                    <i class="fa-solid fa-house"></i>
-                </a>
-            </div>
-            <div class="page-title-label">CONFIRMATION LIST</div>
+            <a href="index.html" class="home-link"
+                ><i class="fa-solid fa-house"></i
+            ></a>
+            <span class="nav-title">CONFIRMATION LIST</span>
         </div>
 
         <div class="container">
-            <h2><i class="fa-solid fa-clipboard-user"></i> CHECK-IN</h2>
-            <p id="statusSlot">Memuat kuota...</p>
+            <h2><i class="fa-solid fa-user-pen"></i> Registration Form</h2>
+            <form id="playerForm">
+                <div class="input-group">
+                    <label>PLAYER NAME</label>
+                    <input
+                        type="text"
+                        id="nama"
+                        placeholder="Enter name..."
+                        required
+                    />
+                </div>
+                <div class="input-group">
+                    <label>POSITION</label>
+                    <select id="posisi">
+                        <option value="GOALKEEPER (GK)">GOALKEEPER (GK)</option>
+                        <option value="DEFENDER (DF)">DEFENDER (DF)</option>
+                        <option value="MIDFIELDER (MF)">MIDFIELDER (MF)</option>
+                        <option value="WINGER (WG)">WINGER (WG)</option>
+                        <option value="STRIKER (CF)">STRIKER (CF)</option>
+                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn-action btn-submit">
+                        <i class="fa-solid fa-check"></i> SIGN ME UP!
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-action btn-reset"
+                        onclick="resetDatabase()"
+                    >
+                        <i class="fa-solid fa-rotate"></i> RESET ALL
+                    </button>
+                </div>
+            </form>
+        </div>
 
-            <div class="form-group">
-                <input
-                    type="text"
-                    id="inputNama"
-                    placeholder="Nama Pemain..."
-                />
-                <select id="pilihPosisi">
-                    <option value="Kiper">Kiper</option>
-                    <option value="Bek">Bek</option>
-                    <option value="Gelandang">Gelandang</option>
-                    <option value="Sayap">Sayap</option>
-                    <option value="Penyerang">Penyerang</option>
-                    <option value="Penonton">Penonton</option>
-                </select>
-                <button class="btn" onclick="tambahPemain()">
-                    <i class="fa-solid fa-paper-plane"></i> Saya Ikut Main!
-                </button>
-                <button class="btn btn-reset" onclick="resetData()">
-                    <i class="fa-solid fa-trash-can"></i> Reset Daftar
-                </button>
+        <div class="table-container-outer">
+            <div class="table-header">
+                <span><i class="fa-solid fa-users"></i> Registered Squad</span>
+                <span
+                    style="
+                        background: #27ae60;
+                        color: white;
+                        padding: 6px 18px;
+                        border-radius: 20px;
+                    "
+                    id="count"
+                    >0</span
+                >
             </div>
 
-            <div class="table-wrapper">
+            <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Nama</th>
-                            <th>Posisi</th>
+                            <th style="width: 60px; text-align: center">NO</th>
+                            <th>NAME</th>
+                            <th>POSITION</th>
+                            <th style="width: 120px">ACTION</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelBody"></tbody>
+                    <tbody id="playerTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -269,84 +303,125 @@
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            let daftarPemain = [];
+            const tableBody = document.getElementById("playerTableBody");
+            const playerCount = document.getElementById("count");
 
-            async function fetchPemain() {
+            function formatPosFull(pos) {
+                const map = {
+                    GK: "GOALKEEPER (GK)",
+                    Kiper: "GOALKEEPER (GK)",
+                    DF: "DEFENDER (DF)",
+                    Bek: "DEFENDER (DF)",
+                    MF: "MIDFIELDER (MF)",
+                    Gelandang: "MIDFIELDER (MF)",
+                    WG: "WINGER (WG)",
+                    Winger: "WINGER (WG)",
+                    CF: "STRIKER (CF)",
+                    Striker: "STRIKER (CF)",
+                    Penyerang: "STRIKER (CF)",
+                    Fan: "SPECTATOR (FAN)",
+                    Penonton: "SPECTATOR (FAN)",
+                };
+                return map[pos] || pos;
+            }
+
+            async function muatPemain() {
                 const { data, error } = await _supabase
                     .from("pemain")
                     .select("*")
                     .order("created_at", { ascending: true });
-
-                if (error) {
-                    console.error("Gagal mengambil data:", error);
-                    document.getElementById("statusSlot").innerText =
-                        "Gagal memuat!";
-                } else {
-                    daftarPemain = data;
-                    renderTabel();
-                }
+                if (error) return;
+                tableBody.innerHTML = "";
+                playerCount.innerText = data.length;
+                data.forEach((p, index) => {
+                    const displayPos = formatPosFull(p.posisi);
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td style="text-align: center;">${index + 1}</td>
+                            <td style="font-weight: 600;">${p.nama}</td>
+                            <td><span style="color: #27ae60; font-weight: bold; font-size: 0.9rem;">${displayPos}</span></td>
+                            <td>
+                                <div class="action-cell">
+                                    <button class="btn-table btn-edit" onclick="editPemain(${p.id}, '${p.nama}', '${displayPos}')">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
             }
 
-            async function tambahPemain() {
-                const nama = document.getElementById("inputNama").value.trim();
-                const posisi = document.getElementById("pilihPosisi").value;
-
-                if (nama === "") return alert("Mohon isi nama kamu!");
-                if (daftarPemain.length >= 20) return alert("Kuota penuh!");
-
-                const { error } = await _supabase
-                    .from("pemain")
-                    .insert([{ nama: nama, posisi: posisi }]);
-
-                if (error) {
-                    alert("Gagal mendaftar!");
-                } else {
-                    document.getElementById("inputNama").value = "";
-                    fetchPemain();
-                }
-            }
-
-            async function resetData() {
-                const passwordAdmin = "admin";
-                const inputUser = prompt("Masukkan Password Admin:");
-
-                if (inputUser === passwordAdmin) {
-                    if (confirm("Hapus SEMUA daftar pemain?")) {
-                        const { error } = await _supabase
-                            .from("pemain")
-                            .delete()
-                            .neq("id", 0);
-                        if (error) alert("Gagal reset!");
-                        else fetchPemain();
-                    }
-                } else if (inputUser !== null) {
-                    alert("Password Salah!");
-                }
-            }
-
-            function renderTabel() {
-                const tbody = document.getElementById("tabelBody");
-                tbody.innerHTML = "";
-                daftarPemain.forEach((p, i) => {
-                    tbody.innerHTML += `<tr><td>${i + 1}</td><td>${p.nama}</td><td>${p.posisi}</td></tr>`;
+            document
+                .getElementById("playerForm")
+                .addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const nama = document.getElementById("nama").value;
+                    const posisi = document.getElementById("posisi").value;
+                    await _supabase.from("pemain").insert([{ nama, posisi }]);
+                    document.getElementById("playerForm").reset();
+                    muatPemain();
                 });
 
-                const sisaSlot = 20 - daftarPemain.length;
-                const statusEl = document.getElementById("statusSlot");
-                statusEl.innerText = `Slot tersedia: ${sisaSlot}`;
-                statusEl.style.color = sisaSlot <= 0 ? "#e74c3c" : "#27ae60";
+            function cekPinAdmin() {
+                const pin = prompt("Admin PIN:");
+                return pin === "admin" ? "OK" : "WRONG";
             }
 
-            _supabase
-                .channel("pemain_changes")
-                .on(
-                    "postgres_changes",
-                    { event: "*", schema: "public", table: "pemain" },
-                    () => fetchPemain(),
-                )
-                .subscribe();
+            async function editPemain(id, namaLama, posisiLama) {
+                if (cekPinAdmin() !== "OK") return alert("Wrong PIN!");
+                const namaBaru = prompt("Edit Name:", namaLama);
+                if (!namaBaru) return;
+                const opsi = [
+                    "GOALKEEPER (GK)",
+                    "DEFENDER (DF)",
+                    "MIDFIELDER (MF)",
+                    "WINGER (WG)",
+                    "STRIKER (CF)",
+                    "SPECTATOR (FAN)",
+                ];
+                let msg =
+                    "Select Position:\n" +
+                    opsi.map((o, i) => `${i + 1}. ${o}`).join("\n");
+                const p = prompt(msg, "1");
+                let posisiBaru = p >= 1 && p <= 6 ? opsi[p - 1] : posisiLama;
+                await _supabase
+                    .from("pemain")
+                    .update({ nama: namaBaru, posisi: posisiBaru })
+                    .eq("id", id);
+                muatPemain();
+            }
 
-            window.onload = fetchPemain;
+            async function hapusSatuPemain(id) {
+                if (cekPinAdmin() !== "OK") return alert("Wrong PIN!");
+                if (confirm("Remove player?")) {
+                    await _supabase.from("pemain").delete().eq("id", id);
+                    muatPemain();
+                }
+            }
+
+            async function resetDatabase() {
+                if (cekPinAdmin() !== "OK") return alert("Wrong PIN!");
+                if (confirm("Clear all data?")) {
+                    const { data } = await _supabase
+                        .from("pemain")
+                        .select("id");
+                    if (data?.length > 0) {
+                        await _supabase
+                            .from("pemain")
+                            .delete()
+                            .in(
+                                "id",
+                                data.map((p) => p.id),
+                            );
+                    }
+                    muatPemain();
+                }
+            }
+
+            window.onload = muatPemain;
         </script>
     </body>
 </html>

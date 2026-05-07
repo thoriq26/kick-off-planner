@@ -1,25 +1,24 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>Draft Tim - KickOff Planner</title>
+        <title>Team Draft - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <style>
-            /* --- RESET & BACKGROUND FULL RESPONSIF --- */
+            /* --- RESET & BACKGROUND --- */
             html,
             body {
                 height: 100%;
                 margin: 0;
                 padding: 0;
             }
-
             body {
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
@@ -29,8 +28,6 @@
                 width: 100%;
                 box-sizing: border-box;
                 padding: 20px;
-
-                /* Konfigurasi Background */
                 background-image:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
                     url("DC98-transformed.jpeg");
@@ -41,7 +38,7 @@
                 background-color: #1a1a1a;
             }
 
-            /* --- NAVBAR (TEMA NAVY & EMERALD) --- */
+            /* --- NAVBAR --- */
             .navbar {
                 background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
@@ -57,7 +54,6 @@
                 z-index: 10;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             }
-
             .home-box {
                 position: absolute;
                 left: 15px;
@@ -65,30 +61,26 @@
                 transform: translateY(-50%);
             }
 
+            /* Tombol Home - Hijau saat Hover/Klik */
             .home-link {
                 font-size: 24px;
                 color: white;
                 text-decoration: none;
                 transition: 0.3s;
             }
-
-            .home-link:hover {
+            .home-link:hover,
+            .home-link:active {
                 color: #2ecc71;
             }
 
-            /* Label Navigasi Aktif Emerald */
             .btn-active-nav {
-                background-color: #2ecc71;
-                padding: 8px 25px;
-                border-radius: 8px;
                 color: white;
                 font-weight: bold;
-                box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
-                cursor: default;
-                user-select: none;
+                letter-spacing: 1px;
+                text-transform: uppercase;
             }
 
-            /* --- KONTEN UTAMA --- */
+            /* --- MAIN CONTENT --- */
             .container {
                 background: rgba(255, 255, 255, 0.95);
                 padding: 25px;
@@ -100,55 +92,49 @@
                 box-sizing: border-box;
                 margin-bottom: 20px;
             }
-
             h2 {
                 color: #2c3e50;
                 margin-bottom: 10px;
             }
-
             #statusInfo {
                 margin-bottom: 20px;
                 font-weight: bold;
                 color: #34495e;
             }
 
+            /* --- BUTTONS --- */
             .btn-group {
                 display: flex;
                 gap: 15px;
                 justify-content: center;
                 margin-bottom: 25px;
             }
-
             .btn-action {
                 padding: 12px 25px;
                 border: none;
                 border-radius: 50px;
                 font-weight: bold;
                 cursor: pointer;
-                font-size: 16px;
+                font-size: 14px;
                 transition: 0.3s;
                 flex: 1;
                 max-width: 200px;
             }
-
             .btn-shuffle {
                 background: #f39c12;
                 color: white;
                 box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
             }
-
             .btn-shuffle:disabled {
                 background: #bdc3c7;
                 cursor: not-allowed;
                 box-shadow: none;
             }
-
             .btn-reset {
                 background: #bdc3c7;
                 color: white;
                 cursor: not-allowed;
             }
-
             .btn-reset.active {
                 background: #e74c3c;
                 cursor: pointer;
@@ -162,22 +148,20 @@
                 gap: 20px;
                 margin-top: 10px;
             }
-
             .team-card {
                 border-radius: 15px;
                 padding: 15px;
                 color: white;
-                min-height: 250px;
+                min-height: 150px;
                 box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             }
-
-            .merah {
+            .red {
                 background: linear-gradient(135deg, #ff5f6d, #ffc371);
             }
-            .biru {
+            .blue {
                 background: linear-gradient(135deg, #2193b0, #6dd5ed);
             }
-            .hijau {
+            .green {
                 background: linear-gradient(135deg, #11998e, #38ef7d);
             }
 
@@ -186,7 +170,6 @@
                 padding: 0;
                 text-align: left;
             }
-
             ul.res-list li {
                 background: rgba(255, 255, 255, 0.2);
                 padding: 10px;
@@ -198,7 +181,6 @@
                 align-items: center;
                 backdrop-filter: blur(5px);
             }
-
             .pos-tag {
                 font-size: 10px;
                 background: rgba(0, 0, 0, 0.3);
@@ -206,13 +188,21 @@
                 border-radius: 4px;
                 text-transform: uppercase;
                 font-weight: bold;
+                min-width: 35px;
+                text-align: center;
+            }
+
+            .waiting-message {
+                background: rgba(44, 62, 80, 0.05);
+                border: 2px dashed #bdc3c7;
+                padding: 50px 20px;
+                border-radius: 15px;
+                color: #7f8c8d;
+                grid-column: 1 / -1;
+                font-style: italic;
             }
 
             @media screen and (max-width: 480px) {
-                body {
-                    padding: 15px 10px;
-                    background-attachment: scroll;
-                }
                 .btn-group {
                     flex-direction: column;
                     align-items: center;
@@ -221,33 +211,28 @@
                     width: 100%;
                     max-width: none;
                 }
-                .team-grid {
-                    grid-template-columns: 1fr;
-                }
             }
         </style>
     </head>
     <body>
         <div class="navbar">
             <div class="home-box">
-                <a href="index.html" class="home-link">
-                    <i class="fa-solid fa-house"></i>
-                </a>
+                <a href="index.html" class="home-link"
+                    ><i class="fa-solid fa-house"></i
+                ></a>
             </div>
-            <!-- Label navigasi diubah menjadi Draft Tim -->
-            <span class="btn-active-nav">DRAFT TIM</span>
+            <span class="btn-active-nav">TEAM DRAFT</span>
         </div>
 
         <div class="container">
-            <!-- Judul konten diubah menjadi Draft Tim Otomatis -->
-            <h2><i class="fa-solid fa-shuffle"></i> Draft Tim Otomatis</h2>
-            <p id="statusInfo">Menghubungkan ke Database...</p>
+            <h2><i class="fa-solid fa-shuffle"></i> Automatic Team Draft</h2>
+            <p id="statusInfo">Connecting to Database...</p>
 
             <div class="btn-group">
                 <button
                     class="btn-action btn-shuffle"
                     id="btnShuffle"
-                    onclick="kocokTim()"
+                    onclick="shuffleTeams()"
                     disabled
                 >
                     <i class="fa-solid fa-random"></i> SHUFFLE
@@ -255,27 +240,14 @@
                 <button
                     class="btn-action btn-reset"
                     id="btnReset"
-                    onclick="resetTim()"
+                    onclick="resetTeams()"
                     disabled
                 >
                     <i class="fa-solid fa-rotate-right"></i> RESET
                 </button>
             </div>
 
-            <div class="team-grid">
-                <div class="team-card merah">
-                    <h3>Tim Merah</h3>
-                    <ul id="resMerah" class="res-list"></ul>
-                </div>
-                <div class="team-card biru">
-                    <h3>Tim Biru</h3>
-                    <ul id="resBiru" class="res-list"></ul>
-                </div>
-                <div class="team-card hijau">
-                    <h3>Tim Hijau</h3>
-                    <ul id="resHijau" class="res-list"></ul>
-                </div>
-            </div>
+            <div class="team-grid" id="mainGrid"></div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -286,9 +258,23 @@
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             const ADMIN_PIN = "admin";
-            let dataPemainMain = [];
+            let mainPlayerData = [];
 
-            async function muatPemain() {
+            // Mapping posisi internasional singkat
+            const posMapping = {
+                "GOALKEEPER (GK)": "GK",
+                "DEFENDER (DF)": "DF",
+                "MIDFIELDER (MF)": "MF",
+                "WINGER (WG)": "WG",
+                "STRIKER (CF)": "CF",
+                Penyerang: "CF",
+                Gelandang: "MF",
+                Bek: "DF",
+                Kiper: "GK",
+                Winger: "WG",
+            };
+
+            async function loadPlayers() {
                 const statusText = document.getElementById("statusInfo");
                 const btnShuffle = document.getElementById("btnShuffle");
                 const btnReset = document.getElementById("btnReset");
@@ -297,19 +283,20 @@
                     const { data, error } = await _supabase
                         .from("pemain")
                         .select("*")
+                        .neq("posisi", "SPECTATOR (FAN)")
                         .neq("posisi", "Penonton");
 
                     if (error) throw error;
-                    dataPemainMain = data;
-                    statusText.innerText = `Pemain Siap: ${data.length}`;
+                    mainPlayerData = data;
+                    statusText.innerText = `Players Ready: ${data.length}`;
 
-                    const sudahDiacak = data.some(
+                    const alreadyShuffled = data.some(
                         (p) => p.tim !== null && p.tim !== "",
                     );
 
-                    if (sudahDiacak) {
+                    if (alreadyShuffled) {
                         btnShuffle.disabled = true;
-                        btnShuffle.innerText = "DRAFT SELESAI";
+                        btnShuffle.innerText = "DRAFT COMPLETED";
                         btnReset.disabled = false;
                         btnReset.classList.add("active");
                     } else {
@@ -318,16 +305,62 @@
                         btnReset.disabled = true;
                         btnReset.classList.remove("active");
                     }
-                    tampilkanKeHalaman(data);
+                    displayToPage(data);
                 } catch (err) {
                     console.error(err.message);
                 }
             }
 
-            async function kocokTim() {
-                const pin = prompt("Input Admin PIN to SHUFFLE:");
+            function displayToPage(list) {
+                const mainGrid = document.getElementById("mainGrid");
+                const alreadyShuffled = list.some(
+                    (p) => p.tim !== null && p.tim !== "",
+                );
+
+                if (!alreadyShuffled) {
+                    mainGrid.innerHTML = `
+                        <div class="waiting-message">
+                            <i class="fa-solid fa-clock-rotate-left" style="font-size: 40px; margin-bottom: 15px; display: block; color: #bdc3c7;"></i>
+                            <b>Draft results not available yet.</b><br>
+                            Results will appear automatically after Shuffle.
+                        </div>`;
+                } else {
+                    const hasGreenTeam = list.some(
+                        (p) => p.tim === "Green" || p.tim === "Hijau",
+                    );
+
+                    let htmlGrid = `
+                        <div class="team-card red"><h3>Red Team</h3><ul id="resRed" class="res-list"></ul></div>
+                        <div class="team-card blue"><h3>Blue Team</h3><ul id="resBlue" class="res-list"></ul></div>
+                    `;
+                    if (hasGreenTeam)
+                        htmlGrid += `<div class="team-card green"><h3>Green Team</h3><ul id="resGreen" class="res-list"></ul></div>`;
+
+                    mainGrid.innerHTML = htmlGrid;
+
+                    list.forEach((p) => {
+                        if (!p.tim) return;
+
+                        let teamId = p.tim;
+                        if (teamId === "Merah") teamId = "Red";
+                        if (teamId === "Biru") teamId = "Blue";
+                        if (teamId === "Hijau") teamId = "Green";
+
+                        const displayPos = posMapping[p.posisi] || p.posisi;
+
+                        const li = `<li><span>${p.nama}</span><span class="pos-tag">${displayPos}</span></li>`;
+                        const targetUl = document.getElementById(
+                            `res${teamId}`,
+                        );
+                        if (targetUl) targetUl.innerHTML += li;
+                    });
+                }
+            }
+
+            async function shuffleTeams() {
+                const pin = prompt("Enter Admin PIN to SHUFFLE:");
                 if (pin !== ADMIN_PIN) {
-                    alert("Hanya admin yang bisa melakukan draft!");
+                    alert("Incorrect PIN!");
                     return;
                 }
 
@@ -335,68 +368,61 @@
                 btnShuffle.innerText = "Processing...";
                 btnShuffle.disabled = true;
 
-                let arrayKocok = [...dataPemainMain];
-                for (let i = arrayKocok.length - 1; i > 0; i--) {
+                let shuffleArray = [...mainPlayerData];
+                for (let i = shuffleArray.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
-                    [arrayKocok[i], arrayKocok[j]] = [
-                        arrayKocok[j],
-                        arrayKocok[i],
+                    [shuffleArray[i], shuffleArray[j]] = [
+                        shuffleArray[j],
+                        shuffleArray[i],
                     ];
                 }
 
-                const janjiUpdate = arrayKocok.map((p, index) => {
-                    let namaTim =
-                        index % 3 === 0
-                            ? "Merah"
-                            : index % 3 === 1
-                              ? "Biru"
-                              : "Hijau";
+                const teamCount = mainPlayerData.length > 10 ? 3 : 2;
+
+                const updatePromises = shuffleArray.map((p, index) => {
+                    let teamName;
+                    if (teamCount === 3) {
+                        teamName =
+                            index % 3 === 0
+                                ? "Red"
+                                : index % 3 === 1
+                                  ? "Blue"
+                                  : "Green";
+                    } else {
+                        teamName = index % 2 === 0 ? "Red" : "Blue";
+                    }
                     return _supabase
                         .from("pemain")
-                        .update({ tim: namaTim })
+                        .update({ tim: teamName })
                         .eq("id", p.id);
                 });
 
-                await Promise.all(janjiUpdate);
-                muatPemain();
+                await Promise.all(updatePromises);
+                loadPlayers();
             }
 
-            async function resetTim() {
-                const yakin = confirm(
-                    "Apakah Anda yakin ingin me-reset hasil draft?",
-                );
-                if (!yakin) return;
+            async function resetTeams() {
+                const pin = prompt("Enter Admin PIN to RESET:");
+                if (pin !== ADMIN_PIN) {
+                    alert("Incorrect PIN!");
+                    return;
+                }
 
                 const btnReset = document.getElementById("btnReset");
                 btnReset.innerText = "Resetting...";
 
-                const janjiReset = dataPemainMain.map((p) => {
+                const resetPromises = mainPlayerData.map((p) => {
                     return _supabase
                         .from("pemain")
                         .update({ tim: null })
                         .eq("id", p.id);
                 });
 
-                await Promise.all(janjiReset);
-                muatPemain();
+                await Promise.all(resetPromises);
+                loadPlayers();
             }
 
-            function tampilkanKeHalaman(list) {
-                const res = {
-                    Merah: document.getElementById("resMerah"),
-                    Biru: document.getElementById("resBiru"),
-                    Hijau: document.getElementById("resHijau"),
-                };
-                Object.values(res).forEach((el) => (el.innerHTML = ""));
-
-                list.forEach((p) => {
-                    if (!p.tim) return;
-                    const li = `<li><span>${p.nama}</span><span class="pos-tag">${p.posisi}</span></li>`;
-                    if (res[p.tim]) res[p.tim].innerHTML += li;
-                });
-            }
-
-            window.onload = muatPemain;
+            window.onload = loadPlayers;
         </script>
     </body>
 </html>
