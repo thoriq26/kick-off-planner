@@ -25,7 +25,6 @@
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 margin: 0;
                 padding: 15px;
-                /* --- Background Lapangan --- */
                 background-color: var(--dark-blue);
                 background-image:
                     linear-gradient(rgba(3, 28, 38, 0.8), rgba(3, 28, 38, 0.9)),
@@ -40,7 +39,6 @@
                 align-items: center;
             }
 
-            /* --- Navbar Responsif --- */
             .navbar {
                 background: rgba(4, 41, 58, 0.9);
                 backdrop-filter: blur(10px);
@@ -73,7 +71,6 @@
                 font-size: 1rem;
             }
 
-            /* --- Container Card --- */
             .container {
                 width: 100%;
                 max-width: 800px;
@@ -102,7 +99,6 @@
                 text-transform: uppercase;
                 color: var(--dark-blue);
                 font-size: 1rem;
-                /* Penomoran Otomatis di Samping */
                 border-left: 45px solid var(--primary-color);
                 position: relative;
             }
@@ -133,7 +129,6 @@
                 transform: rotate(180deg);
             }
 
-            /* --- Detail Content --- */
             .detail-content {
                 padding: 15px;
                 border-top: 1px solid #e2e8f0;
@@ -161,7 +156,6 @@
                 text-align: center;
             }
 
-            /* --- Squad List --- */
             .squad-section {
                 background: #f8fafc;
                 padding: 12px;
@@ -199,11 +193,15 @@
                 justify-content: flex-end;
                 color: #ef4444;
                 cursor: pointer;
-                font-size: 1rem;
+                font-size: 1.2rem;
                 opacity: 0.7;
+                padding: 5px;
             }
 
-            /* --- Pagination akan muncul jika lebih dari 10 --- */
+            .delete-btn:hover {
+                opacity: 1;
+            }
+
             .pagination {
                 display: flex;
                 flex-wrap: wrap;
@@ -228,7 +226,6 @@
                 font-weight: bold;
             }
 
-            /* --- Media Queries (Responsivitas) --- */
             @media (max-width: 480px) {
                 body {
                     padding: 10px;
@@ -253,9 +250,9 @@
     <body>
         <div class="navbar">
             <div class="home-box">
-                <a href="index.html" class="home-link"
-                    ><i class="fa-solid fa-arrow-left"></i
-                ></a>
+                <a href="index.html" class="home-link">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
             </div>
             <div class="nav-label">Event History</div>
         </div>
@@ -264,6 +261,7 @@
         <div class="pagination" id="paginationControls"></div>
 
         <script>
+            // Supabase Configuration
             const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SB_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
@@ -273,11 +271,13 @@
             const itemsPerPage = 10;
             let totalData = [];
 
+            // Helper to format date
             function formatDateTime(dateString) {
                 if (!dateString || dateString === "N/A") return "N/A";
                 return dateString.replace("T", " | ").substring(0, 21);
             }
 
+            // Helper to generate player badges
             function getPlayerBadges(listString) {
                 if (
                     !listString ||
@@ -292,17 +292,22 @@
                     .join("");
             }
 
+            // Fetch data from Supabase
             async function loadData() {
                 const { data, error } = await _supabase
                     .from("event_history")
                     .select("*")
                     .order("created_at", { ascending: false });
 
-                if (error) return;
+                if (error) {
+                    console.error("Error fetching data:", error);
+                    return;
+                }
                 totalData = data;
                 renderPage(1);
             }
 
+            // Render current page cards
             function renderPage(page) {
                 currentPage = page;
                 const container = document.getElementById("historyList");
@@ -344,6 +349,7 @@
                 renderPagination();
             }
 
+            // Render pagination buttons
             function renderPagination() {
                 const controls = document.getElementById("paginationControls");
                 controls.innerHTML = "";
@@ -363,13 +369,34 @@
                 }
             }
 
+            // --- DELETE FUNCTION (Admin Only) ---
             async function deleteHistory(id) {
-                if (confirm("Hapus history ini secara permanen?")) {
-                    const { error } = await _supabase
-                        .from("event_history")
-                        .delete()
-                        .eq("id", id);
-                    if (!error) loadData();
+                const password = prompt(
+                    "Enter Admin Password to delete this history record:",
+                );
+
+                if (password === null) return; // User cancelled
+
+                if (password === "admin") {
+                    const confirmFinal = confirm(
+                        "Are you sure you want to permanently delete this record?",
+                    );
+
+                    if (confirmFinal) {
+                        const { error } = await _supabase
+                            .from("event_history")
+                            .delete()
+                            .eq("id", id);
+
+                        if (!error) {
+                            alert("Record successfully deleted.");
+                            loadData(); // Refresh list
+                        } else {
+                            alert("Failed to delete: " + error.message);
+                        }
+                    }
+                } else {
+                    alert("Incorrect password! Access denied.");
                 }
             }
 

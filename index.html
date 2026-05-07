@@ -6,12 +6,39 @@
         <title>KickOff Planner</title>
         <link rel="stylesheet" href="style.css" />
         <style>
-            /* CSS Tambahan Khusus untuk Button History agar terlihat keren */
+            /* Container utama untuk tombol agar bisa sejajar */
+            .button-menu {
+                display: flex;
+                flex-direction: row; /* Memaksa ke samping */
+                flex-wrap: wrap; /* Supaya kalau layar sempit, dia turun rapi */
+                justify-content: center;
+                align-items: stretch;
+                gap: 15px; /* Jarak antar tombol */
+                width: 100%;
+                max-width: 1000px; /* Batas lebar maksimal area tombol */
+                margin: 20px auto;
+                padding: 0 10px;
+            }
+
+            /* Menyamakan ukuran semua tombol di dalam menu */
+            .button-menu .button {
+                flex: 1; /* Semua tombol membagi ruang yang sama rata */
+                min-width: 160px; /* Lebar minimal supaya teks tidak berdesakan */
+                margin: 0 !important; /* Reset margin bawaan style.css jika ada */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                height: 60px; /* Samakan tinggi semua tombol */
+                font-weight: bold;
+                text-decoration: none;
+                transition: all 0.3s ease;
+            }
+
+            /* Styling khusus Button History agar tetap beda warnanya tapi ukuran sama */
             .btn-history {
-                background-color: #2c3e50 !important; /* Warna Biru Navy Profesional */
+                background-color: #2c3e50 !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                margin-top: 10px;
-                transition: all 0.3s ease !important;
             }
 
             .btn-history:hover {
@@ -20,9 +47,21 @@
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             }
 
-            /* Animasi saat tombol ditekan */
             .btn-history:active {
                 transform: scale(0.95);
+            }
+
+            /* Setting khusus untuk layar HP (Mobile) */
+            @media (max-width: 768px) {
+                .button-menu .button {
+                    flex: 1 1 calc(50% - 20px); /* Jadi 2 baris (2 tombol per baris) */
+                }
+            }
+
+            @media (max-width: 480px) {
+                .button-menu .button {
+                    flex: 1 1 100%; /* Jadi 1 kolom saja kalau layar sangat kecil */
+                }
             }
         </style>
     </head>
@@ -42,11 +81,7 @@
                     <a class="button" href="about.html">CONFIRMATION LIST</a>
                     <a class="button" href="otomatis.html">TEAM DRAFT</a>
                     <a class="button" href="maps.html">MATCH DAY</a>
-
-                    <a
-                        class="button btn-history"
-                        href="#"
-                        onclick="aksesHistory(event)"
+                    <a class="button btn-history" href="history.html"
                         >EVENT HISTORY</a
                     >
                 </div>
@@ -56,25 +91,5 @@
                 <h1 class="h1-footer">KickOff Planner © 2026 by Thoriq.</h1>
             </footer>
         </div>
-
-        <script>
-            function aksesHistory(event) {
-                // Mencegah link langsung berpindah halaman
-                event.preventDefault();
-
-                // Munculkan notif masukkan password
-                const password = prompt(
-                    "Masukkan Password Admin untuk akses History:",
-                );
-
-                if (password === "admin") {
-                    // Jika benar, arahkan ke halaman history
-                    window.location.href = "history.html";
-                } else if (password !== null) {
-                    // Jika salah (dan bukan menekan tombol cancel)
-                    alert("Password Salah! Akses Ditolak.");
-                }
-            }
-        </script>
     </body>
 </html>
