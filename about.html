@@ -98,7 +98,7 @@
                 text-transform: uppercase;
             }
 
-            /* --- FORM --- */
+            /* --- FORMS (Registration & Edit) --- */
             .container {
                 background: rgba(255, 255, 255, 0.98);
                 padding: 20px 30px;
@@ -109,6 +109,24 @@
                 box-sizing: border-box;
                 margin-bottom: 25px;
             }
+
+            /* Specific Edit Container Styling */
+            #editContainer {
+                display: none; /* Hidden by default */
+                border: 3px solid #27ae60;
+                animation: fadeIn 0.4s ease;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
             h2 {
                 color: #2c3e50;
                 text-align: center;
@@ -133,7 +151,9 @@
                 border-radius: 8px;
                 font-size: 15px;
                 outline: none;
+                box-sizing: border-box;
             }
+
             .btn-group {
                 display: flex;
                 gap: 12px;
@@ -152,15 +172,20 @@
                 justify-content: center;
                 gap: 8px;
                 transition: 0.3s;
+                color: white;
             }
             .btn-submit {
                 background: #27ae60;
-                color: white;
                 width: 100%;
+            }
+            .btn-update {
+                background: #2980b9;
+            }
+            .btn-cancel {
+                background: #95a5a6;
             }
             .btn-reset {
                 background: #e74c3c;
-                color: white;
                 display: none;
             }
 
@@ -262,7 +287,7 @@
             </button>
         </div>
 
-        <div class="container">
+        <div class="container" id="registrationContainer">
             <h2><i class="fa-solid fa-user-pen"></i> Registration Form</h2>
             <form id="playerForm">
                 <div class="input-group">
@@ -301,6 +326,47 @@
                         onclick="resetDatabase()"
                     >
                         <i class="fa-solid fa-rotate"></i> RESET ALL
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="container" id="editContainer">
+            <h2 style="color: #27ae60">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Participant
+            </h2>
+            <form id="editForm">
+                <input type="hidden" id="editId" />
+                <div class="input-group">
+                    <label>NAME</label>
+                    <input type="text" id="editNama" required />
+                </div>
+                <div class="input-group">
+                    <label>POSITION</label>
+                    <select id="editPosisi">
+                        <option value="GK">GK</option>
+                        <option value="CB">CB</option>
+                        <option value="LB">LB</option>
+                        <option value="RB">RB</option>
+                        <option value="DMF">DMF</option>
+                        <option value="CMF">CMF</option>
+                        <option value="AMF">AMF</option>
+                        <option value="LWF">LWF</option>
+                        <option value="RWF">RWF</option>
+                        <option value="CF">CF</option>
+                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn-action btn-update">
+                        <i class="fa-solid fa-floppy-disk"></i> UPDATE DATA
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-action btn-cancel"
+                        onclick="cancelEdit()"
+                    >
+                        CANCEL
                     </button>
                 </div>
             </form>
@@ -353,25 +419,26 @@
 
             const tableBody = document.getElementById("playerTableBody");
             const playerCount = document.getElementById("count");
+            const editContainer = document.getElementById("editContainer");
+            const regContainer = document.getElementById(
+                "registrationContainer",
+            );
             let isAdminLoggedIn = false;
 
-            // --- LOGIKA MENGGUNAKAN GAYA BAWAAN BROWSER ---
             function toggleAdminMode() {
                 if (!isAdminLoggedIn) {
-                    // Pakai prompt bawaan
                     const pin = prompt("Admin Password:");
-
                     if (pin === "admin") {
                         isAdminLoggedIn = true;
                         applyAdminUI();
-                        alert("Login Successful! You are now in Admin mode");
+                        alert("Login Successful!");
                     } else if (pin !== null) {
-                        alert("Access Denied! Incorrect Password.");
+                        alert("Access Denied!");
                     }
                 } else {
-                    // Pakai confirm bawaan
                     if (confirm("Sign out from Admin mode?")) {
                         isAdminLoggedIn = false;
+                        cancelEdit();
                         applyAdminUI();
                     }
                 }
@@ -415,13 +482,32 @@
                         <td style="font-weight: 600;">${p.nama}</td>
                         <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${p.posisi}</span></td>
                         <td class="action-cell" style="display: ${isAdminLoggedIn ? "flex" : "none"}">
-                            <button class="btn-table btn-edit" onclick="editPemain(${p.id}, '${p.nama}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-table btn-edit" onclick="showEditForm(${p.id}, '${p.nama}', '${p.posisi}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
                 });
             }
 
+            // Fungsi Memunculkan Form Edit
+            function showEditForm(id, nama, posisi) {
+                regContainer.style.display = "none"; // Sembunyikan form daftar
+                editContainer.style.display = "block"; // Munculkan form edit
+
+                document.getElementById("editId").value = id;
+                document.getElementById("editNama").value = nama;
+                document.getElementById("editPosisi").value = posisi;
+
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            function cancelEdit() {
+                editContainer.style.display = "none";
+                regContainer.style.display = "block";
+                document.getElementById("editForm").reset();
+            }
+
+            // Submit Handler untuk Registrasi
             document
                 .getElementById("playerForm")
                 .addEventListener("submit", async (e) => {
@@ -432,36 +518,44 @@
                         .from("pemain")
                         .insert([{ nama, posisi }]);
                     if (!error) {
-                        alert("Success!\nRegistered successfully");
+                        alert("Registered successfully!");
                         document.getElementById("playerForm").reset();
                         muatPemain();
                     }
                 });
 
-            async function editPemain(id, namaLama) {
-                const namaBaru = prompt("Edit Player Name:", namaLama);
-                if (namaBaru !== null && namaBaru.trim() !== "") {
-                    await _supabase
+            // Submit Handler untuk Update (Edit)
+            document
+                .getElementById("editForm")
+                .addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const id = document.getElementById("editId").value;
+                    const nama = document.getElementById("editNama").value;
+                    const posisi = document.getElementById("editPosisi").value;
+
+                    const { error } = await _supabase
                         .from("pemain")
-                        .update({ nama: namaBaru })
+                        .update({ nama: nama, posisi: posisi })
                         .eq("id", id);
-                    muatPemain();
-                }
-            }
+
+                    if (!error) {
+                        alert("Data updated successfully!");
+                        cancelEdit();
+                        muatPemain();
+                    } else {
+                        alert("Update failed!");
+                    }
+                });
 
             async function hapusSatuPemain(id) {
-                if (confirm("Remove attendee? This action cannot be undone.")) {
+                if (confirm("Remove attendee?")) {
                     await _supabase.from("pemain").delete().eq("id", id);
                     muatPemain();
                 }
             }
 
             async function resetDatabase() {
-                if (
-                    confirm(
-                        "DANGER: RESET ALL DATA?\nThis will clear the entire list.",
-                    )
-                ) {
+                if (confirm("DANGER: RESET ALL DATA?")) {
                     const { data } = await _supabase
                         .from("pemain")
                         .select("id");

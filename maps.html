@@ -150,6 +150,7 @@
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
+                text-decoration: none;
             }
             .btn-save {
                 background: #2ecc71;
@@ -160,7 +161,7 @@
                 flex: 1;
             }
             .btn-reset {
-                background: red;
+                background: #94a3b8;
                 flex: 1;
             }
 
@@ -232,6 +233,7 @@
                 border: 2px solid #f1f5f9;
                 background: #f9f9f9;
                 overflow: hidden;
+                position: relative;
             }
         </style>
     </head>
@@ -276,7 +278,7 @@
                 <input
                     type="text"
                     id="linkMaps"
-                    placeholder="Google Maps Iframe Link"
+                    placeholder="Paste Google Maps URL (http...)"
                 />
 
                 <button class="btn btn-save" onclick="updateInfo()">
@@ -288,7 +290,7 @@
                         <i class="fa-solid fa-box-archive"></i> ARCHIVE
                     </button>
                     <button class="btn btn-reset" onclick="resetMatchOnly()">
-                        <i class="fa-solid fa-rotate-left"></i> RESET
+                        <i class="fa-solid fa-rotate-left"></i> RESET MATCH
                     </button>
                 </div>
             </div>
@@ -420,12 +422,11 @@
                 const jersey = document.getElementById("jerseyInfo").value;
                 const htm = document.getElementById("htmInfo").value;
                 const rekening = document.getElementById("rekeningInfo").value;
-                const maps = document.getElementById("linkMaps").value;
+                let maps = document.getElementById("linkMaps").value;
 
-                let finalURL = maps;
                 if (maps.includes("<iframe")) {
                     const match = maps.match(/src="([^"]+)"/);
-                    if (match) finalURL = match[1];
+                    if (match) maps = match[1];
                 }
 
                 const { error } = await _supabase
@@ -438,7 +439,7 @@
                         jersey: jersey,
                         htm: htm,
                         rekening: rekening,
-                        maps_url: finalURL,
+                        maps_url: maps,
                     });
 
                 if (!error) {
@@ -447,11 +448,9 @@
                 }
             }
 
-            // RESET ONLY MATCH INFO (KEEP PLAYER LIST)
             async function resetMatchOnly() {
                 if (!confirm("Are you sure you want to reset the match info?"))
                     return;
-
                 const { error } = await _supabase
                     .from("jadwal_lapangan")
                     .update({
@@ -464,18 +463,16 @@
                         maps_url: "",
                     })
                     .eq("id", 1);
-
                 if (!error) {
                     alert("Match Info has been reset!");
                     location.reload();
                 }
             }
 
-            // ARCHIVE EVERYTHING (CLEAR PLAYERS)
             async function archiveMatch() {
                 if (
                     !confirm(
-                        "Warning: This will archive the current match and PERMANENTLY clear the player list. Continue?",
+                        "Warning: This will archive and clear player list. Continue?",
                     )
                 )
                     return;
@@ -513,7 +510,7 @@
                         .eq("id", 1);
 
                     await _supabase.from("pemain").delete().neq("id", 0);
-                    alert("Match successfully archived and data cleared!");
+                    alert("Match successfully archived!");
                     location.reload();
                 } catch (e) {
                     alert("Error: " + e.message);
@@ -527,6 +524,7 @@
                     .eq("id", 1)
                     .single();
                 if (data) {
+                    // --- UPDATE TAMPILAN PUBLIK ---
                     document.getElementById("displayEvent").innerText =
                         data.event_name || "-";
                     document.getElementById("displayNama").innerText =
@@ -537,6 +535,22 @@
                         data.htm || "-";
                     document.getElementById("displayRekening").innerText =
                         data.rekening || "-";
+
+                    // --- UPDATE KOLOM ADMIN (FITUR AUTO-FILL) ---
+                    document.getElementById("eventInput").value =
+                        data.event_name || "";
+                    document.getElementById("namaLapangan").value =
+                        data.nama_lp || "";
+                    document.getElementById("jadwalMain").value = data.waktu
+                        ? data.waktu.replace("T", " | ")
+                        : "";
+                    document.getElementById("jerseyInfo").value =
+                        data.jersey || "";
+                    document.getElementById("htmInfo").value = data.htm || "";
+                    document.getElementById("rekeningInfo").value =
+                        data.rekening || "";
+                    document.getElementById("linkMaps").value =
+                        data.maps_url || "";
 
                     const badge = document.getElementById("statusBadge");
                     const icon = document.getElementById("statusIcon");
@@ -556,9 +570,27 @@
                     if (data.waktu)
                         document.getElementById("displayDateTime").innerText =
                             data.waktu.replace("T", " | ") + " WIB";
-                    if (data.maps_url)
-                        document.getElementById("mapContainer").innerHTML =
-                            `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+
+                    if (data.maps_url) {
+                        const mapContainer =
+                            document.getElementById("mapContainer");
+                        if (
+                            data.maps_url.includes("google.com/maps/embed") ||
+                            data.maps_url.includes("googleusercontent")
+                        ) {
+                            mapContainer.innerHTML = `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+                        } else {
+                            mapContainer.innerHTML = `
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; padding: 20px; text-align: center; background: #fdfdfd;">
+                                    <i class="fa-solid fa-location-dot" style="font-size: 35px; color: #e74c3c;"></i>
+                                    <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 14px;">Location link is ready</p>
+                                    <a href="${data.maps_url}" target="_blank" class="btn" style="background: #4285F4; width: 85%; padding: 10px; border-radius: 12px; font-size: 14px;">
+                                        <i class="fa-solid fa-map-location-dot"></i> OPEN IN GOOGLE MAPS
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    }
                 }
             }
             window.onload = loadInfo;
