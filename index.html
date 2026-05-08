@@ -6,6 +6,18 @@
         <title>KickOff Planner</title>
         <link rel="stylesheet" href="style.css" />
         <style>
+            /* Mengatur background agar responsif */
+            body {
+                margin: 0;
+                padding: 0;
+                background-image: url("gemini.jpg");
+                background-size: cover; /* Memastikan gambar menutupi seluruh layar */
+                background-position: center; /* Fokus gambar tetap di tengah */
+                background-repeat: no-repeat;
+                background-attachment: fixed; /* Background tetap diam saat di-scroll */
+                min-height: 100vh;
+            }
+
             /* Container utama untuk tombol agar bisa sejajar */
             .button-menu {
                 display: flex;
@@ -68,11 +80,9 @@
     <body>
         <div class="container-utama">
             <nav class="navbar-content">
-                <img class="logo" src="favicon.ico" alt="Logo" />
-
                 <header class="hero">
                     <h1>KickOff Planner</h1>
-                    <p>Sepak Bola Menyatukan Kita Semua</p>
+                    <p>United by the Beautiful Game</p>
                 </header>
             </nav>
 

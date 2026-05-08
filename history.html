@@ -28,7 +28,7 @@
                 background-color: var(--dark-blue);
                 background-image:
                     linear-gradient(rgba(3, 28, 38, 0.8), rgba(3, 28, 38, 0.9)),
-                    url("lapangan.jpg");
+                    url("gemini.jpg");
                 background-size: cover;
                 background-position: center;
                 background-attachment: fixed;
@@ -64,6 +64,11 @@
                 font-size: 20px;
                 text-decoration: none;
             }
+
+            .home-link:hover {
+                color: red;
+            }
+
             .nav-label {
                 font-weight: 800;
                 text-transform: uppercase;
@@ -85,7 +90,6 @@
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 overflow: hidden;
-                transition: transform 0.2s;
             }
 
             summary {
@@ -101,10 +105,6 @@
                 font-size: 1rem;
                 border-left: 45px solid var(--primary-color);
                 position: relative;
-            }
-
-            summary::-webkit-details-marker {
-                display: none;
             }
 
             summary::before {
@@ -133,7 +133,6 @@
                 padding: 15px;
                 border-top: 1px solid #e2e8f0;
                 background: white;
-                position: relative;
             }
 
             .info-grid {
@@ -156,35 +155,90 @@
                 text-align: center;
             }
 
+            /* --- STYLING SQUAD SECTION & MINI PAGINATION --- */
             .squad-section {
-                background: #f8fafc;
-                padding: 12px;
+                background: #ffffff;
                 border-radius: 8px;
-                border: 1px solid #edf2f7;
+                border: 1px solid #e2e8f0;
+                overflow: hidden;
+                margin-top: 10px;
             }
 
             .squad-label {
-                font-weight: 700;
+                background: #f8fafc;
+                padding: 10px 15px;
+                font-weight: 800;
                 font-size: 0.75rem;
                 color: #64748b;
-                margin-bottom: 8px;
                 display: block;
+                border-bottom: 1px solid #e2e8f0;
             }
 
-            .player-badges {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
+            .squad-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
             }
 
-            .player-badge {
-                background: white;
-                color: var(--dark-blue);
-                padding: 4px 10px;
-                border-radius: 6px;
-                font-size: 0.75rem;
-                border: 1px solid #e2e8f0;
+            .squad-table tr {
+                border-bottom: 1px solid #f1f5f9;
+            }
+
+            .squad-table td {
+                padding: 10px 15px;
+            }
+
+            .td-number {
+                width: 40px;
+                font-weight: bold;
+                color: #94a3b8;
+                border-right: 1px solid #f1f5f9;
+                text-align: center;
+            }
+
+            .td-name {
                 font-weight: 600;
+                text-transform: capitalize;
+            }
+
+            /* Info Text & Mini Pagination Buttons */
+            .mini-pagination-container {
+                padding: 10px 15px;
+                background: #f8fafc;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .mini-info-text {
+                font-size: 0.75rem;
+                color: #64748b;
+                font-weight: 500;
+            }
+
+            .mini-btns {
+                display: flex;
+                gap: 5px;
+            }
+
+            .mini-btn {
+                background: white;
+                border: 1px solid #cbd5e1;
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                cursor: pointer;
+                color: var(--text-dark);
+                transition: 0.2s;
+            }
+
+            .mini-btn.active {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+                font-weight: bold;
             }
 
             .delete-btn {
@@ -195,11 +249,6 @@
                 cursor: pointer;
                 font-size: 1.2rem;
                 opacity: 0.7;
-                padding: 5px;
-            }
-
-            .delete-btn:hover {
-                opacity: 1;
             }
 
             .pagination {
@@ -217,7 +266,6 @@
                 padding: 6px 12px;
                 border-radius: 6px;
                 cursor: pointer;
-                font-size: 0.9rem;
             }
 
             .page-btn.active {
@@ -227,22 +275,12 @@
             }
 
             @media (max-width: 480px) {
-                body {
-                    padding: 10px;
-                }
                 summary {
                     font-size: 0.9rem;
                     border-left-width: 40px;
                 }
                 summary::before {
                     left: -30px;
-                    font-size: 1rem;
-                }
-                .nav-label {
-                    font-size: 0.9rem;
-                }
-                .player-badge {
-                    font-size: 0.7rem;
                 }
             }
         </style>
@@ -250,9 +288,9 @@
     <body>
         <div class="navbar">
             <div class="home-box">
-                <a href="index.html" class="home-link">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
+                <a href="index.html" class="home-link"
+                    ><i class="fa-solid fa-arrow-left"></i
+                ></a>
             </div>
             <div class="nav-label">Event History</div>
         </div>
@@ -261,7 +299,6 @@
         <div class="pagination" id="paginationControls"></div>
 
         <script>
-            // Supabase Configuration
             const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SB_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
@@ -271,59 +308,83 @@
             const itemsPerPage = 10;
             let totalData = [];
 
-            // Helper to format date
             function formatDateTime(dateString) {
                 if (!dateString || dateString === "N/A") return "N/A";
                 return dateString.replace("T", " | ").substring(0, 21);
             }
 
-            // Helper to generate player badges
-            function getPlayerBadges(listString) {
-                if (
-                    !listString ||
-                    listString === "-" ||
-                    listString === "No list recorded"
-                ) {
-                    return `<span style="color:#94a3b8; font-size: 0.8rem;">No players</span>`;
+            // --- LOGIKA MINI PAGINATION SQUAD ---
+            function renderSquadTable(eventId, players, page = 1) {
+                const limit = 5;
+                const total = players.length;
+                const totalPages = Math.ceil(total / limit);
+                const start = (page - 1) * limit;
+                const end = Math.min(start + limit, total);
+                const paginatedPlayers = players.slice(start, end);
+
+                let html = `<table class="squad-table">`;
+                paginatedPlayers.forEach((p, i) => {
+                    html += `<tr><td class="td-number">${start + i + 1}</td><td class="td-name">${p}</td></tr>`;
+                });
+                html += `</table>`;
+
+                if (totalPages > 1) {
+                    html += `
+                    <div class="mini-pagination-container">
+                        <div class="mini-info-text">Showing ${start + 1} to ${end} of ${total} entries</div>
+                        <div class="mini-btns">`;
+                    for (let j = 1; j <= totalPages; j++) {
+                        html += `<button class="mini-btn ${j === page ? "active" : ""}" onclick="changeSquadPage('${eventId}', ${j})">${j}</button>`;
+                    }
+                    html += `</div></div>`;
                 }
-                return listString
-                    .split(",")
-                    .map((p) => `<span class="player-badge">${p.trim()}</span>`)
-                    .join("");
+
+                const target = document.getElementById(
+                    `squad-container-${eventId}`,
+                );
+                if (target) target.innerHTML = html;
             }
 
-            // Fetch data from Supabase
+            // Fungsi global untuk ganti halaman squad (dipanggil via onclick)
+            window.changeSquadPage = (eventId, page) => {
+                const item = totalData.find((d) => d.id == eventId);
+                const players = item.player_list
+                    .split(",")
+                    .map((p) => p.trim())
+                    .filter((p) => p !== "");
+                renderSquadTable(eventId, players, page);
+            };
+
             async function loadData() {
                 const { data, error } = await _supabase
                     .from("event_history")
                     .select("*")
                     .order("created_at", { ascending: false });
-
-                if (error) {
-                    console.error("Error fetching data:", error);
-                    return;
-                }
+                if (error) return;
                 totalData = data;
                 renderPage(1);
             }
 
-            // Render current page cards
             function renderPage(page) {
                 currentPage = page;
                 const container = document.getElementById("historyList");
                 container.innerHTML = "";
-
                 const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const pageData = totalData.slice(startIndex, endIndex);
-
-                if (pageData.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; opacity:0.6; padding: 20px;">No history records found.</div>`;
-                    return;
-                }
+                const pageData = totalData.slice(
+                    startIndex,
+                    startIndex + itemsPerPage,
+                );
 
                 pageData.forEach((item, index) => {
                     const matchNumber = totalData.length - (startIndex + index);
+                    const players =
+                        item.player_list && item.player_list !== "-"
+                            ? item.player_list
+                                  .split(",")
+                                  .map((p) => p.trim())
+                                  .filter((p) => p !== "")
+                            : [];
+
                     const card = document.createElement("details");
                     card.className = "history-card";
                     card.innerHTML = `
@@ -335,28 +396,23 @@
                                 <div class="match-info"><i class="fa-solid fa-users"></i> ${item.player_count} Participants</div>
                             </div>
                             <div class="squad-section">
-                                <span class="squad-label">SQUAD LIST</span>
-                                <div class="player-badges">${getPlayerBadges(item.player_list)}</div>
+                                <span class="squad-label">ATTENDANCE LIST</span>
+                                <div id="squad-container-${item.id}"></div>
                             </div>
-                            <div class="delete-btn" onclick="deleteHistory(${item.id})">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </div>
+                            <div class="delete-btn" onclick="deleteHistory(${item.id})"><i class="fa-solid fa-trash-can"></i></div>
                         </div>
                     `;
                     container.appendChild(card);
+                    renderSquadTable(item.id, players, 1);
                 });
-
                 renderPagination();
             }
 
-            // Render pagination buttons
             function renderPagination() {
                 const controls = document.getElementById("paginationControls");
                 controls.innerHTML = "";
                 const totalPages = Math.ceil(totalData.length / itemsPerPage);
-
                 if (totalPages <= 1) return;
-
                 for (let i = 1; i <= totalPages; i++) {
                     const btn = document.createElement("button");
                     btn.className = `page-btn ${i === currentPage ? "active" : ""}`;
@@ -369,34 +425,20 @@
                 }
             }
 
-            // --- DELETE FUNCTION (Admin Only) ---
             async function deleteHistory(id) {
-                const password = prompt(
-                    "Enter Admin Password to delete this history record:",
-                );
-
-                if (password === null) return; // User cancelled
-
-                if (password === "admin") {
-                    const confirmFinal = confirm(
-                        "Are you sure you want to permanently delete this record?",
-                    );
-
-                    if (confirmFinal) {
-                        const { error } = await _supabase
-                            .from("event_history")
-                            .delete()
-                            .eq("id", id);
-
-                        if (!error) {
-                            alert("Record successfully deleted.");
-                            loadData(); // Refresh list
-                        } else {
-                            alert("Failed to delete: " + error.message);
-                        }
+                const password = prompt("Enter Admin Password:");
+                if (
+                    password === "admin" &&
+                    confirm("Delete record permanently?")
+                ) {
+                    const { error } = await _supabase
+                        .from("event_history")
+                        .delete()
+                        .eq("id", id);
+                    if (!error) {
+                        alert("Deleted.");
+                        loadData();
                     }
-                } else {
-                    alert("Incorrect password! Access denied.");
                 }
             }
 

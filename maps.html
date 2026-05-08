@@ -37,7 +37,7 @@
                 padding: 20px;
                 background-image:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-                    url("DC98-transformed.jpeg");
+                    url("gemini.jpg");
                 background-size: cover !important;
                 background-position: center;
                 background-repeat: no-repeat;
@@ -45,6 +45,7 @@
                 background-color: #1a1a1a;
             }
 
+            /* --- NAVBAR & DYNAMIC LOGIN BUTTON --- */
             .navbar {
                 background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
@@ -59,30 +60,70 @@
                 justify-content: center;
                 box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
                 border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 0 20px;
             }
             .home-box {
                 position: absolute;
-                left: 25px;
+                left: 20px;
                 display: flex;
                 align-items: center;
             }
             .home-link {
                 color: white;
-                font-size: 28px;
+                font-size: 24px;
                 text-decoration: none;
                 transition: 0.3s;
             }
             .home-link:hover {
-                color: #2ecc71;
+                color: red;
             }
+
             .nav-label {
                 color: white;
                 font-weight: 900;
                 text-transform: uppercase;
-                letter-spacing: 3px;
-                font-size: 1.5rem;
+                letter-spacing: 2px;
+                font-size: 1.3rem;
             }
 
+            .login-box {
+                position: absolute;
+                right: 20px;
+            }
+
+            /* Style Default (Putih) */
+            .btn-auth {
+                background: transparent;
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.5);
+                padding: 6px 15px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                font-weight: 700;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: 0.3s;
+                text-transform: uppercase;
+            }
+
+            /* Style Saat Sudah Login (Hijau) */
+            .btn-auth.is-admin {
+                color: #2ecc71;
+                border-color: #2ecc71;
+            }
+            .btn-auth:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: white;
+            }
+            .btn-auth.is-admin:hover {
+                background: rgba(46, 204, 113, 0.1);
+                border-color: #27ae60;
+                color: #27ae60;
+            }
+
+            /* --- CONTENT STYLES --- */
             .container {
                 background: rgba(255, 255, 255, 0.98);
                 padding: 25px;
@@ -112,7 +153,6 @@
                 border: 1px solid #ddd;
                 font-size: 15px;
             }
-
             .btn {
                 color: white;
                 border: none;
@@ -127,18 +167,11 @@
             .btn-save {
                 background: #2ecc71;
             }
-            .btn-save:hover {
-                background: #27ae60;
-            }
             .btn-archive {
                 background: #e67e22;
             }
-            .btn-archive:hover {
-                background: #d35400;
-            }
             .btn-cancel {
                 background: #95a5a6;
-                margin-top: 5px;
             }
 
             .detail-jadwal {
@@ -179,7 +212,6 @@
                 color: #1e293b;
                 font-weight: 600;
             }
-
             .badge {
                 background: #27ae60;
                 color: white;
@@ -205,34 +237,22 @@
                 background: #f9f9f9;
                 overflow: hidden;
             }
-
-            .login-admin-trigger {
-                position: fixed;
-                bottom: 25px;
-                right: 25px;
-                background: #2c3e50;
-                color: white;
-                width: 55px;
-                height: 55px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border: none;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-                cursor: pointer;
-                z-index: 1000;
-            }
         </style>
     </head>
     <body>
         <div class="navbar">
             <div class="home-box">
                 <a href="index.html" class="home-link"
-                    ><i class="fa-solid fa-house"></i
+                    ><i class="fa-solid fa-arrow-left"></i
                 ></a>
             </div>
             <div class="nav-label">Match Day</div>
+            <div class="login-box">
+                <button id="authBtn" class="btn-auth" onclick="handleAuth()">
+                    <i id="authIcon" class="fa-solid fa-lock"></i>
+                    <span id="authText">LOGIN</span>
+                </button>
+            </div>
         </div>
 
         <div id="adminSection" class="container">
@@ -264,14 +284,10 @@
                 />
 
                 <button class="btn btn-archive" onclick="archiveMatch()">
-                    <i class="fa-solid fa-box-archive"></i> ARCHIVE MATCH (SEND
-                    TO HISTORY)
+                    <i class="fa-solid fa-box-archive"></i> ARCHIVE MATCH
                 </button>
                 <button class="btn btn-save" onclick="updateInfo()">
                     <i class="fa-solid fa-floppy-disk"></i> SAVE CHANGES
-                </button>
-                <button class="btn btn-cancel" onclick="toggleAdmin()">
-                    CANCEL
                 </button>
             </div>
         </div>
@@ -335,7 +351,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="stadium-name" id="displayNama">Loading...</div>
             <div id="mapContainer" class="map-frame">
                 <p style="text-align: center; line-height: 280px; color: #999">
@@ -344,15 +359,13 @@
             </div>
         </div>
 
-        <button class="login-admin-trigger" onclick="loginAdmin()">
-            <i class="fa-solid fa-user-shield"></i>
-        </button>
-
         <script>
             const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SB_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
             const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+            let isAdminLoggedIn = false;
 
             flatpickr("#jadwalMain", {
                 enableTime: true,
@@ -360,24 +373,47 @@
                 time_24hr: true,
             });
 
-            function loginAdmin() {
-                const pass = prompt("Admin Password:");
-
-                // Menangani jika user menekan 'Cancel'
-                if (pass === null) return;
-
-                if (pass === "admin") {
-                    document.getElementById("adminSection").style.display =
-                        "block";
-                    alert("Access Granted! Welcome Admin.");
+            // Fungsi Utama Login/Logout
+            function handleAuth() {
+                if (!isAdminLoggedIn) {
+                    // Proses LOGIN
+                    const pass = prompt("Admin Password:");
+                    if (pass === "admin") {
+                        setAdminUI(true);
+                        alert("Login Successful! You are now in Admin mode");
+                    } else if (pass !== null) {
+                        alert("Access Denied! Incorrect Password.");
+                    }
                 } else {
-                    // Popup peringatan akses ditolak dalam Bahasa Inggris
-                    alert("Access Denied! Incorrect Password.");
+                    // Proses LOGOUT
+                    const confirmLogout = confirm("Sign out from Admin mode?");
+                    if (confirmLogout) {
+                        setAdminUI(false);
+                    }
                 }
             }
 
-            function toggleAdmin() {
-                document.getElementById("adminSection").style.display = "none";
+            // Fungsi untuk Mengubah Tampilan UI (Tombol & Panel)
+            function setAdminUI(loggedIn) {
+                isAdminLoggedIn = loggedIn;
+                const authBtn = document.getElementById("authBtn");
+                const authText = document.getElementById("authText");
+                const authIcon = document.getElementById("authIcon");
+                const adminSection = document.getElementById("adminSection");
+
+                if (loggedIn) {
+                    // Ubah jadi Mode ADMIN (Hijau)
+                    authText.innerText = "ADMIN";
+                    authIcon.className = "fa-solid fa-unlock-keyhole";
+                    authBtn.classList.add("is-admin");
+                    adminSection.style.display = "block";
+                } else {
+                    // Kembali ke Mode LOGIN (Putih)
+                    authText.innerText = "LOGIN";
+                    authIcon.className = "fa-solid fa-lock";
+                    authBtn.classList.remove("is-admin");
+                    adminSection.style.display = "none";
+                }
             }
 
             async function updateInfo() {
@@ -416,39 +452,22 @@
 
             async function archiveMatch() {
                 const confirmArchive = confirm(
-                    "Are you sure you want to archive this match? The data will be moved to Event History and Match Day will be reset.",
+                    "Archive this match and reset schedules?",
                 );
                 if (!confirmArchive) return;
-
                 try {
-                    const { data: currentMatch, error: matchError } =
-                        await _supabase
-                            .from("jadwal_lapangan")
-                            .select("*")
-                            .eq("id", 1)
-                            .single();
-
-                    if (matchError || !currentMatch) {
-                        alert("Gagal mengambil data jadwal lapangan.");
-                        return;
-                    }
-
-                    const { data: players, error: playersError } =
-                        await _supabase.from("pemain").select("nama");
-
-                    if (playersError) {
-                        alert("Gagal mengambil daftar pemain.");
-                        return;
-                    }
-
-                    let listNama = "-";
-                    let jumlahPemain = 0;
-
-                    if (players && players.length > 0) {
-                        listNama = players.map((p) => p.nama).join(", ");
-                        jumlahPemain = players.length;
-                    }
-
+                    const { data: currentMatch } = await _supabase
+                        .from("jadwal_lapangan")
+                        .select("*")
+                        .eq("id", 1)
+                        .single();
+                    const { data: players } = await _supabase
+                        .from("pemain")
+                        .select("nama");
+                    let listNama =
+                        players?.length > 0
+                            ? players.map((p) => p.nama).join(", ")
+                            : "-";
                     const { error: insertError } = await _supabase
                         .from("event_history")
                         .insert({
@@ -456,9 +475,8 @@
                             location_name: currentMatch.nama_lp,
                             match_date: currentMatch.waktu,
                             player_list: listNama,
-                            player_count: jumlahPemain,
+                            player_count: players?.length || 0,
                         });
-
                     if (!insertError) {
                         await _supabase
                             .from("jadwal_lapangan")
@@ -472,18 +490,9 @@
                                 maps_url: "",
                             })
                             .eq("id", 1);
-
                         await _supabase.from("pemain").delete().neq("id", 0);
-
-                        alert(
-                            "Match Berhasil di-Archive! Squad List telah tersimpan di riwayat.",
-                        );
+                        alert("Match Berhasil di-Archive!");
                         location.reload();
-                    } else {
-                        alert(
-                            "Gagal menyimpan ke history: " +
-                                insertError.message,
-                        );
                     }
                 } catch (err) {
                     alert("System Error: " + err.message);

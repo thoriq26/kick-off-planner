@@ -11,8 +11,9 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
+
         <style>
-            /* --- RESET & BACKGROUND FULL --- */
+            /* --- RESET & BACKGROUND --- */
             html,
             body {
                 height: 100%;
@@ -30,7 +31,7 @@
                 padding: 20px;
                 background:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-                    url("DC98-transformed.jpeg");
+                    url("gemini.jpg");
                 background-position: center center;
                 background-repeat: no-repeat;
                 background-attachment: fixed;
@@ -38,7 +39,7 @@
                 background-color: #1a1a1a;
             }
 
-            /* --- NAVBAR (CONFIRMATION LIST) --- */
+            /* --- NAVBAR --- */
             .navbar {
                 background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
@@ -53,8 +54,6 @@
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 position: relative;
             }
-
-            /* Tombol Home - Hijau saat Hover/Klik */
             .home-link {
                 position: absolute;
                 left: 20px;
@@ -63,11 +62,34 @@
                 text-decoration: none;
                 transition: 0.3s;
             }
-            .home-link:hover,
-            .home-link:active {
-                color: #27ae60;
+            .home-link:hover {
+                color: red;
             }
 
+            .admin-login-btn {
+                position: absolute;
+                right: 20px;
+                background: transparent;
+                border: 2px solid rgba(255, 255, 255, 0.5);
+                color: white;
+                padding: 6px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: 0.3s;
+            }
+            .admin-login-btn:hover {
+                border-color: #27ae60;
+                color: #27ae60;
+            }
+            .admin-login-btn.active {
+                border-color: #27ae60;
+                background: #27ae60;
+                color: white;
+            }
             .nav-title {
                 color: white;
                 font-weight: 900;
@@ -76,25 +98,23 @@
                 text-transform: uppercase;
             }
 
-            /* --- REGISTRATION FORM (Ramping) --- */
+            /* --- FORM --- */
             .container {
                 background: rgba(255, 255, 255, 0.98);
                 padding: 20px 30px;
                 border-radius: 20px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
                 width: 100%;
-                max-width: 750px; /* Lebih kecil agar tidak penuh layar */
+                max-width: 750px;
                 box-sizing: border-box;
                 margin-bottom: 25px;
             }
-
             h2 {
                 color: #2c3e50;
                 text-align: center;
                 margin: 0 0 15px 0;
                 font-size: 1.2rem;
             }
-
             .input-group {
                 margin-bottom: 12px;
             }
@@ -111,11 +131,9 @@
                 padding: 10px;
                 border: 1px solid #ddd;
                 border-radius: 8px;
-                box-sizing: border-box;
                 font-size: 15px;
                 outline: none;
             }
-
             .btn-group {
                 display: flex;
                 gap: 12px;
@@ -138,13 +156,15 @@
             .btn-submit {
                 background: #27ae60;
                 color: white;
+                width: 100%;
             }
             .btn-reset {
                 background: #e74c3c;
                 color: white;
+                display: none;
             }
 
-            /* --- TABLE SQUAD LIST (Tetap Gagah) --- */
+            /* --- TABLE --- */
             .table-container-outer {
                 width: 100%;
                 max-width: 1000px;
@@ -188,8 +208,11 @@
                 font-size: 1rem;
             }
 
+            .action-header,
             .action-cell {
-                display: flex;
+                display: none;
+            }
+            .action-cell {
                 gap: 8px;
             }
             .btn-table {
@@ -217,15 +240,26 @@
                 .nav-title {
                     font-size: 1.2rem;
                 }
+                .admin-login-btn span {
+                    display: none;
+                }
             }
         </style>
     </head>
     <body>
         <div class="navbar">
             <a href="index.html" class="home-link"
-                ><i class="fa-solid fa-house"></i
+                ><i class="fa-solid fa-arrow-left"></i
             ></a>
             <span class="nav-title">CONFIRMATION LIST</span>
+            <button
+                id="adminToggle"
+                class="admin-login-btn"
+                onclick="toggleAdminMode()"
+            >
+                <i id="lockIcon" class="fa-solid fa-lock"></i>
+                <span>LOGIN</span>
+            </button>
         </div>
 
         <div class="container">
@@ -243,11 +277,16 @@
                 <div class="input-group">
                     <label>POSITION</label>
                     <select id="posisi">
-                        <option value="GOALKEEPER (GK)">GOALKEEPER (GK)</option>
-                        <option value="DEFENDER (DF)">DEFENDER (DF)</option>
-                        <option value="MIDFIELDER (MF)">MIDFIELDER (MF)</option>
-                        <option value="WINGER (WG)">WINGER (WG)</option>
-                        <option value="STRIKER (CF)">STRIKER (CF)</option>
+                        <option value="GK">GK</option>
+                        <option value="CB">CB</option>
+                        <option value="LB">LB</option>
+                        <option value="RB">RB</option>
+                        <option value="DMF">DMF</option>
+                        <option value="CMF">CMF</option>
+                        <option value="AMF">AMF</option>
+                        <option value="LWF">LWF</option>
+                        <option value="RWF">RWF</option>
+                        <option value="CF">CF</option>
                         <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
                     </select>
                 </div>
@@ -257,6 +296,7 @@
                     </button>
                     <button
                         type="button"
+                        id="resetBtn"
                         class="btn-action btn-reset"
                         onclick="resetDatabase()"
                     >
@@ -268,7 +308,10 @@
 
         <div class="table-container-outer">
             <div class="table-header">
-                <span><i class="fa-solid fa-users"></i> Registered Squad</span>
+                <span
+                    ><i class="fa-solid fa-users"></i> Registered
+                    Attendees</span
+                >
                 <span
                     style="
                         background: #27ae60;
@@ -280,15 +323,20 @@
                     >0</span
                 >
             </div>
-
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th style="width: 60px; text-align: center">NO</th>
                             <th>NAME</th>
-                            <th>POSITION</th>
-                            <th style="width: 120px">ACTION</th>
+                            <th>POS</th>
+                            <th
+                                id="actionHeader"
+                                class="action-header"
+                                style="width: 120px"
+                            >
+                                ACTION
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="playerTableBody"></tbody>
@@ -305,24 +353,49 @@
 
             const tableBody = document.getElementById("playerTableBody");
             const playerCount = document.getElementById("count");
+            let isAdminLoggedIn = false;
 
-            function formatPosFull(pos) {
-                const map = {
-                    GK: "GOALKEEPER (GK)",
-                    Kiper: "GOALKEEPER (GK)",
-                    DF: "DEFENDER (DF)",
-                    Bek: "DEFENDER (DF)",
-                    MF: "MIDFIELDER (MF)",
-                    Gelandang: "MIDFIELDER (MF)",
-                    WG: "WINGER (WG)",
-                    Winger: "WINGER (WG)",
-                    CF: "STRIKER (CF)",
-                    Striker: "STRIKER (CF)",
-                    Penyerang: "STRIKER (CF)",
-                    Fan: "SPECTATOR (FAN)",
-                    Penonton: "SPECTATOR (FAN)",
-                };
-                return map[pos] || pos;
+            // --- LOGIKA MENGGUNAKAN GAYA BAWAAN BROWSER ---
+            function toggleAdminMode() {
+                if (!isAdminLoggedIn) {
+                    // Pakai prompt bawaan
+                    const pin = prompt("Admin Password:");
+
+                    if (pin === "admin") {
+                        isAdminLoggedIn = true;
+                        applyAdminUI();
+                        alert("Login Successful! You are now in Admin mode");
+                    } else if (pin !== null) {
+                        alert("Access Denied! Incorrect Password.");
+                    }
+                } else {
+                    // Pakai confirm bawaan
+                    if (confirm("Sign out from Admin mode?")) {
+                        isAdminLoggedIn = false;
+                        applyAdminUI();
+                    }
+                }
+            }
+
+            function applyAdminUI() {
+                const btn = document.getElementById("adminToggle");
+                const resetBtn = document.getElementById("resetBtn");
+                const actionHeader = document.getElementById("actionHeader");
+
+                if (isAdminLoggedIn) {
+                    btn.innerHTML =
+                        '<i class="fa-solid fa-lock-open"></i> <span>ADMIN</span>';
+                    btn.classList.add("active");
+                    resetBtn.style.display = "flex";
+                    actionHeader.style.display = "table-cell";
+                } else {
+                    btn.innerHTML =
+                        '<i class="fa-solid fa-lock"></i> <span>LOGIN</span>';
+                    btn.classList.remove("active");
+                    resetBtn.style.display = "none";
+                    actionHeader.style.display = "none";
+                }
+                muatPemain();
             }
 
             async function muatPemain() {
@@ -331,26 +404,21 @@
                     .select("*")
                     .order("created_at", { ascending: true });
                 if (error) return;
+
                 tableBody.innerHTML = "";
                 playerCount.innerText = data.length;
+
                 data.forEach((p, index) => {
-                    const displayPos = formatPosFull(p.posisi);
                     tableBody.innerHTML += `
-                        <tr>
-                            <td style="text-align: center;">${index + 1}</td>
-                            <td style="font-weight: 600;">${p.nama}</td>
-                            <td><span style="color: #27ae60; font-weight: bold; font-size: 0.9rem;">${displayPos}</span></td>
-                            <td>
-                                <div class="action-cell">
-                                    <button class="btn-table btn-edit" onclick="editPemain(${p.id}, '${p.nama}', '${displayPos}')">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </button>
-                                    <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`;
+                    <tr>
+                        <td style="text-align: center;">${index + 1}</td>
+                        <td style="font-weight: 600;">${p.nama}</td>
+                        <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${p.posisi}</span></td>
+                        <td class="action-cell" style="display: ${isAdminLoggedIn ? "flex" : "none"}">
+                            <button class="btn-table btn-edit" onclick="editPemain(${p.id}, '${p.nama}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
                 });
             }
 
@@ -360,51 +428,40 @@
                     e.preventDefault();
                     const nama = document.getElementById("nama").value;
                     const posisi = document.getElementById("posisi").value;
-                    await _supabase.from("pemain").insert([{ nama, posisi }]);
-                    document.getElementById("playerForm").reset();
-                    muatPemain();
+                    const { error } = await _supabase
+                        .from("pemain")
+                        .insert([{ nama, posisi }]);
+                    if (!error) {
+                        alert("Success!\nRegistered successfully");
+                        document.getElementById("playerForm").reset();
+                        muatPemain();
+                    }
                 });
 
-            function cekPinAdmin() {
-                const pin = prompt("Admin PIN:");
-                return pin === "admin" ? "OK" : "WRONG";
-            }
-
-            async function editPemain(id, namaLama, posisiLama) {
-                if (cekPinAdmin() !== "OK") return alert("Wrong PIN!");
-                const namaBaru = prompt("Edit Name:", namaLama);
-                if (!namaBaru) return;
-                const opsi = [
-                    "GOALKEEPER (GK)",
-                    "DEFENDER (DF)",
-                    "MIDFIELDER (MF)",
-                    "WINGER (WG)",
-                    "STRIKER (CF)",
-                    "SPECTATOR (FAN)",
-                ];
-                let msg =
-                    "Select Position:\n" +
-                    opsi.map((o, i) => `${i + 1}. ${o}`).join("\n");
-                const p = prompt(msg, "1");
-                let posisiBaru = p >= 1 && p <= 6 ? opsi[p - 1] : posisiLama;
-                await _supabase
-                    .from("pemain")
-                    .update({ nama: namaBaru, posisi: posisiBaru })
-                    .eq("id", id);
-                muatPemain();
+            async function editPemain(id, namaLama) {
+                const namaBaru = prompt("Edit Player Name:", namaLama);
+                if (namaBaru !== null && namaBaru.trim() !== "") {
+                    await _supabase
+                        .from("pemain")
+                        .update({ nama: namaBaru })
+                        .eq("id", id);
+                    muatPemain();
+                }
             }
 
             async function hapusSatuPemain(id) {
-                if (cekPinAdmin() !== "OK") return alert("Wrong PIN!");
-                if (confirm("Remove player?")) {
+                if (confirm("Remove attendee? This action cannot be undone.")) {
                     await _supabase.from("pemain").delete().eq("id", id);
                     muatPemain();
                 }
             }
 
             async function resetDatabase() {
-                if (cekPinAdmin() !== "OK") return alert("Wrong PIN!");
-                if (confirm("Clear all data?")) {
+                if (
+                    confirm(
+                        "DANGER: RESET ALL DATA?\nThis will clear the entire list.",
+                    )
+                ) {
                     const { data } = await _supabase
                         .from("pemain")
                         .select("id");
