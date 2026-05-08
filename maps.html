@@ -524,7 +524,6 @@
                     .eq("id", 1)
                     .single();
                 if (data) {
-                    // --- UPDATE TAMPILAN PUBLIK ---
                     document.getElementById("displayEvent").innerText =
                         data.event_name || "-";
                     document.getElementById("displayNama").innerText =
@@ -536,7 +535,6 @@
                     document.getElementById("displayRekening").innerText =
                         data.rekening || "-";
 
-                    // --- UPDATE KOLOM ADMIN (FITUR AUTO-FILL) ---
                     document.getElementById("eventInput").value =
                         data.event_name || "";
                     document.getElementById("namaLapangan").value =
@@ -574,19 +572,27 @@
                     if (data.maps_url) {
                         const mapContainer =
                             document.getElementById("mapContainer");
-                        if (
-                            data.maps_url.includes("google.com/maps/embed") ||
-                            data.maps_url.includes("googleusercontent")
-                        ) {
+                        if (data.maps_url.includes("googleusercontent")) {
                             mapContainer.innerHTML = `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
                         } else {
+                            // TAMPILAN BACKGROUND MAPS BARU (MODERN GRADIENT STYLE)
                             mapContainer.innerHTML = `
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; padding: 20px; text-align: center; background: #fdfdfd;">
-                                    <i class="fa-solid fa-location-dot" style="font-size: 35px; color: #e74c3c;"></i>
-                                    <p style="margin: 0; font-weight: 700; color: #1e293b; font-size: 14px;">Location link is ready</p>
-                                    <a href="${data.maps_url}" target="_blank" class="btn" style="background: #4285F4; width: 85%; padding: 10px; border-radius: 12px; font-size: 14px;">
-                                        <i class="fa-solid fa-map-location-dot"></i> OPEN IN GOOGLE MAPS
-                                    </a>
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); overflow: hidden;">
+                                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(39, 174, 96, 0.1); border-radius: 50%;"></div>
+                                    <div style="position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; background: rgba(66, 133, 244, 0.1); border-radius: 50%;"></div>
+
+                                    <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                                        <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                                            <i class="fa-solid fa-map-pin" style="font-size: 28px; color: #e74c3c;"></i>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <p style="margin: 0; font-weight: 800; color: #1e293b; font-size: 16px; letter-spacing: 0.5px;">LOCATION READY</p>
+                                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500;">Tap button below to navigate</p>
+                                        </div>
+                                        <a href="${data.maps_url}" target="_blank" class="btn" style="background: #1e293b; width: 200px; padding: 12px; border-radius: 12px; font-size: 13px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                            <i class="fa-solid fa-location-arrow" style="margin-right: 8px;"></i> GET DIRECTIONS
+                                        </a>
+                                    </div>
                                 </div>
                             `;
                         }
