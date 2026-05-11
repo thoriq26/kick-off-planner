@@ -21,7 +21,7 @@
                 padding: 0;
             }
             body {
-                font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -29,6 +29,7 @@
                 width: 100%;
                 box-sizing: border-box;
                 padding: 20px;
+                /* Mempertahankan Background Image */
                 background:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
                     url("gemini.jpg");
@@ -63,7 +64,7 @@
                 transition: 0.3s;
             }
             .home-link:hover {
-                color: red;
+                color: #e74c3c;
             }
 
             .admin-login-btn {
@@ -98,107 +99,133 @@
                 text-transform: uppercase;
             }
 
-            /* --- FORMS (Registration & Edit) --- */
+            /* --- CONTAINERS (Registration & Edit) --- */
             .container {
-                background: rgba(255, 255, 255, 0.98);
-                padding: 20px 30px;
-                border-radius: 20px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                background-color: white;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
                 width: 100%;
-                max-width: 750px;
-                box-sizing: border-box;
+                max-width: 600px;
                 margin-bottom: 25px;
+                box-sizing: border-box;
             }
 
-            /* Specific Edit Container Styling */
             #editContainer {
                 display: none; /* Hidden by default */
                 border: 3px solid #27ae60;
-                animation: fadeIn 0.4s ease;
-            }
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
             }
 
             h2 {
-                color: #2c3e50;
                 text-align: center;
-                margin: 0 0 15px 0;
-                font-size: 1.2rem;
+                color: #2c3e50;
+                margin-bottom: 25px;
+                font-size: 1.5rem;
             }
+
+            /* --- FORM INPUT --- */
             .input-group {
-                margin-bottom: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 20px;
             }
+
+            input[type="text"],
+            select {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 16px;
+                transition: border-color 0.3s;
+                box-sizing: border-box;
+            }
+
+            input[type="text"]:focus,
+            select:focus {
+                outline: none;
+                border-color: #3498db;
+            }
+
             label {
                 display: block;
                 margin-bottom: 5px;
                 font-weight: bold;
                 color: #34495e;
-                font-size: 0.8rem;
-            }
-            input,
-            select {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                font-size: 15px;
-                outline: none;
-                box-sizing: border-box;
+                font-size: 0.9rem;
             }
 
+            /* --- BUTTONS --- */
             .btn-group {
                 display: flex;
                 gap: 12px;
-                margin: 15px 0 5px 0;
+                margin-top: 10px;
             }
+
             .btn-action {
                 flex: 1;
-                padding: 12px;
+                padding: 15px;
                 border: none;
-                border-radius: 50px;
+                border-radius: 8px;
+                font-size: 16px;
                 font-weight: bold;
                 cursor: pointer;
-                font-size: 0.85rem;
+                transition:
+                    transform 0.1s,
+                    background-color 0.3s;
+                color: white;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                transition: 0.3s;
-                color: white;
             }
+
             .btn-submit {
-                background: #27ae60;
+                background-color: #27ae60;
                 width: 100%;
             }
+            .btn-submit:hover {
+                background-color: #219150;
+            }
+
             .btn-update {
-                background: #2980b9;
+                background-color: #2980b9;
             }
+            .btn-update:hover {
+                background-color: #2471a3;
+            }
+
             .btn-cancel {
-                background: #95a5a6;
+                background-color: #95a5a6;
             }
+            .btn-cancel:hover {
+                background-color: #7f8c8d;
+            }
+
             .btn-reset {
-                background: #e74c3c;
+                background-color: #e74c3c;
                 display: none;
+            }
+            .btn-reset:hover {
+                background-color: #c0392b;
+            }
+
+            .btn-action:active {
+                transform: scale(0.98);
             }
 
             /* --- TABLE --- */
             .table-container-outer {
                 width: 100%;
                 max-width: 1000px;
-                background: rgba(255, 255, 255, 0.98);
-                border-radius: 20px;
+                background: white;
+                border-radius: 12px;
                 padding: 25px;
                 box-sizing: border-box;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             }
+
             .table-header {
                 display: flex;
                 justify-content: space-between;
@@ -208,31 +235,53 @@
                 font-weight: bold;
                 font-size: 1.2rem;
             }
+
             .table-container {
                 width: 100%;
                 overflow-x: auto;
-                border-radius: 12px;
-                border: 1px solid #eee;
             }
+
             table {
                 width: 100%;
                 border-collapse: collapse;
-                background: white;
+                margin-top: 10px;
             }
+
             th {
-                background: #34495e;
+                background-color: #34495e;
                 color: white;
-                padding: 18px;
+                padding: 12px;
                 text-align: left;
                 font-size: 0.9rem;
             }
+
             td {
-                padding: 18px;
+                padding: 12px;
                 border-bottom: 1px solid #eee;
                 color: #2c3e50;
-                font-size: 1rem;
             }
 
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+
+            /* --- ANIMASI BARIS BARU --- */
+            tr {
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Action Buttons in Table */
             .action-header,
             .action-cell {
                 display: none;
@@ -240,22 +289,27 @@
             .action-cell {
                 gap: 8px;
             }
+
             .btn-table {
-                width: 38px;
-                height: 38px;
+                width: 35px;
+                height: 35px;
                 border: none;
-                border-radius: 10px;
+                border-radius: 6px;
                 cursor: pointer;
                 color: white;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: 0.2s;
             }
             .btn-edit {
                 background: #27ae60;
             }
             .btn-delete {
                 background: #e74c3c;
+            }
+            .btn-table:hover {
+                opacity: 0.8;
             }
 
             @media (max-width: 600px) {
@@ -399,7 +453,7 @@
                             <th
                                 id="actionHeader"
                                 class="action-header"
-                                style="width: 120px"
+                                style="width: 100px"
                             >
                                 ACTION
                             </th>
@@ -412,6 +466,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
+            // Logika Supabase dan Admin tetap sama seperti sebelumnya
             const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SUPABASE_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
@@ -489,15 +544,12 @@
                 });
             }
 
-            // Fungsi Memunculkan Form Edit
             function showEditForm(id, nama, posisi) {
-                regContainer.style.display = "none"; // Sembunyikan form daftar
-                editContainer.style.display = "block"; // Munculkan form edit
-
+                regContainer.style.display = "none";
+                editContainer.style.display = "block";
                 document.getElementById("editId").value = id;
                 document.getElementById("editNama").value = nama;
                 document.getElementById("editPosisi").value = posisi;
-
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }
 
@@ -507,7 +559,6 @@
                 document.getElementById("editForm").reset();
             }
 
-            // Submit Handler untuk Registrasi
             document
                 .getElementById("playerForm")
                 .addEventListener("submit", async (e) => {
@@ -524,7 +575,6 @@
                     }
                 });
 
-            // Submit Handler untuk Update (Edit)
             document
                 .getElementById("editForm")
                 .addEventListener("submit", async (e) => {
@@ -532,18 +582,14 @@
                     const id = document.getElementById("editId").value;
                     const nama = document.getElementById("editNama").value;
                     const posisi = document.getElementById("editPosisi").value;
-
                     const { error } = await _supabase
                         .from("pemain")
-                        .update({ nama: nama, posisi: posisi })
+                        .update({ nama, posisi })
                         .eq("id", id);
-
                     if (!error) {
                         alert("Data updated successfully!");
                         cancelEdit();
                         muatPemain();
-                    } else {
-                        alert("Update failed!");
                     }
                 });
 

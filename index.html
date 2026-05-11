@@ -4,56 +4,126 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>KickOff Planner</title>
-        <link rel="stylesheet" href="style.css" />
         <style>
-            /* Mengatur background agar responsif */
-            body {
+            /* --- RESET & DASAR --- */
+            *,
+            html {
                 margin: 0;
                 padding: 0;
-                background-image: url("gemini.jpg");
-                background-size: cover; /* Memastikan gambar menutupi seluruh layar */
-                background-position: center; /* Fokus gambar tetap di tengah */
-                background-repeat: no-repeat;
-                background-attachment: fixed; /* Background tetap diam saat di-scroll */
-                min-height: 100vh;
+                box-sizing: border-box;
             }
 
-            /* Container utama untuk tombol agar bisa sejajar */
+            body {
+                font-family: "Helvetica Neue", Arial, sans-serif;
+                overflow-x: hidden;
+            }
+
+            /* --- CONTAINER UTAMA --- */
+            .container-utama {
+                background-image:
+                    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+                    url("gemini.jpg");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                width: 100%;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* --- NAVBAR & HERO --- */
+            .navbar-content {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            /* LOGO RESPONSIVE POJOK KIRI ATAS */
+            .logo {
+                position: absolute;
+                left: 20px;
+                top: 20px;
+                width: 60px;
+                height: auto;
+                transition: all 0.3s ease;
+            }
+
+            .hero {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                color: white;
+                padding: 15px 30px;
+                border-radius: 15px;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(0, 128, 0, 0.8),
+                    rgba(0, 0, 0, 0.6)
+                );
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(5px);
+            }
+
+            .hero h1 {
+                font-size: clamp(1.5rem, 5vw, 3rem);
+                margin: 0;
+                text-shadow: 2px 2px 10px black;
+            }
+
+            .hero p {
+                font-size: clamp(0.8rem, 2vw, 1.1rem);
+                margin-top: 5px;
+                text-shadow: 2px 2px 10px black;
+            }
+
+            /* --- ISI KONTEN (TOMBOL) --- */
+            .isi-konten {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
             .button-menu {
                 display: flex;
-                flex-direction: row; /* Memaksa ke samping */
-                flex-wrap: wrap; /* Supaya kalau layar sempit, dia turun rapi */
+                flex-wrap: wrap;
                 justify-content: center;
-                align-items: stretch;
-                gap: 15px; /* Jarak antar tombol */
+                gap: 20px;
                 width: 100%;
-                max-width: 1000px; /* Batas lebar maksimal area tombol */
-                margin: 20px auto;
-                padding: 0 10px;
+                max-width: 1000px;
+                margin: 0 auto;
             }
 
-            /* Menyamakan ukuran semua tombol di dalam menu */
-            .button-menu .button {
-                flex: 1; /* Semua tombol membagi ruang yang sama rata */
-                min-width: 160px; /* Lebar minimal supaya teks tidak berdesakan */
-                margin: 0 !important; /* Reset margin bawaan style.css jika ada */
+            .button {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 text-align: center;
-                height: 60px; /* Samakan tinggi semua tombol */
-                font-weight: bold;
+                color: #e0e0e0;
+                min-width: 220px;
+                height: 60px; /* Tinggi seragam */
+                padding: 10px 25px;
+                font-weight: 700;
+                border-radius: 12px;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(0, 128, 0, 0.9),
+                    rgba(0, 0, 0, 0.7)
+                );
                 text-decoration: none;
                 transition: all 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }
 
-            /* Styling khusus Button History agar tetap beda warnanya tapi ukuran sama */
-            .btn-history {
-                background-color: #2c3e50 !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            }
-
-            .btn-history:hover {
+            .button:hover {
                 color: white;
                 transform: translateY(-5px);
                 box-shadow: 0 8px 25px rgba(0, 128, 0, 0.4);
@@ -64,20 +134,60 @@
                 );
             }
 
-            .btn-history:active {
-                transform: scale(0.95);
+            /* Tombol History dengan warna dasar berbeda tapi hover tetap hijau */
+            .btn-history {
+                background: linear-gradient(
+                    to bottom,
+                    rgba(0, 150, 0, 1),
+                    rgba(0, 0, 0, 0.7)
+                );
             }
 
-            /* Setting khusus untuk layar HP (Mobile) */
-            @media (max-width: 768px) {
-                .button-menu .button {
-                    flex: 1 1 calc(50% - 20px); /* Jadi 2 baris (2 tombol per baris) */
+            /* --- FOOTER --- */
+            .footer {
+                padding: 20px;
+                background: none;
+                color: white;
+                text-align: center;
+            }
+
+            .h1-footer {
+                font-size: 14px;
+                font-weight: 300;
+                opacity: 0.7;
+            }
+
+            /* --- MEDIA QUERIES --- */
+            @media screen and (max-width: 768px) {
+                .logo {
+                    width: 50px;
+                    left: 15px;
+                    top: 15px;
+                }
+                .button {
+                    min-width: 180px;
+                    flex: 1 1 calc(45% - 20px); /* 2 tombol per baris di tablet */
                 }
             }
 
-            @media (max-width: 480px) {
-                .button-menu .button {
-                    flex: 1 1 100%; /* Jadi 1 kolom saja kalau layar sangat kecil */
+            @media screen and (max-width: 480px) {
+                .navbar-content {
+                    padding-top: 80px;
+                }
+
+                .logo {
+                    width: 45px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    top: 15px;
+                }
+
+                .hero h1 {
+                    font-size: 1.6rem;
+                }
+
+                .button {
+                    flex: 1 1 100%; /* 1 tombol per baris di HP */
                 }
             }
         </style>
@@ -93,9 +203,11 @@
 
             <main class="isi-konten">
                 <div class="button-menu">
-                    <a class="button" href="about.html">CONFIRMATION LIST</a>
-                    <a class="button" href="otomatis.html">TEAM DRAFT</a>
-                    <a class="button" href="maps.html">MATCH DAY</a>
+                    <a class="button" href="confirmation_list.html"
+                        >CONFIRMATION LIST</a
+                    >
+                    <a class="button" href="draft.html">TEAM DRAFT</a>
+                    <a class="button" href="match_day.html">MATCH DAY</a>
                     <a class="button btn-history" href="history.html"
                         >EVENT HISTORY</a
                     >
