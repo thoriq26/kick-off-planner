@@ -75,7 +75,7 @@
                 transition: 0.3s;
             }
             .home-link:hover {
-                color: red;
+                color: #e74c3c;
             }
             .nav-label {
                 color: white;
@@ -235,6 +235,48 @@
                 overflow: hidden;
                 position: relative;
             }
+
+            /* --- LOADING STYLES --- */
+            @keyframes pulse-soft {
+                0% {
+                    opacity: 0.5;
+                }
+                50% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0.5;
+                }
+            }
+            .loading-text {
+                animation: pulse-soft 1.5s infinite ease-in-out;
+                color: #94a3b8 !important;
+            }
+
+            .skeleton-loader {
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    #f0f0f0 25%,
+                    #e6e6e6 50%,
+                    #f0f0f0 75%
+                );
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            @keyframes shimmer {
+                0% {
+                    background-position: 200% 0;
+                }
+                100% {
+                    background-position: -200% 0;
+                }
+            }
         </style>
     </head>
     <body>
@@ -254,9 +296,13 @@
         </div>
 
         <div id="adminSection" class="container">
-            <h3 style="color: #27ae60; margin-top: 0">🛠 Admin Panel</h3>
+            <h3 style="color: #27ae60; margin-top: 0">🛠 Admin Control</h3>
             <div class="form-group">
-                <input type="text" id="eventInput" placeholder="Event Name" />
+                <input
+                    type="text"
+                    id="eventInput"
+                    placeholder="Event Name (e.g. Weekly Fun Football)"
+                />
                 <input
                     type="text"
                     id="namaLapangan"
@@ -265,24 +311,32 @@
                 <input
                     type="text"
                     id="jadwalMain"
-                    placeholder="Click to select Date & Time"
+                    placeholder="Select Date & Time"
                     readonly
                 />
-                <input type="text" id="jerseyInfo" placeholder="Jersey Color" />
-                <input type="text" id="htmInfo" placeholder="Admission Fee" />
+                <input
+                    type="text"
+                    id="jerseyInfo"
+                    placeholder="Jersey Color (e.g. Open Bold / All Colors)"
+                />
+                <input
+                    type="text"
+                    id="htmInfo"
+                    placeholder="Admission Fee (Numbers only)"
+                />
                 <input
                     type="text"
                     id="rekeningInfo"
-                    placeholder="Payment Details"
+                    placeholder="Payment Gateway (Bank / E-Wallet)"
                 />
                 <input
                     type="text"
                     id="linkMaps"
-                    placeholder="Paste Google Maps URL (http...)"
+                    placeholder="Google Maps Link or Iframe"
                 />
 
                 <button class="btn btn-save" onclick="updateInfo()">
-                    <i class="fa-solid fa-floppy-disk"></i> SAVE CHANGES
+                    <i class="fa-solid fa-circle-check"></i> PUBLISH MATCH
                 </button>
 
                 <div style="display: flex; gap: 10px">
@@ -290,7 +344,7 @@
                         <i class="fa-solid fa-box-archive"></i> ARCHIVE
                     </button>
                     <button class="btn btn-reset" onclick="resetMatchOnly()">
-                        <i class="fa-solid fa-rotate-left"></i> RESET MATCH
+                        <i class="fa-solid fa-rotate-left"></i> RESET
                     </button>
                 </div>
             </div>
@@ -304,16 +358,22 @@
                     </div>
                     <div class="info-content">
                         <span class="info-label">Event Name</span>
-                        <span id="displayEvent" class="info-value">-</span>
+                        <span id="displayEvent" class="info-value loading-text"
+                            >Scanning events...</span
+                        >
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="info-icon">
-                        <i class="fa-solid fa-calendar-check"></i>
+                        <i class="fa-solid fa-calendar-day"></i>
                     </div>
                     <div class="info-content">
                         <span class="info-label">Date & Time</span>
-                        <span id="displayDateTime" class="info-value">-</span>
+                        <span
+                            id="displayDateTime"
+                            class="info-value loading-text"
+                            >Checking schedule...</span
+                        >
                     </div>
                 </div>
                 <div class="info-row">
@@ -322,48 +382,82 @@
                     </div>
                     <div class="info-content">
                         <span class="info-label">Jersey Color</span>
-                        <span id="displayJersey" class="info-value">-</span>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon">
-                        <i class="fa-solid fa-money-bill-wave"></i>
-                    </div>
-                    <div class="info-content">
-                        <span class="info-label">Admission Fee</span>
-                        <span class="info-value"
-                            >Rp. <span id="displayHtm">-</span></span
+                        <span id="displayJersey" class="info-value loading-text"
+                            >Waiting info...</span
                         >
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="info-icon">
-                        <i class="fa-solid fa-credit-card"></i>
+                        <i class="fa-solid fa-ticket"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Payment Gateway</span>
-                        <span id="displayRekening" class="info-value">-</span>
+                        <span class="info-label">Admission Fee</span>
+                        <span class="info-value"
+                            >IDR
+                            <span id="displayHtm" class="loading-text"
+                                >0</span
+                            ></span
+                        >
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="info-icon">
-                        <i id="statusIcon" class="fa-solid fa-circle-check"></i>
+                        <i class="fa-solid fa-wallet"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Status</span>
+                        <span class="info-label">Payment Gateway</span>
+                        <span
+                            id="displayRekening"
+                            class="info-value loading-text"
+                            >Waiting info...</span
+                        >
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i
+                            id="statusIcon"
+                            class="fa-solid fa-circle-notch fa-spin"
+                        ></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Match Status</span>
                         <div>
                             <span id="statusBadge" class="badge"
-                                >Loading...</span
+                                >Checking...</span
                             >
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="stadium-name" id="displayNama">Loading...</div>
+
+            <div class="stadium-name loading-text" id="displayNama">
+                LOCATING STADIUM...
+            </div>
+
             <div id="mapContainer" class="map-frame">
-                <p style="text-align: center; line-height: 280px; color: #999">
-                    Loading Map...
-                </p>
+                <div class="skeleton-loader">
+                    <i
+                        class="fa-solid fa-futbol fa-spin"
+                        style="
+                            font-size: 40px;
+                            color: #ccc;
+                            --fa-animation-duration: 2s;
+                        "
+                    ></i>
+                    <p
+                        style="
+                            margin-top: 15px;
+                            color: #888;
+                            font-weight: 600;
+                            font-size: 14px;
+                            letter-spacing: 1px;
+                        "
+                    >
+                        PREPARING THE PITCH...
+                    </p>
+                </div>
             </div>
         </div>
 
@@ -383,15 +477,16 @@
 
             function handleAuth() {
                 if (!isAdminLoggedIn) {
-                    const pass = prompt("Admin Password:");
+                    const pass = prompt("Enter Admin Password:");
                     if (pass === "admin") {
                         setAdminUI(true);
-                        alert("Login Successful!");
+                        alert("Welcome Back, Admin!");
                     } else if (pass !== null) {
-                        alert("Access Denied!");
+                        alert("Invalid Credentials!");
                     }
                 } else {
-                    if (confirm("Sign out?")) setAdminUI(false);
+                    if (confirm("Sign out from Admin Panel?"))
+                        setAdminUI(false);
                 }
             }
 
@@ -443,13 +538,13 @@
                     });
 
                 if (!error) {
-                    alert("Match Updated!");
+                    alert("Match details published successfully!");
                     location.reload();
                 }
             }
 
             async function resetMatchOnly() {
-                if (!confirm("Are you sure you want to reset the match info?"))
+                if (!confirm("Reset all match details? This cannot be undone."))
                     return;
                 const { error } = await _supabase
                     .from("jadwal_lapangan")
@@ -464,7 +559,7 @@
                     })
                     .eq("id", 1);
                 if (!error) {
-                    alert("Match Info has been reset!");
+                    alert("Match details cleared.");
                     location.reload();
                 }
             }
@@ -472,7 +567,7 @@
             async function archiveMatch() {
                 if (
                     !confirm(
-                        "Warning: This will archive and clear player list. Continue?",
+                        "Move current match to history and clear player list?",
                     )
                 )
                     return;
@@ -510,7 +605,7 @@
                         .eq("id", 1);
 
                     await _supabase.from("pemain").delete().neq("id", 0);
-                    alert("Match successfully archived!");
+                    alert("Match archived successfully!");
                     location.reload();
                 } catch (e) {
                     alert("Error: " + e.message);
@@ -523,18 +618,26 @@
                     .select("*")
                     .eq("id", 1)
                     .single();
-                if (data) {
-                    document.getElementById("displayEvent").innerText =
-                        data.event_name || "-";
-                    document.getElementById("displayNama").innerText =
-                        data.nama_lp || "-";
-                    document.getElementById("displayJersey").innerText =
-                        data.jersey || "-";
-                    document.getElementById("displayHtm").innerText =
-                        data.htm || "-";
-                    document.getElementById("displayRekening").innerText =
-                        data.rekening || "-";
 
+                if (data) {
+                    // Remove loading states
+                    const loaders = document.querySelectorAll(".loading-text");
+                    loaders.forEach((el) =>
+                        el.classList.remove("loading-text"),
+                    );
+
+                    document.getElementById("displayEvent").innerText =
+                        data.event_name || "No Event Scheduled";
+                    document.getElementById("displayNama").innerText =
+                        data.nama_lp || "Stadium TBA";
+                    document.getElementById("displayJersey").innerText =
+                        data.jersey || "Not Set";
+                    document.getElementById("displayHtm").innerText =
+                        data.htm || "0";
+                    document.getElementById("displayRekening").innerText =
+                        data.rekening || "Not Set";
+
+                    // Form inputs
                     document.getElementById("eventInput").value =
                         data.event_name || "";
                     document.getElementById("namaLapangan").value =
@@ -554,9 +657,9 @@
                     const icon = document.getElementById("statusIcon");
 
                     if (!data.event_name || data.event_name === "TBA") {
-                        badge.innerText = "PENDING";
+                        badge.innerText = "WAITING";
                         badge.classList.add("PENDING");
-                        icon.className = "fa-solid fa-circle-xmark";
+                        icon.className = "fa-solid fa-clock";
                         icon.style.color = "#e74c3c";
                     } else {
                         badge.innerText = "CONFIRMED";
@@ -565,22 +668,26 @@
                         icon.style.color = "#27ae60";
                     }
 
-                    if (data.waktu)
+                    if (data.waktu) {
                         document.getElementById("displayDateTime").innerText =
                             data.waktu.replace("T", " | ") + " WIB";
+                    } else {
+                        document.getElementById("displayDateTime").innerText =
+                            "Schedule TBA";
+                    }
 
+                    // Map Logic
+                    const mapContainer =
+                        document.getElementById("mapContainer");
                     if (data.maps_url) {
-                        const mapContainer =
-                            document.getElementById("mapContainer");
-                        if (data.maps_url.includes("googleusercontent")) {
+                        if (
+                            data.maps_url.includes("google.com/maps/embed") ||
+                            data.maps_url.includes("googleusercontent")
+                        ) {
                             mapContainer.innerHTML = `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
                         } else {
-                            // TAMPILAN BACKGROUND MAPS BARU (MODERN GRADIENT STYLE)
                             mapContainer.innerHTML = `
                                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); overflow: hidden;">
-                                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(39, 174, 96, 0.1); border-radius: 50%;"></div>
-                                    <div style="position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; background: rgba(66, 133, 244, 0.1); border-radius: 50%;"></div>
-
                                     <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 15px;">
                                         <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
                                             <i class="fa-solid fa-map-pin" style="font-size: 28px; color: #e74c3c;"></i>
@@ -589,7 +696,7 @@
                                             <p style="margin: 0; font-weight: 800; color: #1e293b; font-size: 16px; letter-spacing: 0.5px;">LOCATION READY</p>
                                             <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500;">Tap button below to navigate</p>
                                         </div>
-                                        <a href="${data.maps_url}" target="_blank" class="btn" style="background: #1e293b; width: 200px; padding: 12px; border-radius: 12px; font-size: 13px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                        <a href="${data.maps_url}" target="_blank" class="btn" style="background: #1e293b; width: 200px; padding: 12px; border-radius: 12px; font-size: 13px; color: white;">
                                             <i class="fa-solid fa-location-arrow" style="margin-right: 8px;"></i> GET DIRECTIONS
                                         </a>
                                     </div>
