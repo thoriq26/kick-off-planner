@@ -1,0 +1,1422 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Admin Panel - KickOff Planner</title>
+
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
+        <style>
+            /* ============ RESET & DASAR (sama seperti halaman lain) ============ */
+            *,
+            html {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                height: 100%;
+            }
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                min-height: 100vh;
+                width: 100%;
+                background-image:
+                    linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
+                    url("geminix.jpg");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-color: #1a1a1a;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+            }
+
+            /* ============ NAVBAR ============ */
+            .navbar {
+                background: rgba(44, 62, 80, 0.95);
+                backdrop-filter: blur(10px);
+                width: 100%;
+                max-width: 1100px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 0 20px;
+            }
+            .nav-title {
+                color: white;
+                font-weight: 900;
+                letter-spacing: 2px;
+                font-size: 1.3rem;
+                text-transform: uppercase;
+            }
+            .nav-title i {
+                color: #27ae60;
+                margin-right: 8px;
+            }
+            .nav-actions {
+                position: absolute;
+                right: 20px;
+                display: none;
+                align-items: center;
+                gap: 10px;
+            }
+            .nav-btn {
+                background: transparent;
+                border: 2px solid rgba(255, 255, 255, 0.5);
+                color: white;
+                padding: 6px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 0.85rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: 0.3s;
+            }
+            .nav-btn:hover {
+                border-color: #e74c3c;
+                color: #e74c3c;
+            }
+            .nav-btn.key-btn:hover {
+                border-color: #f1c40f;
+                color: #f1c40f;
+            }
+
+            /* ============ LOGIN SCREEN ============ */
+            .login-wrapper {
+                width: 100%;
+                max-width: 420px;
+                margin-top: 40px;
+            }
+            .login-card {
+                background: rgba(255, 255, 255, 0.98);
+                padding: 35px 30px;
+                border-radius: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                text-align: center;
+            }
+            .login-card i.fa-shield-halved {
+                font-size: 40px;
+                color: #27ae60;
+                margin-bottom: 10px;
+            }
+            .login-card h2 {
+                color: #2c3e50;
+                margin-bottom: 5px;
+            }
+            .login-card p {
+                color: #7f8c8d;
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+            }
+            .login-card input {
+                width: 100%;
+                padding: 13px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 16px;
+                margin-bottom: 15px;
+                box-sizing: border-box;
+            }
+            .login-card input:focus {
+                outline: none;
+                border-color: #27ae60;
+            }
+            .login-card button {
+                width: 100%;
+                padding: 13px;
+                background: #27ae60;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 15px;
+                cursor: pointer;
+                transition: 0.3s;
+            }
+            .login-card button:hover {
+                background: #219150;
+            }
+            #loginError {
+                color: #e74c3c;
+                font-size: 0.85rem;
+                margin-top: 10px;
+                display: none;
+            }
+
+            /* ============ SHELL (SIDEBAR + KONTEN) ============ */
+            .admin-shell {
+                display: none;
+                width: 100%;
+                max-width: 1100px;
+                gap: 20px;
+            }
+
+            .tabs-bar {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 220px;
+                flex-shrink: 0;
+            }
+            .tab-btn {
+                background: rgba(255, 255, 255, 0.92);
+                border: none;
+                padding: 14px 16px;
+                border-radius: 10px;
+                text-align: left;
+                font-weight: 700;
+                color: #2c3e50;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition: 0.2s;
+                box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+            }
+            .tab-btn i {
+                width: 20px;
+                text-align: center;
+                color: #27ae60;
+            }
+            .tab-btn:hover {
+                transform: translateX(3px);
+            }
+            .tab-btn.active {
+                background: #27ae60;
+                color: white;
+            }
+            .tab-btn.active i {
+                color: white;
+            }
+
+            .content-area {
+                flex: 1;
+                min-width: 0;
+            }
+            .tab-panel {
+                display: none;
+                animation: fadeIn 0.3s ease-in;
+            }
+            .tab-panel.active {
+                display: block;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* ============ TUTORIAL / CATATAN BOX ============ */
+            .tutorial-box {
+                background: #eef9f1;
+                border: 1px solid #bfe8cb;
+                border-left: 5px solid #27ae60;
+                border-radius: 10px;
+                padding: 15px 18px;
+                margin-bottom: 18px;
+                color: #205c37;
+                font-size: 0.88rem;
+                line-height: 1.6;
+            }
+            .tutorial-box .tutorial-title {
+                font-weight: 800;
+                color: #16693a;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.95rem;
+            }
+            .tutorial-box ol,
+            .tutorial-box ul {
+                margin: 6px 0 0 18px;
+            }
+            .tutorial-box li {
+                margin-bottom: 4px;
+            }
+            .tutorial-box b {
+                color: #14532d;
+            }
+
+            /* ============ CONTAINER UMUM (sama seperti halaman lain) ============ */
+            .card {
+                background-color: white;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                width: 100%;
+                margin-bottom: 20px;
+                box-sizing: border-box;
+            }
+            .card h2 {
+                color: #2c3e50;
+                margin-bottom: 18px;
+                font-size: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .card h2 i {
+                color: #27ae60;
+            }
+
+            .input-group {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                margin-bottom: 18px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #34495e;
+                font-size: 0.85rem;
+            }
+            input[type="text"],
+            input[type="password"],
+            select {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 15px;
+                box-sizing: border-box;
+            }
+            input[type="text"]:focus,
+            input[type="password"]:focus,
+            select:focus {
+                outline: none;
+                border-color: #3498db;
+            }
+
+            .btn-group {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .btn-action {
+                flex: 1;
+                min-width: 140px;
+                padding: 13px;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: bold;
+                cursor: pointer;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                transition: 0.2s;
+                text-decoration: none;
+            }
+            .btn-action:active {
+                transform: scale(0.98);
+            }
+            .btn-submit,
+            .btn-save {
+                background: #27ae60;
+            }
+            .btn-submit:hover,
+            .btn-save:hover {
+                background: #219150;
+            }
+            .btn-update {
+                background: #2980b9;
+            }
+            .btn-update:hover {
+                background: #2471a3;
+            }
+            .btn-cancel {
+                background: #95a5a6;
+            }
+            .btn-cancel:hover {
+                background: #7f8c8d;
+            }
+            .btn-reset {
+                background: #e74c3c;
+            }
+            .btn-reset:hover {
+                background: #c0392b;
+            }
+            .btn-archive {
+                background: #e67e22;
+            }
+            .btn-archive:hover {
+                background: #d35400;
+            }
+
+            /* ============ TABEL ============ */
+            .table-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                color: #2c3e50;
+                font-weight: bold;
+                font-size: 1.05rem;
+            }
+            .count-badge {
+                background: #27ae60;
+                color: white;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 0.85rem;
+            }
+            .table-container {
+                width: 100%;
+                overflow-x: auto;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 5px;
+            }
+            th {
+                background-color: #34495e;
+                color: white;
+                padding: 12px;
+                text-align: left;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+            td {
+                padding: 12px;
+                border-bottom: 1px solid #eee;
+                color: #2c3e50;
+                font-size: 0.92rem;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .action-cell {
+                display: flex;
+                gap: 8px;
+            }
+            .btn-table {
+                width: 34px;
+                height: 34px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: 0.2s;
+                flex-shrink: 0;
+            }
+            .btn-edit {
+                background: #27ae60;
+            }
+            .btn-delete {
+                background: #e74c3c;
+            }
+            .btn-table:hover {
+                opacity: 0.8;
+            }
+            .empty-state {
+                text-align: center;
+                padding: 30px;
+                color: #94a3b8;
+                font-size: 0.9rem;
+            }
+
+            /* ============ TEAM DRAFT ============ */
+            .draft-controls {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+            .draft-controls .label-text {
+                font-weight: 700;
+                color: #34495e;
+                font-size: 0.9rem;
+            }
+            .team-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+            }
+            .team-card {
+                background: #f8fafc;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid #e2e8f0;
+            }
+            .team-header {
+                padding: 12px;
+                font-weight: 900;
+                color: white;
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-size: 0.9rem;
+            }
+            .header-red {
+                background: #c0392b;
+            }
+            .header-blue {
+                background: #2980b9;
+            }
+            .header-green {
+                background: #27ae60;
+            }
+            .header-purple {
+                background: #8e44ad;
+            }
+            .player-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 16px;
+                border-bottom: 1px solid #eef0f2;
+                color: #2c3e50;
+                font-size: 0.88rem;
+            }
+            .player-item:last-child {
+                border-bottom: none;
+            }
+            .pos-badge {
+                background: #34495e;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 5px;
+                font-size: 10px;
+                font-weight: 800;
+            }
+            .waiting-box {
+                text-align: center;
+                padding: 40px 20px;
+                color: #94a3b8;
+            }
+            .waiting-box i {
+                font-size: 40px;
+                margin-bottom: 15px;
+                display: block;
+                opacity: 0.5;
+            }
+
+            /* ============ STATUS BADGE (MATCH DAY) ============ */
+            .status-line {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 20px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                padding: 12px 15px;
+                border-radius: 10px;
+                font-size: 0.85rem;
+                color: #475569;
+            }
+            .badge {
+                background: #27ae60;
+                color: white;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+            .badge.PENDING {
+                background: #e74c3c;
+            }
+
+            /* ============ MODAL GANTI PASSWORD ============ */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 999;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .modal-overlay.show {
+                display: flex;
+            }
+            .modal-box {
+                background: white;
+                border-radius: 16px;
+                padding: 30px;
+                width: 100%;
+                max-width: 400px;
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+                box-sizing: border-box;
+            }
+            .modal-box h3 {
+                color: #2c3e50;
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .modal-box h3 i {
+                color: #f1c40f;
+            }
+            .modal-box p {
+                color: #7f8c8d;
+                font-size: 0.85rem;
+                margin-bottom: 18px;
+            }
+            #changePassError,
+            #changePassSuccess {
+                font-size: 0.85rem;
+                margin-top: -6px;
+                margin-bottom: 12px;
+                display: none;
+            }
+            #changePassError {
+                color: #e74c3c;
+            }
+            #changePassSuccess {
+                color: #27ae60;
+            }
+
+            @media (max-width: 800px) {
+                .admin-shell {
+                    flex-direction: column;
+                }
+                .tabs-bar {
+                    flex-direction: row;
+                    width: 100%;
+                    overflow-x: auto;
+                }
+                .tab-btn {
+                    white-space: nowrap;
+                }
+            }
+            @media (max-width: 500px) {
+                .btn-group {
+                    flex-direction: column;
+                }
+                .nav-title span {
+                    display: none;
+                }
+                .nav-btn span {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <span class="nav-title"
+                ><i class="fa-solid fa-user-shield"></i
+                ><span>ADMIN PANEL</span></span
+            >
+            <div class="nav-actions" id="navActions">
+                <button
+                    class="nav-btn key-btn"
+                    onclick="openChangePassModal()"
+                >
+                    <i class="fa-solid fa-key"></i>
+                    <span>GANTI PASSWORD</span>
+                </button>
+                <button class="nav-btn" onclick="doLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>LOGOUT</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ============ LOGIN SCREEN ============ -->
+        <div class="login-wrapper" id="loginWrapper">
+            <div class="login-card">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h2>Admin Login</h2>
+                <p>Masuk untuk mengelola KickOff Planner</p>
+                <input
+                    type="password"
+                    id="loginPass"
+                    placeholder="Masukkan password admin"
+                    onkeydown="if(event.key==='Enter') doLogin()"
+                />
+                <button onclick="doLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> MASUK
+                </button>
+                <p id="loginError">Password salah, coba lagi.</p>
+            </div>
+        </div>
+
+        <!-- ============ MODAL GANTI PASSWORD ============ -->
+        <div class="modal-overlay" id="changePassModal">
+            <div class="modal-box">
+                <h3><i class="fa-solid fa-key"></i> Ganti Password Admin</h3>
+                <p>Password baru akan langsung berlaku untuk login berikutnya.</p>
+                <form id="changePassForm">
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <div>
+                            <label>PASSWORD LAMA</label>
+                            <input type="password" id="oldPass" required />
+                        </div>
+                        <div>
+                            <label>PASSWORD BARU</label>
+                            <input type="password" id="newPass" minlength="4" required />
+                        </div>
+                        <div>
+                            <label>KONFIRMASI PASSWORD BARU</label>
+                            <input type="password" id="confirmPass" minlength="4" required />
+                        </div>
+                    </div>
+                    <p id="changePassError"></p>
+                    <p id="changePassSuccess"></p>
+                    <div class="btn-group">
+                        <button type="submit" class="btn-action btn-submit">
+                            <i class="fa-solid fa-floppy-disk"></i> SIMPAN
+                        </button>
+                        <button
+                            type="button"
+                            class="btn-action btn-cancel"
+                            onclick="closeChangePassModal()"
+                        >
+                            BATAL
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============ ADMIN SHELL ============ -->
+        <div class="admin-shell" id="adminShell">
+            <div class="tabs-bar">
+                <button class="tab-btn active" data-tab="players" onclick="switchTab('players')">
+                    <i class="fa-solid fa-users"></i> Data Pemain
+                </button>
+                <button class="tab-btn" data-tab="draft" onclick="switchTab('draft')">
+                    <i class="fa-solid fa-shuffle"></i> Undi Tim
+                </button>
+                <button class="tab-btn" data-tab="matchday" onclick="switchTab('matchday')">
+                    <i class="fa-solid fa-calendar-day"></i> Info Match Day
+                </button>
+            </div>
+
+            <div class="content-area">
+                <!-- ================= TAB 1: DATA PEMAIN ================= -->
+                <div class="tab-panel active" id="panel-players">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Data Pemain
+                        </div>
+                        <ol>
+                            <li><b>Tambah pemain</b>: isi nama & posisi lalu klik "TAMBAH PEMAIN".</li>
+                            <li><b>Edit</b>: klik ikon pensil hijau pada baris pemain, ubah data, klik "SIMPAN PERUBAHAN".</li>
+                            <li><b>Hapus satu pemain</b>: klik ikon tong sampah merah pada baris yang dituju.</li>
+                            <li><b>Hapus semua pemain</b>: klik "RESET SEMUA" — dipakai setelah pertandingan selesai / mau mulai pendaftaran baru. Aksi ini tidak bisa dibatalkan.</li>
+                            <li>Data di sini otomatis dipakai saat melakukan <b>Undi Tim</b> di tab sebelah.</li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-user-plus"></i> Tambah Pemain</h2>
+                        <form id="playerForm">
+                            <div class="input-group">
+                                <div>
+                                    <label>NAMA PEMAIN</label>
+                                    <input type="text" id="nama" placeholder="Masukkan nama..." required />
+                                </div>
+                                <div>
+                                    <label>POSISI</label>
+                                    <select id="posisi">
+                                        <option value="GK">GK</option>
+                                        <option value="CB">CB</option>
+                                        <option value="LB">LB</option>
+                                        <option value="RB">RB</option>
+                                        <option value="DMF">DMF</option>
+                                        <option value="CMF">CMF</option>
+                                        <option value="AMF">AMF</option>
+                                        <option value="LWF">LWF</option>
+                                        <option value="RWF">RWF</option>
+                                        <option value="CF">CF</option>
+                                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn-action btn-submit">
+                                    <i class="fa-solid fa-check"></i> TAMBAH PEMAIN
+                                </button>
+                                <button type="button" class="btn-action btn-reset" onclick="resetDatabase()">
+                                    <i class="fa-solid fa-rotate"></i> RESET SEMUA
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card" id="editContainer" style="display: none; border: 2px solid #2980b9;">
+                        <h2 style="color: #2980b9"><i class="fa-solid fa-pen-to-square"></i> Edit Pemain</h2>
+                        <form id="editForm">
+                            <input type="hidden" id="editId" />
+                            <div class="input-group">
+                                <div>
+                                    <label>NAMA</label>
+                                    <input type="text" id="editNama" required />
+                                </div>
+                                <div>
+                                    <label>POSISI</label>
+                                    <select id="editPosisi">
+                                        <option value="GK">GK</option>
+                                        <option value="CB">CB</option>
+                                        <option value="LB">LB</option>
+                                        <option value="RB">RB</option>
+                                        <option value="DMF">DMF</option>
+                                        <option value="CMF">CMF</option>
+                                        <option value="AMF">AMF</option>
+                                        <option value="LWF">LWF</option>
+                                        <option value="RWF">RWF</option>
+                                        <option value="CF">CF</option>
+                                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn-action btn-update">
+                                    <i class="fa-solid fa-floppy-disk"></i> SIMPAN PERUBAHAN
+                                </button>
+                                <button type="button" class="btn-action btn-cancel" onclick="cancelEdit()">
+                                    BATAL
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-header">
+                            <span><i class="fa-solid fa-list"></i> Daftar Pemain Terdaftar</span>
+                            <span class="count-badge" id="count">0</span>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px; text-align: center">NO</th>
+                                        <th>NAMA</th>
+                                        <th>POS</th>
+                                        <th>TIM</th>
+                                        <th style="width: 90px">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="playerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 2: UNDI TIM ================= -->
+                <div class="tab-panel" id="panel-draft">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Undi Tim
+                        </div>
+                        <ol>
+                            <li>Pastikan data pemain di tab "Data Pemain" sudah lengkap.</li>
+                            <li>Pilih jumlah tim (2/3/4) lalu klik <b>SHUFFLE</b> — pemain akan diacak merata berdasarkan posisi.</li>
+                            <li>Pemain berstatus <b>SPECTATOR (FAN)</b> otomatis tidak diikutkan undian.</li>
+                            <li>Klik <b>RESET</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
+                            <li>Hasil undian ini yang akan tampil ke publik di halaman Team Draft.</li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-shuffle"></i> Kontrol Undian</h2>
+                        <div class="draft-controls">
+                            <span class="label-text">Bagi menjadi:</span>
+                            <select id="numTeams" style="width: auto; padding: 10px;">
+                                <option value="2">2 TIM</option>
+                                <option value="3">3 TIM</option>
+                                <option value="4">4 TIM</option>
+                            </select>
+                            <button class="btn-action btn-submit" style="flex: none; padding: 10px 20px;" onclick="confirmShuffle()">
+                                <i class="fa-solid fa-shuffle"></i> SHUFFLE
+                            </button>
+                            <button class="btn-action btn-reset" style="flex: none; padding: 10px 20px;" onclick="confirmResetDraft()">
+                                <i class="fa-solid fa-rotate-right"></i> RESET
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-people-group"></i> Hasil Pembagian Tim</h2>
+                        <div class="team-grid" id="mainGrid"></div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 3: MATCH DAY ================= -->
+                <div class="tab-panel" id="panel-matchday">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Info Match Day
+                        </div>
+                        <ol>
+                            <li>Isi semua kolom (nama event, lapangan, tanggal & jam, warna jersey, biaya, pembayaran, link lokasi).</li>
+                            <li>
+                                Untuk lokasi, <b>wajib pakai kode embed iframe dari Google Maps</b> — <b>bukan</b> link share biasa (yang formatnya <code style="background:#dff5e4; padding:2px 6px; border-radius:4px; color:#14532d;">https://maps.app.goo.gl/xxxxxxx</code>).
+                                <br />
+                                Cara mendapatkannya: buka lokasi di Google Maps → klik <b>Bagikan / Share</b> → pilih tab <b>Sematkan peta / Embed a map</b> → klik <b>Salin HTML</b>, lalu tempel utuh ke kolom "LINK / EMBED GOOGLE MAPS".
+                                <br />
+                                Contoh kode yang benar:
+                                <div style="background:#0f2f1d; color:#a7f3d0; padding:10px 12px; border-radius:8px; margin-top:6px; font-family: monospace; font-size:0.78rem; overflow-x:auto; white-space:pre-wrap; word-break:break-all;">&lt;iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.888739754436!2d106.8511666!3d-6.4083312!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69ebfd405f8217%3A0x1bce6016d5cfbd0f!2sBSS%20Arena%20Depok!5e0!3m2!1sid!2sid!4v1790069563556!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"&gt;&lt;/iframe&gt;</div>
+                                Sistem otomatis mengambil bagian <b>src="..."</b> dari kode tersebut, jadi tidak masalah kalau kode iframe ditempel utuh seperti contoh di atas.
+                            </li>
+                            <li>Klik <b>PUBLISH MATCH</b> agar info langsung tampil ke publik di halaman Match Day.</li>
+                            <li>Setelah pertandingan selesai, klik <b>ARCHIVE</b> untuk menyimpan data ke riwayat pertandingan (bisa dilihat publik di halaman Event History) dan otomatis mengosongkan daftar pemain — siap untuk event berikutnya.</li>
+                            <li>Klik <b>RESET</b> jika hanya ingin mengosongkan info tanpa menyimpan ke riwayat.</li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-pen-nib"></i> Form Info Pertandingan</h2>
+                        <div class="input-group">
+                            <div>
+                                <label>NAMA EVENT</label>
+                                <input type="text" id="eventInput" placeholder="Contoh: Weekly Fun Football" />
+                            </div>
+                            <div>
+                                <label>NAMA LAPANGAN</label>
+                                <input type="text" id="namaLapangan" placeholder="Nama stadion/lapangan" />
+                            </div>
+                            <div>
+                                <label>TANGGAL & JAM</label>
+                                <input type="text" id="jadwalMain" placeholder="Pilih tanggal & jam" readonly />
+                            </div>
+                            <div>
+                                <label>WARNA JERSEY</label>
+                                <input type="text" id="jerseyInfo" placeholder="Contoh: Bebas / Semua Warna" />
+                            </div>
+                            <div>
+                                <label>BIAYA MASUK (ANGKA SAJA)</label>
+                                <input type="text" id="htmInfo" placeholder="Contoh: 25000" />
+                            </div>
+                            <div>
+                                <label>INFO PEMBAYARAN</label>
+                                <input type="text" id="rekeningInfo" placeholder="Bank / E-Wallet" />
+                            </div>
+                            <div>
+                                <label>LINK / EMBED GOOGLE MAPS</label>
+                                <input type="text" id="linkMaps" placeholder='Tempel kode &lt;iframe src="https://www.google.com/maps/embed?..."&gt;...&lt;/iframe&gt; di sini' />
+                            </div>
+                        </div>
+                        <div class="btn-group" style="margin-bottom: 12px;">
+                            <button class="btn-action btn-save" onclick="updateInfo()">
+                                <i class="fa-solid fa-circle-check"></i> PUBLISH MATCH
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn-action btn-archive" onclick="archiveMatch()">
+                                <i class="fa-solid fa-box-archive"></i> ARCHIVE
+                            </button>
+                            <button class="btn-action btn-reset" onclick="resetMatchOnly()">
+                                <i class="fa-solid fa-rotate-left"></i> RESET
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-eye"></i> Status Saat Ini</h2>
+                        <div class="status-line">
+                            <i id="statusIcon" class="fa-solid fa-circle-notch fa-spin"></i>
+                            <span>Status match:</span>
+                            <span id="statusBadge" class="badge">Memuat...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            /* ==================================================
+               KONFIGURASI SUPABASE (sama dengan halaman lain)
+               ================================================== */
+            const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
+            const SB_KEY =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
+            const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+            const DEFAULT_PASSWORD = "admin"; // dipakai HANYA saat admin_settings masih kosong
+            const POS_ORDER = ["GK","CB","LB","RB","LWB","RWB","DMF","CMF","AMF","LMF","RMF","LWF","RWF","SS","CF"];
+            const TEAM_NAMES = ["Red", "Blue", "Green", "Purple"];
+
+            /* ==================================================
+               PASSWORD (tersimpan ter-hash di tabel admin_settings)
+               ================================================== */
+            async function getPasswordHash() {
+                const { data } = await _supabase
+                    .from("admin_settings")
+                    .select("password_hash")
+                    .eq("id", 1)
+                    .maybeSingle();
+
+                if (data?.password_hash) return data.password_hash;
+
+                // Belum ada baris sama sekali -> buat dari DEFAULT_PASSWORD
+                const hash = dcodeIO.bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+                await _supabase
+                    .from("admin_settings")
+                    .upsert({ id: 1, password_hash: hash });
+                return hash;
+            }
+
+            /* ==================================================
+               LOGIN / LOGOUT
+               ================================================== */
+            async function doLogin() {
+                const pass = document.getElementById("loginPass").value;
+                const err = document.getElementById("loginError");
+                err.style.display = "none";
+
+                const hash = await getPasswordHash();
+                if (dcodeIO.bcrypt.compareSync(pass, hash)) {
+                    sessionStorage.setItem("kop_admin_auth", "true");
+                    showAdminShell();
+                } else {
+                    err.style.display = "block";
+                }
+            }
+
+            function doLogout() {
+                if (confirm("Keluar dari Admin Panel?")) {
+                    sessionStorage.removeItem("kop_admin_auth");
+                    location.reload();
+                }
+            }
+
+            function showAdminShell() {
+                document.getElementById("loginWrapper").style.display = "none";
+                document.getElementById("adminShell").style.display = "flex";
+                document.getElementById("navActions").style.display = "flex";
+                initFlatpickr();
+                muatPemain();
+                loadDraft();
+                loadMatchInfo();
+            }
+
+            window.onload = function () {
+                if (sessionStorage.getItem("kop_admin_auth") === "true") {
+                    showAdminShell();
+                }
+            };
+
+            /* ==================================================
+               MODAL GANTI PASSWORD
+               ================================================== */
+            function openChangePassModal() {
+                document.getElementById("changePassModal").classList.add("show");
+                document.getElementById("changePassError").style.display = "none";
+                document.getElementById("changePassSuccess").style.display = "none";
+                document.getElementById("changePassForm").reset();
+            }
+
+            function closeChangePassModal() {
+                document.getElementById("changePassModal").classList.remove("show");
+            }
+
+            document.getElementById("changePassForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const oldPass = document.getElementById("oldPass").value;
+                const newPass = document.getElementById("newPass").value;
+                const confirmPass = document.getElementById("confirmPass").value;
+                const errEl = document.getElementById("changePassError");
+                const okEl = document.getElementById("changePassSuccess");
+                errEl.style.display = "none";
+                okEl.style.display = "none";
+
+                const currentHash = await getPasswordHash();
+                if (!dcodeIO.bcrypt.compareSync(oldPass, currentHash)) {
+                    errEl.innerText = "Password lama salah.";
+                    errEl.style.display = "block";
+                    return;
+                }
+
+                if (newPass !== confirmPass) {
+                    errEl.innerText = "Konfirmasi password baru tidak cocok.";
+                    errEl.style.display = "block";
+                    return;
+                }
+
+                if (newPass.length < 4) {
+                    errEl.innerText = "Password baru minimal 4 karakter.";
+                    errEl.style.display = "block";
+                    return;
+                }
+
+                const newHash = dcodeIO.bcrypt.hashSync(newPass, 10);
+                const { error } = await _supabase
+                    .from("admin_settings")
+                    .update({ password_hash: newHash })
+                    .eq("id", 1);
+
+                if (error) {
+                    errEl.innerText = "Gagal menyimpan: " + error.message;
+                    errEl.style.display = "block";
+                    return;
+                }
+
+                okEl.innerText = "Password berhasil diubah!";
+                okEl.style.display = "block";
+                setTimeout(closeChangePassModal, 1200);
+            });
+
+            /* ==================================================
+               TAB SWITCHING
+               ================================================== */
+            function switchTab(tab) {
+                document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+                document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+                document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add("active");
+                document.getElementById(`panel-${tab}`).classList.add("active");
+            }
+
+            /* ==================================================
+               TAB 1: DATA PEMAIN
+               ================================================== */
+            const tableBody = document.getElementById("playerTableBody");
+            const playerCount = document.getElementById("count");
+            const editContainer = document.getElementById("editContainer");
+
+            async function muatPemain() {
+                const { data, error } = await _supabase
+                    .from("pemain")
+                    .select("*")
+                    .order("created_at", { ascending: true });
+                if (error) return;
+
+                tableBody.innerHTML = "";
+                playerCount.innerText = data.length;
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">Belum ada pemain terdaftar.</td></tr>`;
+                    return;
+                }
+
+                data.forEach((p, index) => {
+                    tableBody.innerHTML += `
+                    <tr>
+                        <td style="text-align:center;">${index + 1}</td>
+                        <td style="font-weight:600;">${p.nama}</td>
+                        <td><span style="color:#27ae60; font-weight:800; font-size:0.85rem;">${p.posisi}</span></td>
+                        <td>${p.tim ? p.tim : "-"}</td>
+                        <td class="action-cell">
+                            <button class="btn-table btn-edit" onclick="showEditForm(${p.id}, '${p.nama.replace(/'/g, "\\'")}', '${p.posisi}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            }
+
+            function showEditForm(id, nama, posisi) {
+                editContainer.style.display = "block";
+                document.getElementById("editId").value = id;
+                document.getElementById("editNama").value = nama;
+                document.getElementById("editPosisi").value = posisi;
+                editContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            function cancelEdit() {
+                editContainer.style.display = "none";
+                document.getElementById("editForm").reset();
+            }
+
+            document.getElementById("playerForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const nama = document.getElementById("nama").value;
+                const posisi = document.getElementById("posisi").value;
+                const { error } = await _supabase.from("pemain").insert([{ nama, posisi }]);
+                if (!error) {
+                    document.getElementById("playerForm").reset();
+                    muatPemain();
+                } else {
+                    alert("Gagal menambah pemain: " + error.message);
+                }
+            });
+
+            document.getElementById("editForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const id = document.getElementById("editId").value;
+                const nama = document.getElementById("editNama").value;
+                const posisi = document.getElementById("editPosisi").value;
+                const { error } = await _supabase.from("pemain").update({ nama, posisi }).eq("id", id);
+                if (!error) {
+                    cancelEdit();
+                    muatPemain();
+                } else {
+                    alert("Gagal menyimpan perubahan: " + error.message);
+                }
+            });
+
+            async function hapusSatuPemain(id) {
+                if (confirm("Hapus pemain ini?")) {
+                    await _supabase.from("pemain").delete().eq("id", id);
+                    muatPemain();
+                }
+            }
+
+            async function resetDatabase() {
+                if (confirm("PERINGATAN: Hapus SEMUA data pemain? Aksi ini tidak bisa dibatalkan.")) {
+                    const { data } = await _supabase.from("pemain").select("id");
+                    if (data?.length > 0) {
+                        await _supabase.from("pemain").delete().in("id", data.map((p) => p.id));
+                    }
+                    muatPemain();
+                }
+            }
+
+            /* ==================================================
+               TAB 2: UNDI TIM
+               ================================================== */
+            async function loadDraft() {
+                const { data: players, error } = await _supabase
+                    .from("pemain")
+                    .select("*")
+                    .neq("posisi", "SPECTATOR (FAN)");
+                if (error) return;
+
+                const grid = document.getElementById("mainGrid");
+                const alreadyShuffled = players.some((p) => p.tim !== null && p.tim !== "");
+
+                if (!alreadyShuffled) {
+                    grid.innerHTML = `
+                        <div class="waiting-box" style="grid-column:1/-1;">
+                            <i class="fa-solid fa-users-viewfinder"></i>
+                            <p>Belum ada hasil undian.<br>Hasil akan muncul setelah SHUFFLE.</p>
+                        </div>`;
+                } else {
+                    renderTeams(players);
+                }
+            }
+
+            function renderTeams(players) {
+                const grid = document.getElementById("mainGrid");
+                let html = "";
+                const activeTeamNames = TEAM_NAMES.filter((name) => players.some((p) => p.tim === name));
+
+                activeTeamNames.forEach((color) => {
+                    const teamPlayers = players
+                        .filter((p) => p.tim === color)
+                        .sort((a, b) => POS_ORDER.indexOf(a.posisi) - POS_ORDER.indexOf(b.posisi));
+
+                    if (teamPlayers.length > 0) {
+                        html += `
+                            <div class="team-card">
+                                <div class="team-header header-${color.toLowerCase()}">${color} Team</div>
+                                <div>
+                                    ${teamPlayers.map((p) => `
+                                        <div class="player-item">
+                                            <span style="font-weight:600">${p.nama}</span>
+                                            <span class="pos-badge">${p.posisi}</span>
+                                        </div>`).join("")}
+                                </div>
+                            </div>`;
+                    }
+                });
+                grid.innerHTML = html;
+            }
+
+            function confirmShuffle() {
+                if (confirm("Undi pembagian tim sekarang?")) shuffleTeams();
+            }
+
+            function confirmResetDraft() {
+                if (confirm("Reset pembagian tim? Semua pemain akan kembali tanpa tim.")) resetTeams();
+            }
+
+            async function shuffleTeams() {
+                const numTeams = parseInt(document.getElementById("numTeams").value);
+                const { data: players } = await _supabase
+                    .from("pemain")
+                    .select("*")
+                    .neq("posisi", "SPECTATOR (FAN)");
+
+                if (!players || players.length === 0) {
+                    alert("Belum ada pemain untuk diundi.");
+                    return;
+                }
+
+                const grouped = {};
+                players.forEach((p) => {
+                    if (!grouped[p.posisi]) grouped[p.posisi] = [];
+                    grouped[p.posisi].push(p);
+                });
+
+                let currentIdx = 0;
+                let updates = [];
+
+                POS_ORDER.forEach((pos) => {
+                    if (grouped[pos]) {
+                        const shuffledPos = grouped[pos].sort(() => Math.random() - 0.5);
+                        shuffledPos.forEach((p) => {
+                            updates.push(
+                                _supabase.from("pemain").update({ tim: TEAM_NAMES[currentIdx] }).eq("id", p.id)
+                            );
+                            currentIdx = (currentIdx + 1) % numTeams;
+                        });
+                    }
+                });
+
+                await Promise.all(updates);
+                loadDraft();
+                muatPemain();
+            }
+
+            async function resetTeams() {
+                const { data: players } = await _supabase.from("pemain").select("id");
+                const resets = players.map((p) => _supabase.from("pemain").update({ tim: null }).eq("id", p.id));
+                await Promise.all(resets);
+                loadDraft();
+                muatPemain();
+            }
+
+            /* ==================================================
+               TAB 3: MATCH DAY
+               ================================================== */
+            function initFlatpickr() {
+                flatpickr("#jadwalMain", {
+                    enableTime: true,
+                    dateFormat: "Y-m-d | H:i",
+                    time_24hr: true,
+                });
+            }
+
+            async function loadMatchInfo() {
+                const { data } = await _supabase.from("jadwal_lapangan").select("*").eq("id", 1).single();
+                if (!data) return;
+
+                document.getElementById("eventInput").value = data.event_name || "";
+                document.getElementById("namaLapangan").value = data.nama_lp || "";
+                document.getElementById("jadwalMain").value = data.waktu ? data.waktu.replace("T", " | ") : "";
+                document.getElementById("jerseyInfo").value = data.jersey || "";
+                document.getElementById("htmInfo").value = data.htm || "";
+                document.getElementById("rekeningInfo").value = data.rekening || "";
+                document.getElementById("linkMaps").value = data.maps_url || "";
+
+                const badge = document.getElementById("statusBadge");
+                const icon = document.getElementById("statusIcon");
+                if (!data.event_name || data.event_name === "TBA") {
+                    badge.innerText = "BELUM ADA JADWAL";
+                    badge.classList.add("PENDING");
+                    icon.className = "fa-solid fa-clock";
+                    icon.style.color = "#e74c3c";
+                } else {
+                    badge.innerText = "TERKONFIRMASI";
+                    badge.classList.remove("PENDING");
+                    icon.className = "fa-solid fa-circle-check";
+                    icon.style.color = "#27ae60";
+                }
+            }
+
+            async function updateInfo() {
+                const event = document.getElementById("eventInput").value;
+                const nama = document.getElementById("namaLapangan").value;
+                const jadwal = document.getElementById("jadwalMain").value;
+                const jersey = document.getElementById("jerseyInfo").value;
+                const htm = document.getElementById("htmInfo").value;
+                const rekening = document.getElementById("rekeningInfo").value;
+                let maps = document.getElementById("linkMaps").value;
+
+                if (maps.includes("<iframe")) {
+                    const match = maps.match(/src="([^"]+)"/);
+                    if (match) maps = match[1];
+                }
+
+                const { error } = await _supabase.from("jadwal_lapangan").upsert({
+                    id: 1,
+                    event_name: event,
+                    nama_lp: nama,
+                    waktu: jadwal,
+                    jersey: jersey,
+                    htm: htm,
+                    rekening: rekening,
+                    maps_url: maps,
+                });
+
+                if (!error) {
+                    alert("Info pertandingan berhasil dipublikasikan!");
+                    loadMatchInfo();
+                } else {
+                    alert("Gagal publish: " + error.message);
+                }
+            }
+
+            async function resetMatchOnly() {
+                if (!confirm("Reset semua info pertandingan? Aksi ini tidak bisa dibatalkan.")) return;
+                const { error } = await _supabase
+                    .from("jadwal_lapangan")
+                    .update({ event_name: "TBA", nama_lp: "TBA", waktu: null, jersey: "-", htm: "0", rekening: "-", maps_url: "" })
+                    .eq("id", 1);
+                if (!error) {
+                    alert("Info pertandingan sudah direset.");
+                    loadMatchInfo();
+                }
+            }
+
+            async function archiveMatch() {
+                if (!confirm("Pindahkan pertandingan saat ini ke Riwayat Event dan kosongkan daftar pemain?")) return;
+                try {
+                    const { data: match } = await _supabase.from("jadwal_lapangan").select("*").eq("id", 1).single();
+                    const { data: p } = await _supabase.from("pemain").select("nama");
+                    let names = p?.length > 0 ? p.map((x) => x.nama).join(", ") : "-";
+
+                    await _supabase.from("event_history").insert({
+                        event_name: match.event_name,
+                        location_name: match.nama_lp,
+                        match_date: match.waktu,
+                        player_list: names,
+                        player_count: p?.length || 0,
+                    });
+
+                    await _supabase
+                        .from("jadwal_lapangan")
+                        .update({ event_name: "TBA", nama_lp: "TBA", waktu: null, jersey: "-", htm: "0", rekening: "-", maps_url: "" })
+                        .eq("id", 1);
+
+                    await _supabase.from("pemain").delete().neq("id", 0);
+
+                    alert("Pertandingan berhasil diarsipkan!");
+                    loadMatchInfo();
+                    muatPemain();
+                    loadDraft();
+                } catch (e) {
+                    alert("Terjadi kesalahan: " + e.message);
+                }
+            }
+        </script>
+    </body>
+</html>

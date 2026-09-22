@@ -13,11 +13,6 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-        />
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
         <style>
@@ -85,30 +80,6 @@
                 letter-spacing: 2px;
                 font-size: 1.3rem;
             }
-            .login-box {
-                position: absolute;
-                right: 20px;
-            }
-
-            .btn-auth {
-                background: transparent;
-                color: white;
-                border: 2px solid rgba(255, 255, 255, 0.5);
-                padding: 6px 15px;
-                border-radius: 12px;
-                font-size: 0.9rem;
-                font-weight: 700;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: 0.3s;
-                text-transform: uppercase;
-            }
-            .btn-auth.is-admin {
-                color: #2ecc71;
-                border-color: #2ecc71;
-            }
 
             /* --- CONTENT --- */
             .container {
@@ -120,50 +91,6 @@
                 max-width: 800px;
                 box-sizing: border-box;
                 margin-bottom: 20px;
-            }
-
-            #adminSection {
-                display: none;
-                border: 2px dashed #2ecc71;
-                background: #f0fff4;
-                margin-bottom: 20px;
-            }
-            .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            input,
-            .btn {
-                padding: 12px;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                font-size: 15px;
-            }
-
-            .btn {
-                color: white;
-                border: none;
-                font-weight: bold;
-                cursor: pointer;
-                transition: 0.3s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                text-decoration: none;
-            }
-            .btn-save {
-                background: #2ecc71;
-                width: 100%;
-            }
-            .btn-archive {
-                background: #e67e22;
-                flex: 1;
-            }
-            .btn-reset {
-                background: #94a3b8;
-                flex: 1;
             }
 
             /* --- DETAIL INFO --- */
@@ -229,12 +156,41 @@
             }
             .map-frame {
                 width: 100%;
-                height: 280px;
+                aspect-ratio: 16 / 9;
+                min-height: 260px;
                 border-radius: 15px;
                 border: 2px solid #f1f5f9;
                 background: #f9f9f9;
                 overflow: hidden;
                 position: relative;
+            }
+            .map-frame iframe {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            @media (max-width: 600px) {
+                .map-frame {
+                    aspect-ratio: 4 / 5;
+                    min-height: 320px;
+                }
+            }
+
+            .btn {
+                padding: 12px;
+                border-radius: 10px;
+                border: none;
+                font-size: 15px;
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                text-decoration: none;
             }
 
             /* --- LOADING STYLES --- */
@@ -288,67 +244,6 @@
                 ></a>
             </div>
             <div class="nav-label">Match Day</div>
-            <div class="login-box">
-                <button id="authBtn" class="btn-auth" onclick="handleAuth()">
-                    <i id="authIcon" class="fa-solid fa-lock"></i>
-                    <span id="authText">LOGIN</span>
-                </button>
-            </div>
-        </div>
-
-        <div id="adminSection" class="container">
-            <h3 style="color: #27ae60; margin-top: 0">🛠 Admin Control</h3>
-            <div class="form-group">
-                <input
-                    type="text"
-                    id="eventInput"
-                    placeholder="Event Name (e.g. Weekly Fun Football)"
-                />
-                <input
-                    type="text"
-                    id="namaLapangan"
-                    placeholder="Stadium Name"
-                />
-                <input
-                    type="text"
-                    id="jadwalMain"
-                    placeholder="Select Date & Time"
-                    readonly
-                />
-                <input
-                    type="text"
-                    id="jerseyInfo"
-                    placeholder="Jersey Color (e.g. Open Bold / All Colors)"
-                />
-                <input
-                    type="text"
-                    id="htmInfo"
-                    placeholder="Admission Fee (Numbers only)"
-                />
-                <input
-                    type="text"
-                    id="rekeningInfo"
-                    placeholder="Payment Gateway (Bank / E-Wallet)"
-                />
-                <input
-                    type="text"
-                    id="linkMaps"
-                    placeholder="Google Maps Link or Iframe"
-                />
-
-                <button class="btn btn-save" onclick="updateInfo()">
-                    <i class="fa-solid fa-circle-check"></i> PUBLISH MATCH
-                </button>
-
-                <div style="display: flex; gap: 10px">
-                    <button class="btn btn-archive" onclick="archiveMatch()">
-                        <i class="fa-solid fa-box-archive"></i> ARCHIVE
-                    </button>
-                    <button class="btn btn-reset" onclick="resetMatchOnly()">
-                        <i class="fa-solid fa-rotate-left"></i> RESET
-                    </button>
-                </div>
-            </div>
         </div>
 
         <div class="container">
@@ -468,151 +363,6 @@
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
             const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-            let isAdminLoggedIn = false;
-
-            flatpickr("#jadwalMain", {
-                enableTime: true,
-                dateFormat: "Y-m-d | H:i",
-                time_24hr: true,
-            });
-
-            function handleAuth() {
-                if (!isAdminLoggedIn) {
-                    const pass = prompt("Enter Admin Password:");
-                    if (pass === "admin") {
-                        setAdminUI(true);
-                        alert("Welcome Back, Admin!");
-                    } else if (pass !== null) {
-                        alert("Invalid Credentials!");
-                    }
-                } else {
-                    if (confirm("Sign out from Admin Panel?"))
-                        setAdminUI(false);
-                }
-            }
-
-            function setAdminUI(loggedIn) {
-                isAdminLoggedIn = loggedIn;
-                const adminSection = document.getElementById("adminSection");
-                const authBtn = document.getElementById("authBtn");
-                const authText = document.getElementById("authText");
-                const authIcon = document.getElementById("authIcon");
-
-                if (loggedIn) {
-                    authText.innerText = "ADMIN";
-                    authIcon.className = "fa-solid fa-unlock-keyhole";
-                    authBtn.classList.add("is-admin");
-                    adminSection.style.display = "block";
-                } else {
-                    authText.innerText = "LOGIN";
-                    authIcon.className = "fa-solid fa-lock";
-                    authBtn.classList.remove("is-admin");
-                    adminSection.style.display = "none";
-                }
-            }
-
-            async function updateInfo() {
-                const event = document.getElementById("eventInput").value;
-                const nama = document.getElementById("namaLapangan").value;
-                const jadwal = document.getElementById("jadwalMain").value;
-                const jersey = document.getElementById("jerseyInfo").value;
-                const htm = document.getElementById("htmInfo").value;
-                const rekening = document.getElementById("rekeningInfo").value;
-                let maps = document.getElementById("linkMaps").value;
-
-                if (maps.includes("<iframe")) {
-                    const match = maps.match(/src="([^"]+)"/);
-                    if (match) maps = match[1];
-                }
-
-                const { error } = await _supabase
-                    .from("jadwal_lapangan")
-                    .upsert({
-                        id: 1,
-                        event_name: event,
-                        nama_lp: nama,
-                        waktu: jadwal,
-                        jersey: jersey,
-                        htm: htm,
-                        rekening: rekening,
-                        maps_url: maps,
-                    });
-
-                if (!error) {
-                    alert("Match details published successfully!");
-                    location.reload();
-                }
-            }
-
-            async function resetMatchOnly() {
-                if (!confirm("Reset all match details? This cannot be undone."))
-                    return;
-                const { error } = await _supabase
-                    .from("jadwal_lapangan")
-                    .update({
-                        event_name: "TBA",
-                        nama_lp: "TBA",
-                        waktu: null,
-                        jersey: "-",
-                        htm: "0",
-                        rekening: "-",
-                        maps_url: "",
-                    })
-                    .eq("id", 1);
-                if (!error) {
-                    alert("Match details cleared.");
-                    location.reload();
-                }
-            }
-
-            async function archiveMatch() {
-                if (
-                    !confirm(
-                        "Move current match to history and clear player list?",
-                    )
-                )
-                    return;
-                try {
-                    const { data: match } = await _supabase
-                        .from("jadwal_lapangan")
-                        .select("*")
-                        .eq("id", 1)
-                        .single();
-                    const { data: p } = await _supabase
-                        .from("pemain")
-                        .select("nama");
-                    let names =
-                        p?.length > 0 ? p.map((x) => x.nama).join(", ") : "-";
-
-                    await _supabase.from("event_history").insert({
-                        event_name: match.event_name,
-                        location_name: match.nama_lp,
-                        match_date: match.waktu,
-                        player_list: names,
-                        player_count: p?.length || 0,
-                    });
-
-                    await _supabase
-                        .from("jadwal_lapangan")
-                        .update({
-                            event_name: "TBA",
-                            nama_lp: "TBA",
-                            waktu: null,
-                            jersey: "-",
-                            htm: "0",
-                            rekening: "-",
-                            maps_url: "",
-                        })
-                        .eq("id", 1);
-
-                    await _supabase.from("pemain").delete().neq("id", 0);
-                    alert("Match archived successfully!");
-                    location.reload();
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
-            }
-
             async function loadInfo() {
                 const { data } = await _supabase
                     .from("jadwal_lapangan")
@@ -637,22 +387,6 @@
                         data.htm || "0";
                     document.getElementById("displayRekening").innerText =
                         data.rekening || "Not Set";
-
-                    // Form inputs
-                    document.getElementById("eventInput").value =
-                        data.event_name || "";
-                    document.getElementById("namaLapangan").value =
-                        data.nama_lp || "";
-                    document.getElementById("jadwalMain").value = data.waktu
-                        ? data.waktu.replace("T", " | ")
-                        : "";
-                    document.getElementById("jerseyInfo").value =
-                        data.jersey || "";
-                    document.getElementById("htmInfo").value = data.htm || "";
-                    document.getElementById("rekeningInfo").value =
-                        data.rekening || "";
-                    document.getElementById("linkMaps").value =
-                        data.maps_url || "";
 
                     const badge = document.getElementById("statusBadge");
                     const icon = document.getElementById("statusIcon");

@@ -68,30 +68,6 @@
                 color: #e74c3c;
             }
 
-            .admin-login-btn {
-                position: absolute;
-                right: 20px;
-                background: transparent;
-                border: 2px solid rgba(255, 255, 255, 0.5);
-                color: white;
-                padding: 6px 15px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: bold;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: 0.3s;
-            }
-            .admin-login-btn:hover {
-                border-color: #27ae60;
-                color: #27ae60;
-            }
-            .admin-login-btn.active {
-                border-color: #27ae60;
-                background: #27ae60;
-                color: white;
-            }
             .nav-title {
                 color: white;
                 font-weight: 900;
@@ -100,7 +76,7 @@
                 text-transform: uppercase;
             }
 
-            /* --- CONTAINERS (Registration & Edit) --- */
+            /* --- CONTAINER (Registration) --- */
             .container {
                 background-color: white;
                 padding: 30px;
@@ -110,11 +86,6 @@
                 max-width: 600px;
                 margin-bottom: 25px;
                 box-sizing: border-box;
-            }
-
-            #editContainer {
-                display: none; /* Hidden by default */
-                border: 3px solid #27ae60;
             }
 
             h2 {
@@ -190,28 +161,6 @@
                 background-color: #219150;
             }
 
-            .btn-update {
-                background-color: #2980b9;
-            }
-            .btn-update:hover {
-                background-color: #2471a3;
-            }
-
-            .btn-cancel {
-                background-color: #95a5a6;
-            }
-            .btn-cancel:hover {
-                background-color: #7f8c8d;
-            }
-
-            .btn-reset {
-                background-color: #e74c3c;
-                display: none;
-            }
-            .btn-reset:hover {
-                background-color: #c0392b;
-            }
-
             .btn-action:active {
                 transform: scale(0.98);
             }
@@ -282,46 +231,12 @@
                 }
             }
 
-            /* Action Buttons in Table */
-            .action-header,
-            .action-cell {
-                display: none;
-            }
-            .action-cell {
-                gap: 8px;
-            }
-
-            .btn-table {
-                width: 35px;
-                height: 35px;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: 0.2s;
-            }
-            .btn-edit {
-                background: #27ae60;
-            }
-            .btn-delete {
-                background: #e74c3c;
-            }
-            .btn-table:hover {
-                opacity: 0.8;
-            }
-
             @media (max-width: 600px) {
                 .btn-group {
                     flex-direction: column;
                 }
                 .nav-title {
                     font-size: 1.2rem;
-                }
-                .admin-login-btn span {
-                    display: none;
                 }
             }
         </style>
@@ -332,14 +247,6 @@
                 ><i class="fa-solid fa-arrow-left"></i
             ></a>
             <span class="nav-title">CONFIRMATION LIST</span>
-            <button
-                id="adminToggle"
-                class="admin-login-btn"
-                onclick="toggleAdminMode()"
-            >
-                <i id="lockIcon" class="fa-solid fa-lock"></i>
-                <span>LOGIN</span>
-            </button>
         </div>
 
         <div class="container" id="registrationContainer">
@@ -374,55 +281,6 @@
                     <button type="submit" class="btn-action btn-submit">
                         <i class="fa-solid fa-check"></i> SIGN ME UP!
                     </button>
-                    <button
-                        type="button"
-                        id="resetBtn"
-                        class="btn-action btn-reset"
-                        onclick="resetDatabase()"
-                    >
-                        <i class="fa-solid fa-rotate"></i> RESET ALL
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="container" id="editContainer">
-            <h2 style="color: #27ae60">
-                <i class="fa-solid fa-pen-to-square"></i> Edit Participant
-            </h2>
-            <form id="editForm">
-                <input type="hidden" id="editId" />
-                <div class="input-group">
-                    <label>NAME</label>
-                    <input type="text" id="editNama" required />
-                </div>
-                <div class="input-group">
-                    <label>POSITION</label>
-                    <select id="editPosisi">
-                        <option value="GK">GK</option>
-                        <option value="CB">CB</option>
-                        <option value="LB">LB</option>
-                        <option value="RB">RB</option>
-                        <option value="DMF">DMF</option>
-                        <option value="CMF">CMF</option>
-                        <option value="AMF">AMF</option>
-                        <option value="LWF">LWF</option>
-                        <option value="RWF">RWF</option>
-                        <option value="CF">CF</option>
-                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
-                    </select>
-                </div>
-                <div class="btn-group">
-                    <button type="submit" class="btn-action btn-update">
-                        <i class="fa-solid fa-floppy-disk"></i> UPDATE DATA
-                    </button>
-                    <button
-                        type="button"
-                        class="btn-action btn-cancel"
-                        onclick="cancelEdit()"
-                    >
-                        CANCEL
-                    </button>
                 </div>
             </form>
         </div>
@@ -451,13 +309,6 @@
                             <th style="width: 60px; text-align: center">NO</th>
                             <th>NAME</th>
                             <th>POS</th>
-                            <th
-                                id="actionHeader"
-                                class="action-header"
-                                style="width: 100px"
-                            >
-                                ACTION
-                            </th>
                         </tr>
                     </thead>
                     <tbody id="playerTableBody"></tbody>
@@ -467,7 +318,6 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
-            // Logika Supabase dan Admin tetap sama seperti sebelumnya
             const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
             const SUPABASE_KEY =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
@@ -475,51 +325,6 @@
 
             const tableBody = document.getElementById("playerTableBody");
             const playerCount = document.getElementById("count");
-            const editContainer = document.getElementById("editContainer");
-            const regContainer = document.getElementById(
-                "registrationContainer",
-            );
-            let isAdminLoggedIn = false;
-
-            function toggleAdminMode() {
-                if (!isAdminLoggedIn) {
-                    const pin = prompt("Admin Password:");
-                    if (pin === "admin") {
-                        isAdminLoggedIn = true;
-                        applyAdminUI();
-                        alert("Login Successful!");
-                    } else if (pin !== null) {
-                        alert("Access Denied!");
-                    }
-                } else {
-                    if (confirm("Sign out from Admin mode?")) {
-                        isAdminLoggedIn = false;
-                        cancelEdit();
-                        applyAdminUI();
-                    }
-                }
-            }
-
-            function applyAdminUI() {
-                const btn = document.getElementById("adminToggle");
-                const resetBtn = document.getElementById("resetBtn");
-                const actionHeader = document.getElementById("actionHeader");
-
-                if (isAdminLoggedIn) {
-                    btn.innerHTML =
-                        '<i class="fa-solid fa-lock-open"></i> <span>ADMIN</span>';
-                    btn.classList.add("active");
-                    resetBtn.style.display = "flex";
-                    actionHeader.style.display = "table-cell";
-                } else {
-                    btn.innerHTML =
-                        '<i class="fa-solid fa-lock"></i> <span>LOGIN</span>';
-                    btn.classList.remove("active");
-                    resetBtn.style.display = "none";
-                    actionHeader.style.display = "none";
-                }
-                muatPemain();
-            }
 
             async function muatPemain() {
                 const { data, error } = await _supabase
@@ -537,27 +342,8 @@
                         <td style="text-align: center;">${index + 1}</td>
                         <td style="font-weight: 600;">${p.nama}</td>
                         <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${p.posisi}</span></td>
-                        <td class="action-cell" style="display: ${isAdminLoggedIn ? "flex" : "none"}">
-                            <button class="btn-table btn-edit" onclick="showEditForm(${p.id}, '${p.nama}', '${p.posisi}')"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})"><i class="fa-solid fa-trash"></i></button>
-                        </td>
                     </tr>`;
                 });
-            }
-
-            function showEditForm(id, nama, posisi) {
-                regContainer.style.display = "none";
-                editContainer.style.display = "block";
-                document.getElementById("editId").value = id;
-                document.getElementById("editNama").value = nama;
-                document.getElementById("editPosisi").value = posisi;
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-
-            function cancelEdit() {
-                editContainer.style.display = "none";
-                regContainer.style.display = "block";
-                document.getElementById("editForm").reset();
             }
 
             document
@@ -575,49 +361,6 @@
                         muatPemain();
                     }
                 });
-
-            document
-                .getElementById("editForm")
-                .addEventListener("submit", async (e) => {
-                    e.preventDefault();
-                    const id = document.getElementById("editId").value;
-                    const nama = document.getElementById("editNama").value;
-                    const posisi = document.getElementById("editPosisi").value;
-                    const { error } = await _supabase
-                        .from("pemain")
-                        .update({ nama, posisi })
-                        .eq("id", id);
-                    if (!error) {
-                        alert("Data updated successfully!");
-                        cancelEdit();
-                        muatPemain();
-                    }
-                });
-
-            async function hapusSatuPemain(id) {
-                if (confirm("Remove attendee?")) {
-                    await _supabase.from("pemain").delete().eq("id", id);
-                    muatPemain();
-                }
-            }
-
-            async function resetDatabase() {
-                if (confirm("DANGER: RESET ALL DATA?")) {
-                    const { data } = await _supabase
-                        .from("pemain")
-                        .select("id");
-                    if (data?.length > 0) {
-                        await _supabase
-                            .from("pemain")
-                            .delete()
-                            .in(
-                                "id",
-                                data.map((p) => p.id),
-                            );
-                    }
-                    muatPemain();
-                }
-            }
 
             window.onload = muatPemain;
         </script>

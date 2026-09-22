@@ -73,93 +73,6 @@
                 letter-spacing: 2px;
                 font-size: 1.1rem;
             }
-            .btn-auth {
-                position: absolute;
-                right: 15px;
-                background: transparent;
-                border: 2px solid rgba(255, 255, 255, 0.5);
-                color: white;
-                padding: 6px 15px;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 12px;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: 0.3s;
-                text-transform: uppercase;
-            }
-            .btn-auth.is-admin {
-                border-color: #27ae60;
-                color: #27ae60;
-            }
-            .btn-auth:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
-            .btn-auth.is-admin:hover {
-                background: rgba(46, 204, 113, 0.1);
-            }
-
-            /* --- ADMIN PANEL --- */
-            .admin-panel {
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(10px);
-                padding: 15px 25px;
-                border-radius: 12px;
-                width: 100%;
-                max-width: 800px;
-                display: none;
-                gap: 10px;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 25px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            .label-text {
-                color: white;
-                font-size: 14px;
-                font-weight: 600;
-            }
-            select {
-                padding: 10px;
-                border-radius: 8px;
-                border: none;
-                font-weight: bold;
-                cursor: pointer;
-            }
-
-            .btn-green {
-                background: #27ae60;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 8px;
-                font-weight: bold;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: 0.3s;
-            }
-            .btn-green:hover {
-                background: #219150;
-                transform: translateY(-2px);
-            }
-
-            .btn-reset {
-                background: #e74c3c;
-                color: white;
-                border: none;
-                padding: 10px 15px;
-                border-radius: 8px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: 0.3s;
-            }
-            .btn-reset:hover {
-                background: #c0392b;
-            }
 
             /* --- TEAM GRID --- */
             .team-grid {
@@ -239,25 +152,6 @@
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
             <span class="nav-title">TEAM DRAFT</span>
-            <button id="authBtn" class="btn-auth" onclick="handleAuth()">
-                <i id="authIcon" class="fa-solid fa-lock"></i>
-                <span id="authText">LOGIN</span>
-            </button>
-        </div>
-
-        <div id="adminPanel" class="admin-panel">
-            <span class="label-text">Divide into:</span>
-            <select id="numTeams">
-                <option value="2">2 TEAMS</option>
-                <option value="3">3 TEAMS</option>
-                <option value="4">4 TEAMS</option>
-            </select>
-            <button class="btn-green" onclick="confirmShuffle()">
-                <i class="fa-solid fa-shuffle"></i> SHUFFLE
-            </button>
-            <button class="btn-reset" onclick="confirmReset()">
-                <i class="fa-solid fa-rotate-right"></i> RESET
-            </button>
         </div>
 
         <div class="team-grid" id="mainGrid"></div>
@@ -269,8 +163,6 @@
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            let isAdminLoggedIn = false;
-            const ADMIN_PIN = "admin";
             const POS_ORDER = [
                 "GK",
                 "CB",
@@ -290,54 +182,7 @@
             ];
             const TEAM_NAMES = ["Red", "Blue", "Green", "Purple"];
 
-            // --- AUTH LOGIC (LOGIN / LOGOUT) ---
-            function handleAuth() {
-                if (!isAdminLoggedIn) {
-                    const pin = prompt("Admin Password:");
-                    if (pin === ADMIN_PIN) {
-                        isAdminLoggedIn = true;
-                        setAdminUI(true);
-                        alert("Login Successful! You are now in Admin mode");
-                    } else if (pin !== null) {
-                        alert("Access Denied! Incorrect Password.");
-                    }
-                } else {
-                    if (confirm("Sign out from Admin mode?")) {
-                        isAdminLoggedIn = false;
-                        setAdminUI(false);
-                    }
-                }
-            }
-
-            function setAdminUI(loggedIn) {
-                const adminPanel = document.getElementById("adminPanel");
-                const authBtn = document.getElementById("authBtn");
-                const authIcon = document.getElementById("authIcon");
-                const authText = document.getElementById("authText");
-
-                if (loggedIn) {
-                    adminPanel.style.display = "flex";
-                    authBtn.classList.add("is-admin");
-                    authIcon.className = "fa-solid fa-unlock-keyhole";
-                    authText.innerText = "ADMIN";
-                } else {
-                    adminPanel.style.display = "none";
-                    authBtn.classList.remove("is-admin");
-                    authIcon.className = "fa-solid fa-lock";
-                    authText.innerText = "LOGIN";
-                }
-            }
-
-            // --- TEAM DRAFT LOGIC ---
-            function confirmShuffle() {
-                if (confirm("Shuffle players into teams?")) shuffleTeams();
-            }
-
-            function confirmReset() {
-                if (confirm("Reset draft? All players will be unassigned."))
-                    resetTeams();
-            }
-
+            // --- TEAM DRAFT DISPLAY LOGIC (READ-ONLY) ---
             async function loadData() {
                 const { data: players, error } = await _supabase
                     .from("pemain")
@@ -398,64 +243,6 @@
                     }
                 });
                 grid.innerHTML = html;
-            }
-
-            async function shuffleTeams() {
-                const numTeams = parseInt(
-                    document.getElementById("numTeams").value,
-                );
-                const { data: players } = await _supabase
-                    .from("pemain")
-                    .select("*")
-                    .neq("posisi", "SPECTATOR (FAN)");
-
-                if (!players || players.length === 0) {
-                    alert("No players found to shuffle.");
-                    return;
-                }
-
-                const grouped = {};
-                players.forEach((p) => {
-                    if (!grouped[p.posisi]) grouped[p.posisi] = [];
-                    grouped[p.posisi].push(p);
-                });
-
-                let currentIdx = 0;
-                let updates = [];
-
-                POS_ORDER.forEach((pos) => {
-                    if (grouped[pos]) {
-                        const shuffledPos = grouped[pos].sort(
-                            () => Math.random() - 0.5,
-                        );
-                        shuffledPos.forEach((p) => {
-                            updates.push(
-                                _supabase
-                                    .from("pemain")
-                                    .update({ tim: TEAM_NAMES[currentIdx] })
-                                    .eq("id", p.id),
-                            );
-                            currentIdx = (currentIdx + 1) % numTeams;
-                        });
-                    }
-                });
-
-                await Promise.all(updates);
-                loadData();
-            }
-
-            async function resetTeams() {
-                const { data: players } = await _supabase
-                    .from("pemain")
-                    .select("id");
-                const resets = players.map((p) =>
-                    _supabase
-                        .from("pemain")
-                        .update({ tim: null })
-                        .eq("id", p.id),
-                );
-                await Promise.all(resets);
-                loadData();
             }
 
             window.onload = loadData;
