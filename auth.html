@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Auth - KickOff Planner</title>
+        <link rel="icon" type="image/png" href="aaa.png" />
+        <link rel="stylesheet" href="auth.css" />
+    </head>
+    <body>
+        <main class="auth-shell">
+            <section class="auth-card">
+                <div class="brand">KickOff Planner</div>
+                <h1 id="authTitle">Login</h1>
+                <p class="subtitle" id="authSubtitle">Masuk untuk menggunakan komunitas Anda.</p>
+
+                <div class="tabs" id="authTabs">
+                    <button type="button" class="active" data-mode="login">LOGIN</button>
+                    <button type="button" data-mode="signup">DAFTAR</button>
+                </div>
+
+                <form id="authForm">
+                    <div id="nameField" hidden>
+                        <label for="fullName">NAMA LENGKAP</label>
+                        <input id="fullName" type="text" autocomplete="name" />
+                    </div>
+                    <label for="email">EMAIL</label>
+                    <input id="email" type="email" autocomplete="email" required />
+                    <label id="passwordLabel" for="password">PASSWORD</label>
+                    <input id="password" type="password" minlength="6" autocomplete="current-password" required />
+                    <div id="confirmField" hidden>
+                        <label for="confirmPassword">KONFIRMASI PASSWORD</label>
+                        <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" />
+                    </div>
+                    <button class="primary" id="submitButton" type="submit">MASUK</button>
+                    <button class="link-button" id="forgotButton" type="button">LUPA PASSWORD?</button>
+                    <button class="link-button" id="resendButton" type="button" hidden>KIRIM ULANG EMAIL VERIFIKASI</button>
+                </form>
+                <p class="form-message" id="authMessage"></p>
+                <div class="auth-footer"><a href="index.html">Kembali ke beranda</a></div>
+            </section>
+        </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-client.js"></script>
+        <script src="auth-page.js"></script>
+    </body>
+</html>

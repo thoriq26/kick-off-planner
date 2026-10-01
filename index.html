@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="id">
     <head>
-        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>KickOff Planner</title>
@@ -19,6 +19,16 @@
                 overflow-x: hidden;
             }
 
+            img,
+            svg,
+            video {
+                max-width: 100%;
+            }
+
+            svg {
+                flex: 0 0 auto;
+            }
+
             /* --- CONTAINER UTAMA --- */
             .container-utama {
                 background-image:
@@ -29,6 +39,7 @@
                 background-attachment: fixed;
                 width: 100%;
                 min-height: 100vh;
+                min-height: 100svh;
                 display: flex;
                 flex-direction: column;
             }
@@ -151,6 +162,55 @@
                 text-align: center;
             }
 
+            .account-bar {
+                position: fixed;
+                top: 16px;
+                right: 20px;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 8px;
+                max-width: min(620px, calc(100vw - 40px));
+                padding: 8px 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                background: rgba(15, 36, 24, 0.88);
+                color: white;
+                font-size: 0.75rem;
+            }
+
+            .account-email {
+                max-width: 190px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                opacity: 0.85;
+            }
+
+            .account-link,
+            .community-select {
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                border-radius: 7px;
+                padding: 7px 9px;
+                color: white;
+                background: rgba(0, 0, 0, 0.3);
+                font: inherit;
+                font-weight: 700;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .account-button:hover,
+            .account-link:hover {
+                background: var(--green, #27ae60);
+            }
+
+            .community-select {
+                max-width: 170px;
+            }
+
             .h1-footer {
                 font-size: 14px;
                 font-weight: 300;
@@ -159,43 +219,104 @@
 
             /* --- MEDIA QUERIES --- */
             @media screen and (max-width: 768px) {
-                .hero-wrapper {
-                    padding: 25px;
+                .account-bar {
+                    position: relative;
+                    top: auto;
+                    right: auto;
+                    width: calc(100% - 24px);
+                    max-width: 100%;
+                    margin: 12px auto 0;
+                    justify-content: center;
                 }
+
+                .hero-wrapper {
+                    width: 100%;
+                    padding: 28px 18px 8px;
+                }
+
+                .container-utama {
+                    background-attachment: scroll;
+                }
+
+                .isi-konten {
+                    padding: 18px 12px 28px;
+                }
+
+                .button-menu {
+                    gap: 12px;
+                }
+
                 .button {
-                    min-width: 180px;
-                    flex: 1 1 calc(45% - 20px); /* 2 tombol per baris di tablet */
+                    min-width: 0;
+                    flex: 1 1 calc(50% - 6px);
                 }
             }
 
             @media screen and (max-width: 480px) {
                 .hero-wrapper {
                     align-items: center;
-                    padding: 20px;
+                    padding: 24px 12px 6px;
                     max-width: 100%;
                 }
 
                 .hero {
+                    width: 100%;
                     align-items: center;
+                    padding: 14px 16px;
                     text-align: center;
                 }
 
                 .hero h1 {
-                    font-size: 1.6rem;
+                    font-size: clamp(1.45rem, 8vw, 1.8rem);
                 }
 
                 .hero-desc {
+                    width: 100%;
+                    margin-top: 14px;
                     text-align: center;
                     max-width: 100%;
                 }
 
+                .button-menu {
+                    width: 100%;
+                    gap: 10px;
+                }
+
                 .button {
+                    width: 100%;
+                    min-height: 54px;
+                    height: auto;
                     flex: 1 1 100%;
+                    padding: 10px 14px;
+                    font-size: 0.9rem;
+                }
+
+                .footer {
+                    padding: 14px 10px 20px;
+                }
+            }
+
+            @media screen and (max-width: 380px) {
+                .account-bar {
+                    width: calc(100% - 16px);
+                    gap: 5px;
+                    padding: 7px;
+                    font-size: 0.68rem;
+                }
+
+                .account-email,
+                .community-select {
+                    max-width: 120px;
+                }
+
+                .hero-desc {
+                    font-size: 0.8rem;
                 }
             }
         </style>
     </head>
     <body>
+        <div class="account-bar" id="accountBar"></div>
         <div class="container-utama">
             <div class="hero-wrapper">
                 <header class="hero">
@@ -203,10 +324,10 @@
                     <p>United by the Beautiful Game</p>
                 </header>
                 <p class="hero-desc">
-                    Atur jadwal main bola bareng tanpa ribet — konfirmasi
-                    kehadiran, undi pembagian tim secara acak, pantau info
-                    match day, dan lihat rekap pertandingan sebelumnya, semua
-                    dalam satu platform.
+                    Satu platform terpisah untuk setiap komunitas. Kelola jadwal,
+                    pembayaran, konfirmasi pemain, undi tim, dan riwayat pertandingan
+                    dengan akun yang aman. Masuk untuk membuat komunitas atau gabung
+                    menggunakan kode undangan.
                 </p>
             </div>
 
@@ -224,8 +345,20 @@
             </main>
 
             <footer class="footer">
-                <h1 class="h1-footer">KickOff Planner © 2026 by Thoriq.</h1>
+                <p class="h1-footer">KickOff Planner © 2026 by Thoriq.</p>
             </footer>
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-client.js"></script>
+        <script src="auth-guard.js"></script>
+        <script>
+            window.KOP.auth
+                .renderAccountBar()
+                .catch(() => {
+                    const bar = document.getElementById("accountBar");
+                    bar.innerHTML = '<a class="account-link" href="auth.html">LOGIN / REGISTER</a>';
+                });
+        </script>
     </body>
 </html>

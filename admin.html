@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="id">
     <head>
-        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0"
         />
         <title>Admin Panel - KickOff Planner</title>
 
@@ -19,7 +19,6 @@
         />
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 
         <style>
             /* ============ RESET & DASAR (sama seperti halaman lain) ============ */
@@ -36,6 +35,7 @@
             body {
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 min-height: 100vh;
+                min-height: 100svh;
                 width: 100%;
                 background-image:
                     linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
@@ -48,7 +48,8 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding: 20px;
+                padding: clamp(12px, 2vw, 20px);
+                overflow-x: hidden;
             }
 
             /* ============ NAVBAR ============ */
@@ -56,20 +57,22 @@
                 background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
                 width: 100%;
-                max-width: 1100px;
+                max-width: 1240px;
                 border-radius: 12px;
                 margin-bottom: 20px;
-                height: 70px;
+                min-height: 70px;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
+                gap: 18px;
                 position: relative;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                padding: 0 20px;
+                padding: 12px 20px;
             }
             .nav-title {
                 color: white;
+                white-space: nowrap;
                 font-weight: 900;
                 letter-spacing: 2px;
                 font-size: 1.3rem;
@@ -80,11 +83,22 @@
                 margin-right: 8px;
             }
             .nav-actions {
-                position: absolute;
-                right: 20px;
                 display: none;
                 align-items: center;
+                justify-content: flex-end;
+                flex-wrap: wrap;
                 gap: 10px;
+                margin-left: auto;
+            }
+            .nav-community-select {
+                max-width: 180px;
+                border: 1px solid rgba(255, 255, 255, 0.35);
+                border-radius: 7px;
+                padding: 7px 9px;
+                color: white;
+                background: rgba(0, 0, 0, 0.25);
+                font: inherit;
+                font-size: 0.8rem;
             }
             .nav-btn {
                 background: transparent;
@@ -175,7 +189,7 @@
             .admin-shell {
                 display: none;
                 width: 100%;
-                max-width: 1100px;
+                max-width: 1240px;
                 gap: 20px;
             }
 
@@ -267,6 +281,43 @@
             .tutorial-box li {
                 margin-bottom: 4px;
             }
+            .admin-guide {
+                margin-bottom: 20px;
+                border: 1px solid #bfe8cb;
+                border-radius: 12px;
+                background: rgba(238, 249, 241, 0.96);
+                color: #205c37;
+                overflow: hidden;
+            }
+            .admin-guide summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 15px 18px;
+                cursor: pointer;
+                list-style: none;
+                font-weight: 800;
+            }
+            .admin-guide summary::-webkit-details-marker {
+                display: none;
+            }
+            .admin-guide summary::after {
+                content: "＋";
+                float: none;
+                flex: 0 0 auto;
+                font-size: 1.1rem;
+            }
+            .admin-guide[open] summary::after {
+                content: "−";
+            }
+            .admin-guide ol,
+            .admin-guide ul {
+                margin: 0;
+                padding: 0 36px 16px;
+                line-height: 1.6;
+                font-size: 0.88rem;
+            }
             .tutorial-box b {
                 color: #14532d;
             }
@@ -278,6 +329,7 @@
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
                 width: 100%;
+                min-width: 0;
                 margin-bottom: 20px;
                 box-sizing: border-box;
             }
@@ -291,6 +343,17 @@
             }
             .card h2 i {
                 color: #27ae60;
+                flex: 0 0 auto;
+            }
+
+            img,
+            svg,
+            video {
+                max-width: 100%;
+            }
+
+            svg {
+                flex: 0 0 auto;
             }
 
             .input-group {
@@ -308,6 +371,7 @@
             }
             input[type="text"],
             input[type="password"],
+            input[type="number"],
             select {
                 width: 100%;
                 padding: 12px;
@@ -318,6 +382,7 @@
             }
             input[type="text"]:focus,
             input[type="password"]:focus,
+            input[type="number"]:focus,
             select:focus {
                 outline: none;
                 border-color: #3498db;
@@ -384,8 +449,10 @@
             /* ============ TABEL ============ */
             .table-header {
                 display: flex;
+                flex-wrap: wrap;
                 justify-content: space-between;
                 align-items: center;
+                gap: 8px;
                 margin-bottom: 12px;
                 color: #2c3e50;
                 font-weight: bold;
@@ -404,8 +471,15 @@
             }
             table {
                 width: 100%;
+                min-width: 560px;
                 border-collapse: collapse;
                 margin-top: 5px;
+            }
+            #paymentProofTableBody td:nth-child(2) {
+                max-width: 220px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             th {
                 background-color: #34495e;
@@ -420,6 +494,7 @@
                 border-bottom: 1px solid #eee;
                 color: #2c3e50;
                 font-size: 0.92rem;
+                overflow-wrap: anywhere;
             }
             tr:nth-child(even) {
                 background-color: #f9f9f9;
@@ -447,8 +522,190 @@
             .btn-delete {
                 background: #e74c3c;
             }
+            .btn-status-edit {
+                background: #2980b9;
+            }
             .btn-table:hover {
                 opacity: 0.8;
+            }
+            .btn-table:disabled {
+                opacity: 0.35;
+                cursor: not-allowed;
+            }
+            .btn-copy {
+                width: auto;
+                height: auto;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 16px;
+                border: 0;
+                border-radius: 8px;
+                color: white;
+                background: #27ae60;
+                font: inherit;
+                font-size: 0.8rem;
+                font-weight: 800;
+                cursor: pointer;
+            }
+            .btn-copy:hover {
+                background: #219150;
+            }
+            .invite-share-preview {
+                margin: 14px 0 0;
+                padding: 11px 12px;
+                border: 1px solid #bfe8cb;
+                border-radius: 9px;
+                color: #205c37;
+                background: #eef9f1;
+                font-size: 0.82rem;
+                line-height: 1.5;
+                overflow-wrap: anywhere;
+            }
+            .invite-share-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 14px 0 4px;
+            }
+            .share-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                min-height: 38px;
+                padding: 9px 12px;
+                border: 0;
+                border-radius: 8px;
+                color: white;
+                font: inherit;
+                font-size: 0.78rem;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .share-button:hover {
+                filter: brightness(0.94);
+                transform: translateY(-1px);
+            }
+            .share-whatsapp {
+                background: #25d366;
+            }
+            .share-telegram {
+                background: #229ed9;
+            }
+            .share-other {
+                background: #2980b9;
+            }
+            .share-copy {
+                background: #64748b;
+            }
+            .proof-actions {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                min-width: 0;
+            }
+            .proof-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 10px;
+                border-radius: 999px;
+                font-size: 0.75rem;
+                font-weight: 800;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .proof-status::before {
+                content: "";
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: currentColor;
+            }
+            .proof-status-pending {
+                color: #92400e;
+                background: #fef3c7;
+            }
+            .proof-status-verified {
+                color: #166534;
+                background: #dcfce7;
+            }
+            .proof-status-rejected {
+                color: #991b1b;
+                background: #fee2e2;
+            }
+            .proof-status-unknown {
+                color: #475569;
+                background: #e2e8f0;
+            }
+            .proof-row-verified td {
+                background-color: #f0fdf4;
+            }
+            .proof-row-rejected td {
+                background-color: #fff1f2;
+            }
+            .proof-status-legend {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px;
+                margin: 0 0 16px;
+                color: #64748b;
+                font-size: 0.78rem;
+            }
+            .status-choice-list {
+                display: grid;
+                gap: 10px;
+                margin: 16px 0 20px;
+            }
+            .status-choice {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                padding: 13px 14px;
+                border: 2px solid transparent;
+                border-radius: 10px;
+                font: inherit;
+                font-size: 0.88rem;
+                font-weight: 800;
+                text-align: left;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .status-choice i {
+                width: 18px;
+                text-align: center;
+            }
+            .status-choice.verified {
+                color: #166534;
+                background: #dcfce7;
+            }
+            .status-choice.rejected {
+                color: #991b1b;
+                background: #fee2e2;
+            }
+            .status-choice:hover,
+            .status-choice:focus-visible {
+                border-color: currentColor;
+                transform: translateY(-1px);
+                outline: none;
+            }
+            .status-choice.current {
+                box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2);
+            }
+            .status-modal-actions {
+                display: flex;
+                justify-content: flex-end;
+            }
+            .status-modal-actions .btn-action {
+                flex: 0 0 auto;
+                min-width: 120px;
+            }
+            .status-modal-box h3 i {
+                color: #2980b9;
             }
             .empty-state {
                 text-align: center;
@@ -539,7 +796,7 @@
                 display: flex;
                 align-items: center;
                 gap: 10px;
-                margin-bottom: 20px;
+                margin-bottom: 0;
                 background: #f8fafc;
                 border: 1px solid #e2e8f0;
                 padding: 12px 15px;
@@ -570,6 +827,7 @@
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
+                overflow-y: auto;
             }
             .modal-overlay.show {
                 display: flex;
@@ -612,28 +870,255 @@
                 color: #27ae60;
             }
 
+            @media (max-width: 1050px) {
+                .navbar {
+                    flex-wrap: wrap;
+                }
+
+                .nav-actions {
+                    width: 100%;
+                    margin-left: 0;
+                    justify-content: flex-end;
+                }
+            }
+
+            @media (max-height: 480px) {
+                .modal-overlay {
+                    align-items: flex-start;
+                }
+
+                .modal-box {
+                    margin: auto 0;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    padding: 18px;
+                }
+            }
+
+            @media (pointer: coarse) {
+                .btn-table {
+                    width: 44px;
+                    height: 44px;
+                }
+
+                .nav-btn,
+                .btn-action,
+                .tab-btn {
+                    min-height: 44px;
+                }
+            }
+
+            @media (max-width: 1000px) {
+                .admin-shell {
+                    gap: 14px;
+                }
+
+                .tabs-bar {
+                    width: 190px;
+                }
+
+                .card {
+                    padding: 20px;
+                }
+            }
+
             @media (max-width: 800px) {
+                .navbar {
+                    align-items: stretch;
+                    flex-direction: column;
+                    gap: 10px;
+                    padding: 12px 14px;
+                }
+
+                .nav-title {
+                    font-size: 1.1rem;
+                    text-align: center;
+                }
+
+                .nav-actions {
+                    width: 100%;
+                    margin-left: 0;
+                    justify-content: center;
+                }
+
+                .nav-community-select {
+                    flex: 1 1 180px;
+                    max-width: none;
+                }
+
                 .admin-shell {
                     flex-direction: column;
                 }
+
                 .tabs-bar {
                     flex-direction: row;
                     width: 100%;
+                    padding-bottom: 4px;
                     overflow-x: auto;
+                    scrollbar-width: thin;
                 }
+
                 .tab-btn {
+                    flex: 0 0 auto;
                     white-space: nowrap;
                 }
-            }
-            @media (max-width: 500px) {
-                .btn-group {
-                    flex-direction: column;
+
+                .content-area {
+                    width: 100%;
                 }
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    padding: 10px;
+                    background-attachment: scroll;
+                }
+
+                .navbar {
+                    border-radius: 10px;
+                    margin-bottom: 12px;
+                }
+
+                .nav-actions {
+                    gap: 6px;
+                }
+
+                .nav-btn {
+                    flex: 1 1 auto;
+                    justify-content: center;
+                    padding: 8px 10px;
+                    font-size: 0.76rem;
+                }
+
+                .tabs-bar {
+                    gap: 6px;
+                }
+
+                .tab-btn {
+                    padding: 11px 12px;
+                    font-size: 0.78rem;
+                }
+
+                .tab-btn i {
+                    width: auto;
+                    font-size: 0.85rem;
+                }
+
+                .card {
+                    padding: 16px;
+                    border-radius: 10px;
+                    margin-bottom: 14px;
+                }
+
+                .card h2 {
+                    font-size: 1.05rem;
+                    margin-bottom: 14px;
+                }
+
+                .admin-guide summary,
+                .tutorial-box {
+                    padding: 12px 14px;
+                }
+
+                .admin-guide ol,
+                .tutorial-box ol {
+                    padding-left: 28px;
+                }
+
+                .input-group {
+                    gap: 10px;
+                    margin-bottom: 14px;
+                }
+
+                .btn-action {
+                    min-width: 0;
+                    width: 100%;
+                    padding: 11px 10px;
+                    font-size: 0.82rem;
+                }
+
+                .table-container {
+                    width: 100%;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                table {
+                    min-width: 560px;
+                }
+
+                th,
+                td {
+                    padding: 10px 9px;
+                }
+
+                .proof-actions {
+                    min-width: 0;
+                }
+
+                .proof-status-legend {
+                    margin-bottom: 12px;
+                }
+
+                .status-line {
+                    align-items: flex-start;
+                    flex-wrap: wrap;
+                    padding: 11px 12px;
+                    font-size: 0.8rem;
+                }
+
+                .status-choice-list {
+                    gap: 8px;
+                }
+
+                .status-choice {
+                    padding: 11px 12px;
+                    font-size: 0.82rem;
+                }
+
+                .modal-box {
+                    padding: 22px 18px;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .tab-panel,
+                .tab-btn,
+                .btn-action,
+                .btn-table {
+                    animation: none;
+                    transition: none;
+                }
+            }
+
+            @media (max-width: 420px) {
                 .nav-title span {
                     display: none;
                 }
+
                 .nav-btn span {
                     display: none;
+                }
+
+                .nav-actions {
+                    flex-wrap: wrap;
+                }
+
+                .nav-community-select {
+                    flex-basis: 100%;
+                }
+
+                .btn-group {
+                    flex-direction: column;
+                }
+
+                .tab-btn {
+                    padding: 10px;
+                    font-size: 0.74rem;
+                }
+
+                .card {
+                    padding: 13px;
                 }
             }
         </style>
@@ -645,74 +1130,19 @@
                 ><span>ADMIN PANEL</span></span
             >
             <div class="nav-actions" id="navActions">
+                <select class="nav-community-select" id="adminCommunitySelect" aria-label="Pilih komunitas"></select>
                 <button
                     class="nav-btn key-btn"
-                    onclick="openChangePassModal()"
+                    aria-label="Reset password"
+                    onclick="window.location.href='auth.html?mode=reset&next=admin.html'"
                 >
                     <i class="fa-solid fa-key"></i>
-                    <span>GANTI PASSWORD</span>
+                    <span>RESET PASSWORD</span>
                 </button>
-                <button class="nav-btn" onclick="doLogout()">
+                <button class="nav-btn" aria-label="Logout" onclick="doLogout()">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>LOGOUT</span>
                 </button>
-            </div>
-        </div>
-
-        <!-- ============ LOGIN SCREEN ============ -->
-        <div class="login-wrapper" id="loginWrapper">
-            <div class="login-card">
-                <i class="fa-solid fa-shield-halved"></i>
-                <h2>Admin Login</h2>
-                <p>Masuk untuk mengelola KickOff Planner</p>
-                <input
-                    type="password"
-                    id="loginPass"
-                    placeholder="Masukkan password admin"
-                    onkeydown="if(event.key==='Enter') doLogin()"
-                />
-                <button onclick="doLogin()">
-                    <i class="fa-solid fa-right-to-bracket"></i> MASUK
-                </button>
-                <p id="loginError">Password salah, coba lagi.</p>
-            </div>
-        </div>
-
-        <!-- ============ MODAL GANTI PASSWORD ============ -->
-        <div class="modal-overlay" id="changePassModal">
-            <div class="modal-box">
-                <h3><i class="fa-solid fa-key"></i> Ganti Password Admin</h3>
-                <p>Password baru akan langsung berlaku untuk login berikutnya.</p>
-                <form id="changePassForm">
-                    <div class="input-group" style="margin-bottom: 10px;">
-                        <div>
-                            <label>PASSWORD LAMA</label>
-                            <input type="password" id="oldPass" required />
-                        </div>
-                        <div>
-                            <label>PASSWORD BARU</label>
-                            <input type="password" id="newPass" minlength="4" required />
-                        </div>
-                        <div>
-                            <label>KONFIRMASI PASSWORD BARU</label>
-                            <input type="password" id="confirmPass" minlength="4" required />
-                        </div>
-                    </div>
-                    <p id="changePassError"></p>
-                    <p id="changePassSuccess"></p>
-                    <div class="btn-group">
-                        <button type="submit" class="btn-action btn-submit">
-                            <i class="fa-solid fa-floppy-disk"></i> SIMPAN
-                        </button>
-                        <button
-                            type="button"
-                            class="btn-action btn-cancel"
-                            onclick="closeChangePassModal()"
-                        >
-                            BATAL
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
 
@@ -728,9 +1158,23 @@
                 <button class="tab-btn" data-tab="matchday" onclick="switchTab('matchday')">
                     <i class="fa-solid fa-calendar-day"></i> Info Match Day
                 </button>
+                <button class="tab-btn" data-tab="invites" onclick="switchTab('invites')">
+                    <i class="fa-solid fa-link"></i> Undangan
+                </button>
             </div>
 
             <div class="content-area">
+                <details class="admin-guide" open>
+                    <summary><i class="fa-solid fa-book"></i> Panduan Owner / Admin</summary>
+                    <ol>
+                        <li>Pilih komunitas aktif pada selector di header. Semua data dan RLS mengikuti komunitas tersebut.</li>
+                        <li>Di <b>Data Pemain</b>, pilih member yang sudah memiliki akun, tentukan posisi, lalu tambahkan ke daftar.</li>
+                        <li>Di <b>Info Match Day</b>, isi detail pertandingan, nominal admission fee, pembayaran, dan paste seluruh kode iframe Google Maps. Klik <b>PUBLISH MATCH</b> agar member dapat melihatnya.</li>
+                        <li>Setelah member mengunggah bukti transfer, buka daftar <b>Bukti Transfer Masuk</b> untuk melihat, menyetujui, atau menolak bukti. Setelah keputusan dibuat, gunakan tombol <b>EDIT</b> jika status perlu diperbaiki.</li>
+                        <li>Gunakan <b>RESET</b> untuk memulai info match baru atau <b>ARCHIVE</b> untuk menyimpan riwayat. Keduanya tidak boleh digunakan hanya untuk mencoba tampilan.</li>
+                    </ol>
+                </details>
+
                 <!-- ================= TAB 1: DATA PEMAIN ================= -->
                 <div class="tab-panel active" id="panel-players">
                     <div class="tutorial-box">
@@ -738,7 +1182,7 @@
                             <i class="fa-solid fa-circle-info"></i> Cara Pakai - Data Pemain
                         </div>
                         <ol>
-                            <li><b>Tambah pemain</b>: isi nama & posisi lalu klik "TAMBAH PEMAIN".</li>
+                            <li><b>Tambah pemain</b>: pilih member yang sudah memiliki akun, pilih posisi, lalu klik "TAMBAH PEMAIN".</li>
                             <li><b>Edit</b>: klik ikon pensil hijau pada baris pemain, ubah data, klik "SIMPAN PERUBAHAN".</li>
                             <li><b>Hapus satu pemain</b>: klik ikon tong sampah merah pada baris yang dituju.</li>
                             <li><b>Hapus semua pemain</b>: klik "RESET SEMUA" — dipakai setelah pertandingan selesai / mau mulai pendaftaran baru. Aksi ini tidak bisa dibatalkan.</li>
@@ -751,8 +1195,10 @@
                         <form id="playerForm">
                             <div class="input-group">
                                 <div>
-                                    <label>NAMA PEMAIN</label>
-                                    <input type="text" id="nama" placeholder="Masukkan nama..." required />
+                                    <label>MEMBER</label>
+                                    <select id="playerMember" required>
+                                        <option value="">Memuat member...</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label>POSISI</label>
@@ -852,7 +1298,7 @@
                             <li>Pilih jumlah tim (2/3/4) lalu klik <b>SHUFFLE</b> — pemain akan diacak merata berdasarkan posisi.</li>
                             <li>Pemain berstatus <b>SPECTATOR (FAN)</b> otomatis tidak diikutkan undian.</li>
                             <li>Klik <b>RESET</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
-                            <li>Hasil undian ini yang akan tampil ke publik di halaman Team Draft.</li>
+                            <li>Hasil undian ini akan tampil kepada member komunitas di halaman Team Draft.</li>
                         </ol>
                     </div>
 
@@ -887,7 +1333,7 @@
                             <i class="fa-solid fa-circle-info"></i> Cara Pakai - Info Match Day
                         </div>
                         <ol>
-                            <li>Isi semua kolom (nama event, lapangan, tanggal & jam, warna jersey, biaya, pembayaran, link lokasi).</li>
+                            <li>Isi nama event, lapangan, tanggal & jam, warna jersey, admission fee, informasi pembayaran, dan lokasi.</li>
                             <li>
                                 Untuk lokasi, <b>wajib pakai kode embed iframe dari Google Maps</b> — <b>bukan</b> link share biasa (yang formatnya <code style="background:#dff5e4; padding:2px 6px; border-radius:4px; color:#14532d;">https://maps.app.goo.gl/xxxxxxx</code>).
                                 <br />
@@ -897,8 +1343,9 @@
                                 <div style="background:#0f2f1d; color:#a7f3d0; padding:10px 12px; border-radius:8px; margin-top:6px; font-family: monospace; font-size:0.78rem; overflow-x:auto; white-space:pre-wrap; word-break:break-all;">&lt;iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.888739754436!2d106.8511666!3d-6.4083312!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69ebfd405f8217%3A0x1bce6016d5cfbd0f!2sBSS%20Arena%20Depok!5e0!3m2!1sid!2sid!4v1790069563556!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"&gt;&lt;/iframe&gt;</div>
                                 Sistem otomatis mengambil bagian <b>src="..."</b> dari kode tersebut, jadi tidak masalah kalau kode iframe ditempel utuh seperti contoh di atas.
                             </li>
-                            <li>Klik <b>PUBLISH MATCH</b> agar info langsung tampil ke publik di halaman Match Day.</li>
-                            <li>Setelah pertandingan selesai, klik <b>ARCHIVE</b> untuk menyimpan data ke riwayat pertandingan (bisa dilihat publik di halaman Event History) dan otomatis mengosongkan daftar pemain — siap untuk event berikutnya.</li>
+                            <li>Setelah semua data benar, klik <b>PUBLISH MATCH</b>. Member kemudian dapat melihat info, melakukan registrasi, dan mengunggah bukti transfer.</li>
+                            <li>Periksa <b>Bukti Transfer Masuk</b> setelah ada-member yang mengunggah file. Klik ikon mata untuk melihat, centang untuk menyetujui, atau silang untuk menolak.</li>
+                            <li>Setelah pertandingan selesai, klik <b>ARCHIVE</b> untuk menyimpan data ke riwayat pertandingan (bisa dilihat member komunitas di halaman Event History) dan otomatis mengosongkan daftar pemain — siap untuk event berikutnya.</li>
                             <li>Klik <b>RESET</b> jika hanya ingin mengosongkan info tanpa menyimpan ke riwayat.</li>
                         </ol>
                     </div>
@@ -958,142 +1405,163 @@
                             <span id="statusBadge" class="badge">Memuat...</span>
                         </div>
                     </div>
+
+                    <div class="card" id="adminPaymentProofCard">
+                        <h2><i class="fa-solid fa-receipt"></i> Bukti Transfer Masuk</h2>
+                        <p style="color:#64748b; font-size:0.85rem; margin:0 0 14px;">Owner/admin dapat membuka file bukti private milik member pada match ini.</p>
+                        <div class="proof-status-legend" aria-label="Keterangan status bukti">
+                            <span class="proof-status proof-status-pending">Menunggu</span>
+                            <span class="proof-status proof-status-verified">Terverifikasi</span>
+                            <span class="proof-status proof-status-rejected">Ditolak</span>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>MEMBER</th><th>FILE</th><th>STATUS</th><th>AKSI</th></tr></thead>
+                                <tbody id="paymentProofTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 4: UNDANGAN ================= -->
+                <div class="tab-panel" id="panel-invites">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title"><i class="fa-solid fa-circle-info"></i> Cara Pakai - Undangan</div>
+                        <ol>
+                            <li>Buat kode undangan untuk komunitas <b id="inviteCommunityName">ini</b>.</li>
+                            <li>Kirim tautan undangan menggunakan tombol WhatsApp, Telegram, atau Bagikan Lainnya. Kode akan otomatis terisi di halaman onboarding.</li>
+                            <li>Kode dapat kedaluwarsa atau dibatalkan dari daftar undangan.</li>
+                        </ol>
+                    </div>
+                    <div class="card">
+                        <h2><i class="fa-solid fa-link"></i> Buat Link Undangan</h2>
+                        <div class="input-group">
+                            <div>
+                                <label>ROLE MEMBER</label>
+                                <select id="inviteRole">
+                                    <option value="member">MEMBER</option>
+                                    <option value="admin">ADMIN</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>MASA BERLAKU (HARI)</label>
+                                <input id="inviteExpiry" type="number" min="1" max="30" value="7" />
+                            </div>
+                            <div>
+                                <label>MAKSIMAL PENGGUNAAN</label>
+                                <input id="inviteUses" type="number" min="1" max="100" value="1" />
+                            </div>
+                        </div>
+                        <button class="btn-action btn-save" type="button" onclick="createInvite()">
+                            <i class="fa-solid fa-copy"></i> BUAT UNDANGAN
+                        </button>
+                        <div id="inviteResult" style="display:none; margin-top:16px; overflow-wrap:anywhere; word-break:normal;"></div>
+                    </div>
+                    <div class="card">
+                        <h2><i class="fa-solid fa-clock"></i> Undangan Aktif</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>ROLE</th><th>KADALUARSA</th><th>TERPAKAI</th><th>AKSI</th></tr></thead>
+                                <tbody id="inviteTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <script>
-            /* ==================================================
-               KONFIGURASI SUPABASE (sama dengan halaman lain)
-               ================================================== */
-            const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
-            const SB_KEY =
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
-            const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        <div
+            class="modal-overlay"
+            id="paymentProofStatusModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="paymentProofStatusTitle"
+        >
+            <div class="modal-box status-modal-box">
+                <h3 id="paymentProofStatusTitle">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Status Bukti
+                </h3>
+                <p id="paymentProofStatusDescription">
+                    Pilih status yang benar. Status lama akan diganti setelah konfirmasi.
+                </p>
+                <div class="status-choice-list">
+                    <button type="button" class="status-choice verified" data-proof-status="verified">
+                        <i class="fa-solid fa-circle-check"></i> TERVERIFIKASI
+                    </button>
+                    <button type="button" class="status-choice rejected" data-proof-status="rejected">
+                        <i class="fa-solid fa-circle-xmark"></i> DITOLAK
+                    </button>
+                </div>
+                <div class="status-modal-actions">
+                    <button type="button" class="btn-action btn-cancel" id="paymentProofStatusCancel">
+                        BATAL
+                    </button>
+                </div>
+            </div>
+        </div>
 
-            const DEFAULT_PASSWORD = "admin"; // dipakai HANYA saat admin_settings masih kosong
+        <script src="supabase-client.js"></script>
+        <script src="auth-guard.js"></script>
+        <script>
+            const _supabase = window.KOP.supabase;
+            let context;
+            let currentMatch;
+
             const POS_ORDER = ["GK","CB","LB","RB","LWB","RWB","DMF","CMF","AMF","LMF","RMF","LWF","RWF","SS","CF"];
             const TEAM_NAMES = ["Red", "Blue", "Green", "Purple"];
+            const PROOF_STATUS_META = {
+                submitted: { label: "Menunggu", className: "proof-status-pending" },
+                verified: { label: "Terverifikasi", className: "proof-status-verified" },
+                rejected: { label: "Ditolak", className: "proof-status-rejected" },
+            };
+            let proofStatusEditor = { proofId: null, currentStatus: null };
 
             /* ==================================================
-               PASSWORD (tersimpan ter-hash di tabel admin_settings)
+               AUTH / COMMUNITY CONTEXT
                ================================================== */
-            async function getPasswordHash() {
-                const { data } = await _supabase
-                    .from("admin_settings")
-                    .select("password_hash")
-                    .eq("id", 1)
-                    .maybeSingle();
-
-                if (data?.password_hash) return data.password_hash;
-
-                // Belum ada baris sama sekali -> buat dari DEFAULT_PASSWORD
-                const hash = dcodeIO.bcrypt.hashSync(DEFAULT_PASSWORD, 10);
-                await _supabase
-                    .from("admin_settings")
-                    .upsert({ id: 1, password_hash: hash });
-                return hash;
-            }
-
-            /* ==================================================
-               LOGIN / LOGOUT
-               ================================================== */
-            async function doLogin() {
-                const pass = document.getElementById("loginPass").value;
-                const err = document.getElementById("loginError");
-                err.style.display = "none";
-
-                const hash = await getPasswordHash();
-                if (dcodeIO.bcrypt.compareSync(pass, hash)) {
-                    sessionStorage.setItem("kop_admin_auth", "true");
-                    showAdminShell();
-                } else {
-                    err.style.display = "block";
-                }
-            }
-
             function doLogout() {
                 if (confirm("Keluar dari Admin Panel?")) {
-                    sessionStorage.removeItem("kop_admin_auth");
-                    location.reload();
+                    window.KOP.auth.signOut();
                 }
+            }
+
+            function renderAdminCommunitySelector() {
+                const select = document.getElementById("adminCommunitySelect");
+                select.replaceChildren();
+                context.communities
+                    .filter((community) => ["owner", "admin"].includes(community.role))
+                    .forEach((community) => {
+                        const option = document.createElement("option");
+                        option.value = community.id;
+                        option.textContent = community.name;
+                        option.selected = community.id === context.community.id;
+                        select.appendChild(option);
+                    });
+                select.addEventListener("change", async () => {
+                    await window.KOP.auth.setSelectedCommunity(select.value);
+                    window.location.reload();
+                });
             }
 
             function showAdminShell() {
-                document.getElementById("loginWrapper").style.display = "none";
                 document.getElementById("adminShell").style.display = "flex";
                 document.getElementById("navActions").style.display = "flex";
+                renderAdminCommunitySelector();
                 initFlatpickr();
+                loadMembers();
                 muatPemain();
                 loadDraft();
                 loadMatchInfo();
+                loadInvites();
             }
 
-            window.onload = function () {
-                if (sessionStorage.getItem("kop_admin_auth") === "true") {
-                    showAdminShell();
-                }
+            window.onload = async function () {
+                context = await window.KOP.auth.getContext({
+                    requireCommunity: true,
+                    roles: ["owner", "admin"],
+                });
+                if (context) showAdminShell();
             };
-
-            /* ==================================================
-               MODAL GANTI PASSWORD
-               ================================================== */
-            function openChangePassModal() {
-                document.getElementById("changePassModal").classList.add("show");
-                document.getElementById("changePassError").style.display = "none";
-                document.getElementById("changePassSuccess").style.display = "none";
-                document.getElementById("changePassForm").reset();
-            }
-
-            function closeChangePassModal() {
-                document.getElementById("changePassModal").classList.remove("show");
-            }
-
-            document.getElementById("changePassForm").addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const oldPass = document.getElementById("oldPass").value;
-                const newPass = document.getElementById("newPass").value;
-                const confirmPass = document.getElementById("confirmPass").value;
-                const errEl = document.getElementById("changePassError");
-                const okEl = document.getElementById("changePassSuccess");
-                errEl.style.display = "none";
-                okEl.style.display = "none";
-
-                const currentHash = await getPasswordHash();
-                if (!dcodeIO.bcrypt.compareSync(oldPass, currentHash)) {
-                    errEl.innerText = "Password lama salah.";
-                    errEl.style.display = "block";
-                    return;
-                }
-
-                if (newPass !== confirmPass) {
-                    errEl.innerText = "Konfirmasi password baru tidak cocok.";
-                    errEl.style.display = "block";
-                    return;
-                }
-
-                if (newPass.length < 4) {
-                    errEl.innerText = "Password baru minimal 4 karakter.";
-                    errEl.style.display = "block";
-                    return;
-                }
-
-                const newHash = dcodeIO.bcrypt.hashSync(newPass, 10);
-                const { error } = await _supabase
-                    .from("admin_settings")
-                    .update({ password_hash: newHash })
-                    .eq("id", 1);
-
-                if (error) {
-                    errEl.innerText = "Gagal menyimpan: " + error.message;
-                    errEl.style.display = "block";
-                    return;
-                }
-
-                okEl.innerText = "Password berhasil diubah!";
-                okEl.style.display = "block";
-                setTimeout(closeChangePassModal, 1200);
-            });
 
             /* ==================================================
                TAB SWITCHING
@@ -1111,11 +1579,39 @@
             const tableBody = document.getElementById("playerTableBody");
             const playerCount = document.getElementById("count");
             const editContainer = document.getElementById("editContainer");
+            const memberSelect = document.getElementById("playerMember");
+            const memberNames = new Map();
+
+            async function loadMembers() {
+                const { data: members, error: memberError } = await _supabase
+                    .from("community_members")
+                    .select("user_id, role")
+                    .eq("community_id", context.community.id);
+                if (memberError) return;
+
+                const userIds = members.map((member) => member.user_id);
+                const { data: profiles } = userIds.length
+                    ? await _supabase.from("profiles").select("id, full_name").in("id", userIds)
+                    : { data: [] };
+                const profileById = new Map((profiles || []).map((profile) => [profile.id, profile.full_name]));
+
+                memberSelect.replaceChildren();
+                memberNames.clear();
+                members.forEach((member) => {
+                    const name = profileById.get(member.user_id) || member.user_id;
+                    memberNames.set(member.user_id, name);
+                    const option = document.createElement("option");
+                    option.value = member.user_id;
+                    option.textContent = `${name} (${member.role})`;
+                    memberSelect.appendChild(option);
+                });
+            }
 
             async function muatPemain() {
                 const { data, error } = await _supabase
-                    .from("pemain")
+                    .from("community_players")
                     .select("*")
+                    .eq("community_id", context.community.id)
                     .order("created_at", { ascending: true });
                 if (error) return;
 
@@ -1131,14 +1627,22 @@
                     tableBody.innerHTML += `
                     <tr>
                         <td style="text-align:center;">${index + 1}</td>
-                        <td style="font-weight:600;">${p.nama}</td>
-                        <td><span style="color:#27ae60; font-weight:800; font-size:0.85rem;">${p.posisi}</span></td>
-                        <td>${p.tim ? p.tim : "-"}</td>
+                        <td style="font-weight:600;">${window.KOP.escapeHtml(p.name)}</td>
+                        <td><span style="color:#27ae60; font-weight:800; font-size:0.85rem;">${window.KOP.escapeHtml(p.position)}</span></td>
+                        <td>${window.KOP.escapeHtml(p.team || "-")}</td>
                         <td class="action-cell">
-                            <button class="btn-table btn-edit" onclick="showEditForm(${p.id}, '${p.nama.replace(/'/g, "\\'")}', '${p.posisi}')"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-table btn-delete" onclick="hapusSatuPemain(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-table btn-edit" data-edit-id="${p.id}" data-edit-name="${window.KOP.escapeHtml(p.name)}" data-edit-position="${window.KOP.escapeHtml(p.position)}"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-table btn-delete" data-delete-id="${p.id}"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
+                });
+                tableBody.querySelectorAll("[data-edit-id]").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        showEditForm(button.dataset.editId, button.dataset.editName, button.dataset.editPosition);
+                    });
+                });
+                tableBody.querySelectorAll("[data-delete-id]").forEach((button) => {
+                    button.addEventListener("click", () => hapusSatuPemain(button.dataset.deleteId));
                 });
             }
 
@@ -1157,9 +1661,18 @@
 
             document.getElementById("playerForm").addEventListener("submit", async (e) => {
                 e.preventDefault();
-                const nama = document.getElementById("nama").value;
-                const posisi = document.getElementById("posisi").value;
-                const { error } = await _supabase.from("pemain").insert([{ nama, posisi }]);
+                const userId = memberSelect.value;
+                const position = document.getElementById("posisi").value;
+                if (!userId) return;
+                const { error } = await _supabase.from("community_players").upsert(
+                    {
+                        community_id: context.community.id,
+                        user_id: userId,
+                        name: memberNames.get(userId) || "Player",
+                        position,
+                    },
+                    { onConflict: "community_id,user_id" },
+                );
                 if (!error) {
                     document.getElementById("playerForm").reset();
                     muatPemain();
@@ -1173,7 +1686,11 @@
                 const id = document.getElementById("editId").value;
                 const nama = document.getElementById("editNama").value;
                 const posisi = document.getElementById("editPosisi").value;
-                const { error } = await _supabase.from("pemain").update({ nama, posisi }).eq("id", id);
+                const { error } = await _supabase
+                    .from("community_players")
+                    .update({ name: nama, position: posisi })
+                    .eq("id", id)
+                    .eq("community_id", context.community.id);
                 if (!error) {
                     cancelEdit();
                     muatPemain();
@@ -1184,16 +1701,27 @@
 
             async function hapusSatuPemain(id) {
                 if (confirm("Hapus pemain ini?")) {
-                    await _supabase.from("pemain").delete().eq("id", id);
+                    await _supabase
+                        .from("community_players")
+                        .delete()
+                        .eq("id", id)
+                        .eq("community_id", context.community.id);
                     muatPemain();
                 }
             }
 
             async function resetDatabase() {
-                if (confirm("PERINGATAN: Hapus SEMUA data pemain? Aksi ini tidak bisa dibatalkan.")) {
-                    const { data } = await _supabase.from("pemain").select("id");
+                if (confirm("PERINGATAN: Hapus SEMUA data pemain komunitas ini? Aksi ini tidak bisa dibatalkan.")) {
+                    const { data } = await _supabase
+                        .from("community_players")
+                        .select("id")
+                        .eq("community_id", context.community.id);
                     if (data?.length > 0) {
-                        await _supabase.from("pemain").delete().in("id", data.map((p) => p.id));
+                        await _supabase
+                            .from("community_players")
+                            .delete()
+                            .in("id", data.map((p) => p.id))
+                            .eq("community_id", context.community.id);
                     }
                     muatPemain();
                 }
@@ -1204,13 +1732,14 @@
                ================================================== */
             async function loadDraft() {
                 const { data: players, error } = await _supabase
-                    .from("pemain")
+                    .from("community_players")
                     .select("*")
-                    .neq("posisi", "SPECTATOR (FAN)");
+                    .eq("community_id", context.community.id)
+                    .neq("position", "SPECTATOR (FAN)");
                 if (error) return;
 
                 const grid = document.getElementById("mainGrid");
-                const alreadyShuffled = players.some((p) => p.tim !== null && p.tim !== "");
+                const alreadyShuffled = players.some((p) => p.team !== null && p.team !== "");
 
                 if (!alreadyShuffled) {
                     grid.innerHTML = `
@@ -1226,12 +1755,12 @@
             function renderTeams(players) {
                 const grid = document.getElementById("mainGrid");
                 let html = "";
-                const activeTeamNames = TEAM_NAMES.filter((name) => players.some((p) => p.tim === name));
+                const activeTeamNames = TEAM_NAMES.filter((name) => players.some((p) => p.team === name));
 
                 activeTeamNames.forEach((color) => {
                     const teamPlayers = players
-                        .filter((p) => p.tim === color)
-                        .sort((a, b) => POS_ORDER.indexOf(a.posisi) - POS_ORDER.indexOf(b.posisi));
+                        .filter((p) => p.team === color)
+                        .sort((a, b) => POS_ORDER.indexOf(a.position) - POS_ORDER.indexOf(b.position));
 
                     if (teamPlayers.length > 0) {
                         html += `
@@ -1240,8 +1769,8 @@
                                 <div>
                                     ${teamPlayers.map((p) => `
                                         <div class="player-item">
-                                            <span style="font-weight:600">${p.nama}</span>
-                                            <span class="pos-badge">${p.posisi}</span>
+                                            <span style="font-weight:600">${window.KOP.escapeHtml(p.name)}</span>
+                                            <span class="pos-badge">${window.KOP.escapeHtml(p.position)}</span>
                                         </div>`).join("")}
                                 </div>
                             </div>`;
@@ -1261,9 +1790,10 @@
             async function shuffleTeams() {
                 const numTeams = parseInt(document.getElementById("numTeams").value);
                 const { data: players } = await _supabase
-                    .from("pemain")
+                    .from("community_players")
                     .select("*")
-                    .neq("posisi", "SPECTATOR (FAN)");
+                    .eq("community_id", context.community.id)
+                    .neq("position", "SPECTATOR (FAN)");
 
                 if (!players || players.length === 0) {
                     alert("Belum ada pemain untuk diundi.");
@@ -1272,8 +1802,8 @@
 
                 const grouped = {};
                 players.forEach((p) => {
-                    if (!grouped[p.posisi]) grouped[p.posisi] = [];
-                    grouped[p.posisi].push(p);
+                    if (!grouped[p.position]) grouped[p.position] = [];
+                    grouped[p.position].push(p);
                 });
 
                 let currentIdx = 0;
@@ -1284,7 +1814,11 @@
                         const shuffledPos = grouped[pos].sort(() => Math.random() - 0.5);
                         shuffledPos.forEach((p) => {
                             updates.push(
-                                _supabase.from("pemain").update({ tim: TEAM_NAMES[currentIdx] }).eq("id", p.id)
+                                _supabase
+                                    .from("community_players")
+                                    .update({ team: TEAM_NAMES[currentIdx] })
+                                    .eq("id", p.id)
+                                    .eq("community_id", context.community.id)
                             );
                             currentIdx = (currentIdx + 1) % numTeams;
                         });
@@ -1297,8 +1831,17 @@
             }
 
             async function resetTeams() {
-                const { data: players } = await _supabase.from("pemain").select("id");
-                const resets = players.map((p) => _supabase.from("pemain").update({ tim: null }).eq("id", p.id));
+                const { data: players } = await _supabase
+                    .from("community_players")
+                    .select("id")
+                    .eq("community_id", context.community.id);
+                const resets = players.map((p) =>
+                    _supabase
+                        .from("community_players")
+                        .update({ team: null })
+                        .eq("id", p.id)
+                        .eq("community_id", context.community.id),
+                );
                 await Promise.all(resets);
                 loadDraft();
                 muatPemain();
@@ -1315,17 +1858,50 @@
                 });
             }
 
-            async function loadMatchInfo() {
-                const { data } = await _supabase.from("jadwal_lapangan").select("*").eq("id", 1).single();
-                if (!data) return;
+            function adminFormValue(value, emptySentinels = []) {
+                const text = String(value ?? "").trim();
+                if (!text || emptySentinels.includes(text)) return "";
+                return value;
+            }
 
-                document.getElementById("eventInput").value = data.event_name || "";
-                document.getElementById("namaLapangan").value = data.nama_lp || "";
-                document.getElementById("jadwalMain").value = data.waktu ? data.waktu.replace("T", " | ") : "";
-                document.getElementById("jerseyInfo").value = data.jersey || "";
-                document.getElementById("htmInfo").value = data.htm || "";
-                document.getElementById("rekeningInfo").value = data.rekening || "";
-                document.getElementById("linkMaps").value = data.maps_url || "";
+            function clearMatchForm() {
+                [
+                    "eventInput",
+                    "namaLapangan",
+                    "jadwalMain",
+                    "jerseyInfo",
+                    "htmInfo",
+                    "rekeningInfo",
+                    "linkMaps",
+                ].forEach((id) => {
+                    document.getElementById(id).value = "";
+                });
+            }
+
+            async function loadMatchInfo() {
+                const { data } = await _supabase
+                    .from("community_matches")
+                    .select("*")
+                    .eq("community_id", context.community.id)
+                    .maybeSingle();
+                if (!data) {
+                    currentMatch = null;
+                    clearMatchForm();
+                    document.getElementById("adminPaymentProofCard").style.display = "none";
+                    return;
+                }
+                currentMatch = data;
+                document.getElementById("adminPaymentProofCard").style.display = "block";
+
+                // Nilai TBA/default hanya untuk tampilan member. Form admin tetap kosong
+                // dan memakai placeholder sampai admin mengisi data.
+                document.getElementById("eventInput").value = adminFormValue(data.event_name, ["TBA"]);
+                document.getElementById("namaLapangan").value = adminFormValue(data.nama_lp, ["TBA"]);
+                document.getElementById("jadwalMain").value = adminFormValue(data.waktu, ["TBA"]);
+                document.getElementById("jerseyInfo").value = adminFormValue(data.jersey, ["-"]);
+                document.getElementById("htmInfo").value = adminFormValue(data.htm, ["0"]);
+                document.getElementById("rekeningInfo").value = adminFormValue(data.rekening, ["-"]);
+                document.getElementById("linkMaps").value = adminFormValue(data.maps_url);
 
                 const badge = document.getElementById("statusBadge");
                 const icon = document.getElementById("statusIcon");
@@ -1340,7 +1916,179 @@
                     icon.className = "fa-solid fa-circle-check";
                     icon.style.color = "#27ae60";
                 }
+                loadPaymentProofs();
             }
+
+            async function loadPaymentProofs() {
+                const body = document.getElementById("paymentProofTableBody");
+                if (!body || !currentMatch) return;
+                const version = currentMatch.match_version || 1;
+                const { data: proofs, error } = await _supabase
+                    .from("community_payment_proofs")
+                    .select("id, user_id, storage_path, original_name, status, created_at")
+                    .eq("community_id", context.community.id)
+                    .eq("match_id", currentMatch.id)
+                    .eq("match_version", version)
+                    .order("created_at", { ascending: false });
+                if (error) {
+                    body.innerHTML = '<tr><td colspan="4" class="empty-state">Bukti transfer belum dapat dimuat.</td></tr>';
+                    return;
+                }
+                if (!proofs.length) {
+                    body.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada bukti transfer.</td></tr>';
+                    return;
+                }
+
+                const userIds = proofs.map((proof) => proof.user_id);
+                const { data: profiles } = await _supabase
+                    .from("profiles")
+                    .select("id, full_name")
+                    .in("id", userIds);
+                const nameById = new Map((profiles || []).map((profile) => [profile.id, profile.full_name]));
+                body.replaceChildren();
+                proofs.forEach((proof) => {
+                    const row = document.createElement("tr");
+                    if (proof.status === "verified") row.className = "proof-row-verified";
+                    if (proof.status === "rejected") row.className = "proof-row-rejected";
+                    const member = document.createElement("td");
+                    member.textContent = nameById.get(proof.user_id) || proof.user_id;
+                    const file = document.createElement("td");
+                    file.textContent = proof.original_name;
+                    file.title = proof.original_name;
+                    const status = document.createElement("td");
+                    const statusMeta = PROOF_STATUS_META[proof.status] || {
+                        label: proof.status || "Tidak diketahui",
+                        className: "proof-status-unknown",
+                    };
+                    status.className = `proof-status ${statusMeta.className}`;
+                    status.textContent = statusMeta.label;
+
+                    const actions = document.createElement("td");
+                    actions.className = "proof-actions";
+                    const view = document.createElement("button");
+                    view.className = "btn-table btn-edit";
+                    view.type = "button";
+                    view.title = "Lihat bukti";
+                    view.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                    view.addEventListener("click", () => openPaymentProof(proof.storage_path));
+                    actions.appendChild(view);
+
+                    if (proof.status === "submitted") {
+                        const approve = document.createElement("button");
+                        approve.className = "btn-table btn-save";
+                        approve.type = "button";
+                        approve.title = "Tandai terverifikasi";
+                        approve.innerHTML = '<i class="fa-solid fa-check"></i>';
+                        approve.addEventListener("click", async () => {
+                            approve.disabled = true;
+                            reject.disabled = true;
+                            await reviewPaymentProof(proof.id, "verified", { expectedStatus: "submitted" });
+                        });
+                        const reject = document.createElement("button");
+                        reject.className = "btn-table btn-delete";
+                        reject.type = "button";
+                        reject.title = "Tolak bukti";
+                        reject.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                        reject.addEventListener("click", async () => {
+                            approve.disabled = true;
+                            reject.disabled = true;
+                            await reviewPaymentProof(proof.id, "rejected", { expectedStatus: "submitted" });
+                        });
+                        actions.append(approve, reject);
+                    } else {
+                        const edit = document.createElement("button");
+                        edit.className = "btn-table btn-status-edit";
+                        edit.type = "button";
+                        edit.title = "Edit status bukti";
+                        edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                        edit.addEventListener("click", () =>
+                            openPaymentProofStatusEditor(proof.id, proof.status),
+                        );
+                        actions.appendChild(edit);
+                    }
+
+                    row.append(member, file, status, actions);
+                    body.appendChild(row);
+                });
+            }
+
+            async function openPaymentProof(storagePath) {
+                const { data, error } = await _supabase.storage
+                    .from("payment-proofs")
+                    .createSignedUrl(storagePath, 300);
+                if (error) {
+                    alert("Bukti tidak dapat dibuka: " + error.message);
+                    return;
+                }
+                window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+            }
+
+            function openPaymentProofStatusEditor(proofId, currentStatus) {
+                proofStatusEditor = { proofId, currentStatus };
+                const modal = document.getElementById("paymentProofStatusModal");
+                const currentLabel = PROOF_STATUS_META[currentStatus]?.label || currentStatus || "tidak diketahui";
+                document.getElementById("paymentProofStatusDescription").textContent =
+                    `Status saat ini: ${currentLabel}. Pilih status yang benar untuk mengganti keputusan sebelumnya.`;
+                modal.querySelectorAll("[data-proof-status]").forEach((button) => {
+                    button.classList.toggle("current", button.dataset.proofStatus === currentStatus);
+                });
+                modal.classList.add("show");
+                modal.querySelector("[data-proof-status]")?.focus({ preventScroll: true });
+            }
+
+            function closePaymentProofStatusEditor() {
+                document.getElementById("paymentProofStatusModal").classList.remove("show");
+                proofStatusEditor = { proofId: null, currentStatus: null };
+            }
+
+            async function reviewPaymentProof(proofId, status, { expectedStatus = "submitted" } = {}) {
+                if (!["verified", "rejected"].includes(status)) return;
+
+                const { data: updated, error } = await _supabase
+                    .from("community_payment_proofs")
+                    .update({
+                        status,
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: context.user.id,
+                    })
+                    .eq("id", proofId)
+                    .eq("community_id", context.community.id)
+                    .eq("status", expectedStatus)
+                    .select("id, status")
+                    .maybeSingle();
+
+                if (error) {
+                    alert("Status bukti tidak dapat diperbarui: " + error.message);
+                    await loadPaymentProofs();
+                    return;
+                }
+                if (!updated) {
+                    alert("Status bukti sudah berubah di tab lain. Daftar akan dimuat ulang.");
+                    await loadPaymentProofs();
+                    return;
+                }
+                await loadPaymentProofs();
+            }
+
+            const paymentProofStatusModal = document.getElementById("paymentProofStatusModal");
+            document.getElementById("paymentProofStatusCancel").addEventListener("click", closePaymentProofStatusEditor);
+            paymentProofStatusModal.addEventListener("click", (event) => {
+                if (event.target === paymentProofStatusModal) closePaymentProofStatusEditor();
+            });
+            paymentProofStatusModal.querySelectorAll("[data-proof-status]").forEach((button) => {
+                button.addEventListener("click", async () => {
+                    const { proofId, currentStatus } = proofStatusEditor;
+                    const nextStatus = button.dataset.proofStatus;
+                    closePaymentProofStatusEditor();
+                    if (!proofId || nextStatus === currentStatus) return;
+                    await reviewPaymentProof(proofId, nextStatus, { expectedStatus: currentStatus });
+                });
+            });
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape" && paymentProofStatusModal.classList.contains("show")) {
+                    closePaymentProofStatusEditor();
+                }
+            });
 
             async function updateInfo() {
                 const event = document.getElementById("eventInput").value;
@@ -1349,22 +2097,32 @@
                 const jersey = document.getElementById("jerseyInfo").value;
                 const htm = document.getElementById("htmInfo").value;
                 const rekening = document.getElementById("rekeningInfo").value;
-                let maps = document.getElementById("linkMaps").value;
-
-                if (maps.includes("<iframe")) {
-                    const match = maps.match(/src="([^"]+)"/);
-                    if (match) maps = match[1];
+                let maps = document.getElementById("linkMaps").value.trim();
+                const iframeMatch = maps.match(/<iframe[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
+                if (/<iframe/i.test(maps)) {
+                    if (!iframeMatch) {
+                        alert("Kode iframe Google Maps tidak valid. Paste seluruh kode iframe.");
+                        return;
+                    }
+                    maps = iframeMatch[1].replace(/&amp;/g, "&");
+                }
+                if (maps && (
+                    !window.KOP.isSafeMapUrl(maps)
+                    || (!maps.includes("google.com/maps/embed") && !maps.includes("googleusercontent"))
+                )) {
+                    alert("Untuk map, paste kode iframe Google Maps Embed. Link share biasa tidak akan ditampilkan.");
+                    return;
                 }
 
-                const { error } = await _supabase.from("jadwal_lapangan").upsert({
-                    id: 1,
-                    event_name: event,
-                    nama_lp: nama,
-                    waktu: jadwal,
-                    jersey: jersey,
-                    htm: htm,
-                    rekening: rekening,
-                    maps_url: maps,
+                const { error } = await _supabase.rpc("publish_community_match", {
+                    p_community: context.community.id,
+                    p_event_name: event,
+                    p_nama_lp: nama,
+                    p_waktu: jadwal,
+                    p_jersey: jersey,
+                    p_htm: htm,
+                    p_rekening: rekening,
+                    p_maps_url: maps,
                 });
 
                 if (!error) {
@@ -1376,46 +2134,184 @@
             }
 
             async function resetMatchOnly() {
-                if (!confirm("Reset semua info pertandingan? Aksi ini tidak bisa dibatalkan.")) return;
-                const { error } = await _supabase
-                    .from("jadwal_lapangan")
-                    .update({ event_name: "TBA", nama_lp: "TBA", waktu: null, jersey: "-", htm: "0", rekening: "-", maps_url: "" })
-                    .eq("id", 1);
+                if (!confirm("Reset semua info pertandingan komunitas ini? Aksi ini tidak bisa dibatalkan.")) return;
+                const { error } = await _supabase.rpc("reset_community_match", {
+                    p_community: context.community.id,
+                });
                 if (!error) {
                     alert("Info pertandingan sudah direset.");
                     loadMatchInfo();
+                } else {
+                    alert("Gagal reset: " + error.message);
                 }
             }
 
             async function archiveMatch() {
-                if (!confirm("Pindahkan pertandingan saat ini ke Riwayat Event dan kosongkan daftar pemain?")) return;
-                try {
-                    const { data: match } = await _supabase.from("jadwal_lapangan").select("*").eq("id", 1).single();
-                    const { data: p } = await _supabase.from("pemain").select("nama");
-                    let names = p?.length > 0 ? p.map((x) => x.nama).join(", ") : "-";
-
-                    await _supabase.from("event_history").insert({
-                        event_name: match.event_name,
-                        location_name: match.nama_lp,
-                        match_date: match.waktu,
-                        player_list: names,
-                        player_count: p?.length || 0,
-                    });
-
-                    await _supabase
-                        .from("jadwal_lapangan")
-                        .update({ event_name: "TBA", nama_lp: "TBA", waktu: null, jersey: "-", htm: "0", rekening: "-", maps_url: "" })
-                        .eq("id", 1);
-
-                    await _supabase.from("pemain").delete().neq("id", 0);
-
-                    alert("Pertandingan berhasil diarsipkan!");
-                    loadMatchInfo();
-                    muatPemain();
-                    loadDraft();
-                } catch (e) {
-                    alert("Terjadi kesalahan: " + e.message);
+                if (!confirm("Pindahkan pertandingan saat ini ke Riwayat Event dan kosongkan daftar pemain komunitas ini?")) return;
+                const { error } = await _supabase.rpc("archive_community_match", {
+                    p_community: context.community.id,
+                });
+                if (error) {
+                    alert("Gagal mengarsipkan: " + error.message);
+                    return;
                 }
+                alert("Pertandingan berhasil diarsipkan!");
+                loadMatchInfo();
+                muatPemain();
+                loadDraft();
+            }
+
+            /* ==================================================
+               TAB 4: INVITATIONS
+               ================================================== */
+            async function loadInvites() {
+                const nameElement = document.getElementById("inviteCommunityName");
+                if (nameElement) nameElement.textContent = context.community.name;
+                const { data, error } = await _supabase.rpc("list_community_invites", {
+                    p_community: context.community.id,
+                });
+                const body = document.getElementById("inviteTableBody");
+                if (error || !body) return;
+                body.innerHTML = data.length
+                    ? data.map((invite) => `
+                        <tr>
+                            <td>${invite.role}</td>
+                            <td>${new Date(invite.expires_at).toLocaleString()}</td>
+                            <td>${invite.uses} / ${invite.max_uses}</td>
+                            <td><button class="btn-table btn-delete" onclick="revokeInvite('${invite.id}')"><i class="fa-solid fa-ban"></i></button></td>
+                        </tr>`).join("")
+                    : '<tr><td colspan="4" class="empty-state">Belum ada undangan aktif.</td></tr>';
+            }
+
+            async function copyToClipboard(value) {
+                try {
+                    await navigator.clipboard.writeText(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+
+            async function createInvite() {
+                const role = document.getElementById("inviteRole").value;
+                const expiresDays = Number(document.getElementById("inviteExpiry").value);
+                const maxUses = Number(document.getElementById("inviteUses").value);
+                const { data, error } = await _supabase.rpc("create_community_invite", {
+                    p_community: context.community.id,
+                    p_role: role,
+                    p_expires_days: expiresDays,
+                    p_max_uses: maxUses,
+                });
+                if (error) {
+                    alert("Gagal membuat undangan: " + error.message);
+                    return;
+                }
+                const invite = data?.[0];
+                const code = invite.token;
+                const inviteUrl = `${window.location.origin}/onboarding.html?code=${encodeURIComponent(code)}`;
+                const shareMessage =
+                    `Halo! Saya mengundang kamu untuk bergabung di ${context.community.name}. ` +
+                    "Silakan buka tautan berikut, masuk atau buat akun, lalu isi kode undangan.";
+                const shareText = `${shareMessage}\n\nBuka: ${inviteUrl}`;
+                const result = document.getElementById("inviteResult");
+                result.style.display = "block";
+                result.replaceChildren();
+
+                const codeLabel = document.createElement("strong");
+                codeLabel.textContent = "Kode undangan (simpan/salin sekarang): ";
+                const codeElement = document.createElement("div");
+                codeElement.style.fontSize = "clamp(1rem, 4.5vw, 1.2rem)";
+                codeElement.style.fontWeight = "900";
+                codeElement.style.letterSpacing = "0.08em";
+                codeElement.style.overflowWrap = "anywhere";
+                codeElement.textContent = code;
+                const copyCodeButton = document.createElement("button");
+                copyCodeButton.className = "btn-copy";
+                copyCodeButton.type = "button";
+                copyCodeButton.textContent = "COPY KODE";
+                copyCodeButton.addEventListener("click", async () => {
+                    const copied = await copyToClipboard(code);
+                    copyCodeButton.textContent = copied ? "COPIED" : "GAGAL COPY";
+                    setTimeout(() => {
+                        copyCodeButton.textContent = "COPY KODE";
+                    }, 1800);
+                });
+
+                const sharePreview = document.createElement("p");
+                sharePreview.className = "invite-share-preview";
+                sharePreview.textContent = shareText;
+
+                const shareActions = document.createElement("div");
+                shareActions.className = "invite-share-actions";
+                const addShareButton = (label, icon, className, handler) => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = `share-button ${className}`;
+                    button.innerHTML = `<i class="${icon}"></i> ${label}`;
+                    button.addEventListener("click", handler);
+                    shareActions.appendChild(button);
+                    return button;
+                };
+                addShareButton("WHATSAPP", "fa-brands fa-whatsapp", "share-whatsapp", () => {
+                    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener,noreferrer");
+                });
+                addShareButton("TELEGRAM", "fa-brands fa-telegram-plane", "share-telegram", () => {
+                    window.open(
+                        `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareMessage)}`,
+                        "_blank",
+                        "noopener,noreferrer",
+                    );
+                });
+                addShareButton("BAGIKAN LAINNYA", "fa-solid fa-share-nodes", "share-other", async () => {
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({
+                                title: `Undangan ${context.community.name}`,
+                                text: shareMessage,
+                                url: inviteUrl,
+                            });
+                        } catch (error) {
+                            if (error?.name !== "AbortError") {
+                                alert("Tidak dapat membuka menu berbagi.");
+                            }
+                        }
+                        return;
+                    }
+                    const copied = await copyToClipboard(shareText);
+                    alert(copied ? "Pesan undangan disalin." : "Tidak dapat menyalin pesan.");
+                });
+                addShareButton("COPY PESAN", "fa-solid fa-copy", "share-copy", async () => {
+                    const copied = await copyToClipboard(shareText);
+                    alert(copied ? "Pesan undangan disalin." : "Tidak dapat menyalin pesan.");
+                });
+
+                const siteLabel = document.createElement("p");
+                siteLabel.textContent = "Tautan berikut sudah membawa kode undangan secara otomatis: ";
+                const siteLink = document.createElement("a");
+                siteLink.href = inviteUrl;
+                siteLink.textContent = inviteUrl;
+                result.append(
+                    codeLabel,
+                    codeElement,
+                    copyCodeButton,
+                    sharePreview,
+                    shareActions,
+                    siteLabel,
+                    siteLink,
+                );
+                await loadInvites();
+            }
+
+            async function revokeInvite(id) {
+                if (!confirm("Cabut undangan ini?")) return;
+                const { error } = await _supabase.rpc("revoke_community_invite", {
+                    p_invite: id,
+                });
+                if (error) {
+                    alert("Gagal mencabut undangan: " + error.message);
+                    return;
+                }
+                loadInvites();
             }
         </script>
     </body>

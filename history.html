@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0"
         />
         <title>Event History - KickOff Planner</title>
 
@@ -14,6 +14,8 @@
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-client.js"></script>
+        <script src="auth-guard.js"></script>
 
         <style>
             :root {
@@ -35,9 +37,11 @@
                 background-attachment: fixed;
                 color: white;
                 min-height: 100vh;
+                min-height: 100svh;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                overflow-x: hidden;
             }
 
             .navbar {
@@ -47,10 +51,14 @@
                 max-width: 800px;
                 border-radius: 15px;
                 margin-bottom: 20px;
-                height: 60px;
+                min-height: 60px;
+                height: auto;
+                padding: 10px 56px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                flex-wrap: wrap;
+                gap: 4px;
                 position: relative;
                 box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -73,8 +81,21 @@
             .nav-label {
                 font-weight: 800;
                 text-transform: uppercase;
-                letter-spacing: 1.5px;
-                font-size: 1rem;
+                letter-spacing: clamp(0.5px, 0.6vw, 1.5px);
+                font-size: clamp(0.95rem, 4.2vw, 1rem);
+                text-align: center;
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+
+            img,
+            svg,
+            video {
+                max-width: 100%;
+            }
+
+            svg {
+                flex: 0 0 auto;
             }
 
             .container {
@@ -94,12 +115,15 @@
             }
 
             summary {
-                padding: 15px;
+                padding: 15px 40px 15px 58px;
                 cursor: pointer;
                 list-style: none;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                gap: 10px;
+                min-width: 0;
+                overflow-wrap: anywhere;
                 font-weight: 800;
                 text-transform: uppercase;
                 color: var(--dark-blue);
@@ -107,18 +131,29 @@
                 border-left: 45px solid var(--primary-color);
                 position: relative;
             }
+            .history-event-name {
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+            summary::-webkit-details-marker {
+                display: none;
+            }
 
             summary::before {
                 content: attr(data-number);
                 position: absolute;
-                left: -33px;
+                left: 0;
+                width: 45px;
+                text-align: center;
                 color: white;
-                font-size: 1.1rem;
+                font-size: 1rem;
                 font-weight: 900;
             }
 
             summary::after {
                 content: "\f078";
+                margin-left: auto;
+                flex: 0 0 auto;
                 font-family: "Font Awesome 6 Free";
                 font-weight: 900;
                 font-size: 0.8rem;
@@ -138,16 +173,19 @@
 
             .info-grid {
                 display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
                 gap: 10px;
                 margin-bottom: 15px;
             }
 
             .match-info {
+                min-width: 0;
                 font-size: 0.85rem;
                 display: flex;
-                align-items: center;
+                align-items: flex-start;
                 gap: 10px;
                 color: #475569;
+                overflow-wrap: anywhere;
             }
 
             .match-info i {
@@ -179,6 +217,7 @@
                 width: 100%;
                 border-collapse: collapse;
                 font-size: 0.9rem;
+                table-layout: fixed;
             }
 
             .squad-table tr {
@@ -187,6 +226,7 @@
 
             .squad-table td {
                 padding: 10px 15px;
+                overflow-wrap: anywhere;
             }
 
             .td-number {
@@ -221,6 +261,8 @@
 
             .mini-btns {
                 display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
                 gap: 5px;
             }
 
@@ -265,13 +307,63 @@
                 font-weight: bold;
             }
 
-            @media (max-width: 480px) {
-                summary {
-                    font-size: 0.9rem;
-                    border-left-width: 40px;
+            @media (max-width: 700px) {
+                body {
+                    padding: 12px;
+                    background-attachment: scroll;
                 }
+
+                .navbar {
+                    padding: 10px 48px;
+                    border-radius: 12px;
+                }
+
+                .home-box {
+                    left: 12px;
+                }
+
+                .container {
+                    gap: 10px;
+                }
+
+                .detail-content {
+                    padding: 12px;
+                }
+
+                .squad-table td {
+                    padding: 9px 11px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .navbar {
+                    padding-left: 42px;
+                    padding-right: 42px;
+                }
+
+                summary {
+                    padding: 12px 30px 12px 46px;
+                    font-size: 0.86rem;
+                    border-left-width: 38px;
+                }
+
                 summary::before {
-                    left: -30px;
+                    width: 38px;
+                    font-size: 0.9rem;
+                }
+
+                .info-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .mini-btn {
+                    padding: 7px 11px;
+                }
+            }
+
+            @media (pointer: coarse) {
+                .mini-btn {
+                    padding: 9px 14px;
                 }
             }
         </style>
@@ -290,10 +382,8 @@
         <div class="pagination" id="paginationControls"></div>
 
         <script>
-            const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
-            const SB_KEY =
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
-            const _supabase = supabase.createClient(SB_URL, SB_KEY);
+            const _supabase = window.KOP.supabase;
+            let context;
 
             let currentPage = 1;
             const itemsPerPage = 10;
@@ -315,7 +405,7 @@
 
                 let html = `<table class="squad-table">`;
                 paginatedPlayers.forEach((p, i) => {
-                    html += `<tr><td class="td-number">${start + i + 1}</td><td class="td-name">${p}</td></tr>`;
+                    html += `<tr><td class="td-number">${start + i + 1}</td><td class="td-name">${window.KOP.escapeHtml(p)}</td></tr>`;
                 });
                 html += `</table>`;
 
@@ -339,7 +429,7 @@
             // Fungsi global untuk ganti halaman squad (dipanggil via onclick)
             window.changeSquadPage = (eventId, page) => {
                 const item = totalData.find((d) => d.id == eventId);
-                const players = item.player_list
+                const players = (item?.player_list || "-")
                     .split(",")
                     .map((p) => p.trim())
                     .filter((p) => p !== "");
@@ -348,8 +438,9 @@
 
             async function loadData() {
                 const { data, error } = await _supabase
-                    .from("event_history")
+                    .from("community_event_history")
                     .select("*")
+                    .eq("community_id", context.community.id)
                     .order("created_at", { ascending: false });
                 if (error) return;
                 totalData = data;
@@ -379,12 +470,12 @@
                     const card = document.createElement("details");
                     card.className = "history-card";
                     card.innerHTML = `
-                        <summary data-number="${matchNumber}">${item.event_name}</summary>
+                        <summary data-number="${matchNumber}"><span class="history-event-name">${window.KOP.escapeHtml(item.event_name)}</span></summary>
                         <div class="detail-content">
                             <div class="info-grid">
-                                <div class="match-info"><i class="fa-solid fa-location-dot"></i> ${item.location_name}</div>
-                                <div class="match-info"><i class="fa-solid fa-calendar"></i> ${formatDateTime(item.match_date)}</div>
-                                <div class="match-info"><i class="fa-solid fa-users"></i> ${item.player_count} Participants</div>
+                                <div class="match-info"><i class="fa-solid fa-location-dot"></i> ${window.KOP.escapeHtml(item.location_name)}</div>
+                                <div class="match-info"><i class="fa-solid fa-calendar"></i> ${window.KOP.escapeHtml(formatDateTime(item.match_date))}</div>
+                                <div class="match-info"><i class="fa-solid fa-users"></i> ${window.KOP.escapeHtml(item.player_count)} Participants</div>
                             </div>
                             <div class="squad-section">
                                 <span class="squad-label">ATTENDANCE LIST</span>
@@ -415,7 +506,10 @@
                 }
             }
 
-            window.onload = loadData;
+            window.onload = async () => {
+                context = await window.KOP.auth.getContext({ requireCommunity: true });
+                if (context) loadData();
+            };
         </script>
     </body>
 </html>

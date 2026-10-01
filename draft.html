@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0"
         />
         <title>Team Draft - KickOff Planner</title>
         <link
@@ -26,9 +26,11 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
+                min-height: 100svh;
                 width: 100%;
                 box-sizing: border-box;
-                padding: 20px;
+                padding: clamp(12px, 3vw, 20px);
+                overflow-x: hidden;
                 background-image:
                     linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
                     url("geminix.jpg");
@@ -47,10 +49,14 @@
                 max-width: 800px;
                 border-radius: 12px;
                 margin-bottom: 20px;
-                height: 65px;
+                min-height: 64px;
+                height: auto;
+                padding: 12px 64px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                flex-wrap: wrap;
+                gap: 4px;
                 position: relative;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -70,8 +76,21 @@
                 color: white;
                 font-weight: 800;
                 text-transform: uppercase;
-                letter-spacing: 2px;
-                font-size: 1.1rem;
+                letter-spacing: clamp(0.5px, 0.6vw, 2px);
+                font-size: clamp(0.95rem, 4.2vw, 1.1rem);
+                text-align: center;
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+
+            img,
+            svg,
+            video {
+                max-width: 100%;
+            }
+
+            svg {
+                flex: 0 0 auto;
             }
 
             /* --- TEAM GRID --- */
@@ -115,15 +134,23 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                gap: 10px;
+                min-width: 0;
                 padding: 12px 20px;
                 border-bottom: 1px solid #f0f0f0;
                 color: #2c3e50;
+            }
+            .player-item > span:first-child {
+                min-width: 0;
+                overflow-wrap: anywhere;
             }
             .player-item:last-child {
                 border-bottom: none;
             }
 
             .pos-badge {
+                flex: 0 0 auto;
+                white-space: nowrap;
                 background: #34495e;
                 color: white;
                 padding: 3px 8px;
@@ -144,6 +171,59 @@
                 display: block;
                 opacity: 0.5;
             }
+            @media (max-width: 600px) {
+                body {
+                    padding: 12px;
+                    background-attachment: scroll;
+                }
+
+                .navbar {
+                    padding: 10px 48px;
+                    border-radius: 10px;
+                }
+
+                .home-link {
+                    left: 12px;
+                    font-size: 20px;
+                }
+
+                .team-grid {
+                    gap: 12px;
+                }
+
+                .team-header {
+                    padding: 12px 10px;
+                    font-size: 0.9rem;
+                }
+
+                .player-item {
+                    padding: 10px 13px;
+                }
+
+                .waiting-box {
+                    padding: 44px 14px;
+                }
+
+                .waiting-box i {
+                    font-size: 44px;
+                    margin-bottom: 12px;
+                }
+            }
+
+            @media (max-width: 380px) {
+                body {
+                    padding: 9px;
+                }
+
+                .navbar {
+                    padding-left: 42px;
+                    padding-right: 42px;
+                }
+
+                .team-grid {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+            }
         </style>
     </head>
     <body>
@@ -157,11 +237,11 @@
         <div class="team-grid" id="mainGrid"></div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-client.js"></script>
+        <script src="auth-guard.js"></script>
         <script>
-            const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
-            const SUPABASE_KEY =
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
-            const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const _supabase = window.KOP.supabase;
+            let context;
 
             const POS_ORDER = [
                 "GK",
@@ -185,15 +265,16 @@
             // --- TEAM DRAFT DISPLAY LOGIC (READ-ONLY) ---
             async function loadData() {
                 const { data: players, error } = await _supabase
-                    .from("pemain")
+                    .from("community_players")
                     .select("*")
-                    .neq("posisi", "SPECTATOR (FAN)");
+                    .eq("community_id", context.community.id)
+                    .neq("position", "SPECTATOR (FAN)");
 
                 if (error) return;
 
                 const grid = document.getElementById("mainGrid");
                 const alreadyShuffled = players.some(
-                    (p) => p.tim !== null && p.tim !== "",
+                    (p) => p.team !== null && p.team !== "",
                 );
 
                 if (!alreadyShuffled) {
@@ -211,16 +292,16 @@
                 const grid = document.getElementById("mainGrid");
                 let html = "";
                 const activeTeamNames = TEAM_NAMES.filter((name) =>
-                    players.some((p) => p.tim === name),
+                    players.some((p) => p.team === name),
                 );
 
                 activeTeamNames.forEach((color) => {
                     const teamPlayers = players
-                        .filter((p) => p.tim === color)
+                        .filter((p) => p.team === color)
                         .sort(
                             (a, b) =>
-                                POS_ORDER.indexOf(a.posisi) -
-                                POS_ORDER.indexOf(b.posisi),
+                                POS_ORDER.indexOf(a.position) -
+                                POS_ORDER.indexOf(b.position),
                         );
 
                     if (teamPlayers.length > 0) {
@@ -232,8 +313,8 @@
                                         .map(
                                             (p) => `
                                         <div class="player-item">
-                                            <span style="font-weight:600">${p.nama}</span>
-                                            <span class="pos-badge">${p.posisi}</span>
+                                            <span style="font-weight:600">${window.KOP.escapeHtml(p.name)}</span>
+                                            <span class="pos-badge">${window.KOP.escapeHtml(p.position)}</span>
                                         </div>
                                     `,
                                         )
@@ -245,7 +326,10 @@
                 grid.innerHTML = html;
             }
 
-            window.onload = loadData;
+            window.onload = async () => {
+                context = await window.KOP.auth.getContext({ requireCommunity: true });
+                if (context) loadData();
+            };
         </script>
     </body>
 </html>

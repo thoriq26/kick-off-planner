@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0"
         />
-        <title>Match Day - KickOff Planner</title>
+        <title>Confirmation List - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -27,9 +27,11 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
+                min-height: 100svh;
                 width: 100%;
                 box-sizing: border-box;
-                padding: 20px;
+                padding: clamp(12px, 3vw, 20px);
+                overflow-x: hidden;
                 /* Mempertahankan Background Image */
                 background:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
@@ -49,10 +51,14 @@
                 max-width: 1000px;
                 border-radius: 12px;
                 margin-bottom: 20px;
-                height: 75px;
+                min-height: 64px;
+                height: auto;
+                padding: 12px 64px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                flex-wrap: wrap;
+                gap: 4px;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 position: relative;
             }
@@ -71,15 +77,18 @@
             .nav-title {
                 color: white;
                 font-weight: 900;
-                letter-spacing: 2px;
-                font-size: 1.6rem;
+                letter-spacing: clamp(0.5px, 0.6vw, 2px);
+                font-size: clamp(1rem, 4.2vw, 1.6rem);
+                text-align: center;
+                min-width: 0;
+                overflow-wrap: anywhere;
                 text-transform: uppercase;
             }
 
             /* --- CONTAINER (Registration) --- */
             .container {
                 background-color: white;
-                padding: 30px;
+                padding: clamp(18px, 4vw, 30px);
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
                 width: 100%;
@@ -171,7 +180,7 @@
                 max-width: 1000px;
                 background: white;
                 border-radius: 12px;
-                padding: 25px;
+                padding: clamp(14px, 3vw, 25px);
                 box-sizing: border-box;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             }
@@ -197,6 +206,16 @@
                 margin-top: 10px;
             }
 
+            img,
+            svg,
+            video {
+                max-width: 100%;
+            }
+
+            svg {
+                flex: 0 0 auto;
+            }
+
             th {
                 background-color: #34495e;
                 color: white;
@@ -209,6 +228,7 @@
                 padding: 12px;
                 border-bottom: 1px solid #eee;
                 color: #2c3e50;
+                overflow-wrap: anywhere;
             }
 
             tr:nth-child(even) {
@@ -231,12 +251,70 @@
                 }
             }
 
+            @media (prefers-reduced-motion: reduce) {
+                tr {
+                    animation: none;
+                }
+            }
+
+            @media (max-width: 700px) {
+                .table-container table {
+                    min-width: 520px;
+                }
+            }
+
             @media (max-width: 600px) {
+                body {
+                    padding: 12px;
+                    background-attachment: scroll;
+                }
+
+                .navbar {
+                    padding: 10px 48px;
+                    border-radius: 10px;
+                }
+
+                .home-link {
+                    left: 12px;
+                    font-size: 21px;
+                }
+
+                .nav-title {
+                    font-size: clamp(0.95rem, 4.2vw, 1.2rem);
+                }
+
+                h2 {
+                    font-size: 1.2rem;
+                    margin-bottom: 18px;
+                }
+
                 .btn-group {
                     flex-direction: column;
                 }
-                .nav-title {
-                    font-size: 1.2rem;
+
+                .table-header {
+                    flex-wrap: wrap;
+                    gap: 8px;
+                }
+
+                th,
+                td {
+                    padding: 10px 9px;
+                }
+            }
+
+            @media (max-width: 400px) {
+                body {
+                    padding: 9px;
+                }
+
+                .navbar {
+                    padding-left: 42px;
+                    padding-right: 42px;
+                }
+
+                .table-container-outer {
+                    padding: 12px;
                 }
             }
         </style>
@@ -317,52 +395,80 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-client.js"></script>
+        <script src="auth-guard.js"></script>
         <script>
-            const SUPABASE_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
-            const SUPABASE_KEY =
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
-            const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const _supabase = window.KOP.supabase;
+            let context;
 
             const tableBody = document.getElementById("playerTableBody");
             const playerCount = document.getElementById("count");
 
             async function muatPemain() {
                 const { data, error } = await _supabase
-                    .from("pemain")
+                    .from("community_players")
                     .select("*")
+                    .eq("community_id", context.community.id)
                     .order("created_at", { ascending: true });
                 if (error) return;
 
                 tableBody.innerHTML = "";
                 playerCount.innerText = data.length;
 
+                if (!data.length) {
+                    tableBody.innerHTML =
+                        '<tr><td colspan="3" class="empty-state">Belum ada peserta terdaftar.</td></tr>';
+                    return;
+                }
+
                 data.forEach((p, index) => {
                     tableBody.innerHTML += `
                     <tr>
                         <td style="text-align: center;">${index + 1}</td>
-                        <td style="font-weight: 600;">${p.nama}</td>
-                        <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${p.posisi}</span></td>
+                        <td style="font-weight: 600;">${window.KOP.escapeHtml(p.name)}</td>
+                        <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${window.KOP.escapeHtml(p.position)}</span></td>
                     </tr>`;
                 });
+            }
+
+            async function isiNamaPemain() {
+                const input = document.getElementById("nama");
+                const { data: profile } = await _supabase
+                    .from("profiles")
+                    .select("full_name")
+                    .eq("id", context.user.id)
+                    .maybeSingle();
+                input.value = profile?.full_name || context.user.email?.split("@")[0] || "";
             }
 
             document
                 .getElementById("playerForm")
                 .addEventListener("submit", async (e) => {
                     e.preventDefault();
-                    const nama = document.getElementById("nama").value;
+                    if (!context) return;
+                    const nama = document.getElementById("nama").value.trim();
                     const posisi = document.getElementById("posisi").value;
-                    const { error } = await _supabase
-                        .from("pemain")
-                        .insert([{ nama, posisi }]);
+                    if (!nama) return;
+                    const { error } = await _supabase.rpc("register_community_player", {
+                        p_community: context.community.id,
+                        p_name: nama,
+                        p_position: posisi,
+                    });
                     if (!error) {
                         alert("Registered successfully!");
-                        document.getElementById("playerForm").reset();
                         muatPemain();
+                    } else {
+                        alert("Registration failed: " + error.message);
                     }
                 });
 
-            window.onload = muatPemain;
+            window.onload = async () => {
+                context = await window.KOP.auth.getContext({ requireCommunity: true });
+                if (context) {
+                    await isiNamaPemain();
+                    muatPemain();
+                }
+            };
         </script>
     </body>
 </html>

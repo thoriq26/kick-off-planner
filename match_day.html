@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link rel="icon" type="image/svg+xml" href="aaa.png" />
+        <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0"
         />
         <title>Match Info - KickOff Planner</title>
 
@@ -14,6 +14,8 @@
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-client.js"></script>
+        <script src="auth-guard.js"></script>
 
         <style>
             html,
@@ -28,9 +30,11 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
+                min-height: 100svh;
                 width: 100%;
                 box-sizing: border-box;
-                padding: 20px;
+                padding: clamp(12px, 3vw, 20px);
+                overflow-x: hidden;
                 background-image:
                     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
                     url("geminix.jpg");
@@ -50,13 +54,16 @@
                 border-radius: 20px;
                 margin-bottom: 25px;
                 position: relative;
-                height: 70px;
+                min-height: 64px;
+                height: auto;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                flex-wrap: wrap;
+                gap: 4px;
                 box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                padding: 0 20px;
+                padding: 10px 56px;
             }
             .home-box {
                 position: absolute;
@@ -77,14 +84,27 @@
                 color: white;
                 font-weight: 900;
                 text-transform: uppercase;
-                letter-spacing: 2px;
-                font-size: 1.3rem;
+                letter-spacing: clamp(0.5px, 0.6vw, 2px);
+                font-size: clamp(0.95rem, 4.2vw, 1.3rem);
+                text-align: center;
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+
+            img,
+            svg,
+            video {
+                max-width: 100%;
+            }
+
+            svg {
+                flex: 0 0 auto;
             }
 
             /* --- CONTENT --- */
             .container {
                 background: rgba(255, 255, 255, 0.98);
-                padding: 25px;
+                padding: clamp(16px, 4vw, 25px);
                 border-radius: 20px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 width: 100%;
@@ -96,13 +116,14 @@
             /* --- DETAIL INFO --- */
             .detail-jadwal {
                 background: #f8fafc;
-                padding: 20px;
+                padding: clamp(14px, 3vw, 20px);
                 border-radius: 15px;
                 border: 1px solid #e2e8f0;
             }
             .info-row {
                 display: flex;
                 align-items: center;
+                min-width: 0;
                 padding: 12px 0;
                 border-bottom: 1px dashed #e2e8f0;
             }
@@ -119,6 +140,8 @@
             .info-content {
                 display: flex;
                 flex-direction: column;
+                min-width: 0;
+                flex: 1;
             }
             .info-label {
                 font-size: 11px;
@@ -128,6 +151,8 @@
                 letter-spacing: 1px;
             }
             .info-value {
+                min-width: 0;
+                overflow-wrap: anywhere;
                 font-size: 15px;
                 color: #1e293b;
                 font-weight: 600;
@@ -149,15 +174,17 @@
             .stadium-name {
                 text-align: center;
                 color: #1e293b;
-                font-size: 22px;
+                font-size: clamp(1.05rem, 5vw, 22px);
                 font-weight: 800;
                 margin: 20px 0 10px 0;
                 text-transform: uppercase;
+                overflow-wrap: anywhere;
             }
             .map-frame {
                 width: 100%;
                 aspect-ratio: 16 / 9;
-                min-height: 260px;
+                min-height: 240px;
+                max-height: 68vh;
                 border-radius: 15px;
                 border: 2px solid #f1f5f9;
                 background: #f9f9f9;
@@ -170,10 +197,11 @@
                 display: block;
             }
 
-            @media (max-width: 600px) {
+            @media (max-width: 640px) {
                 .map-frame {
-                    aspect-ratio: 4 / 5;
-                    min-height: 320px;
+                    aspect-ratio: 3 / 4;
+                    min-height: 240px;
+                    max-height: none;
                 }
             }
 
@@ -232,6 +260,373 @@
                 }
                 100% {
                     background-position: -200% 0;
+                }
+            }
+            .payment-proof-card {
+                margin-top: 20px;
+                border: 1px solid #dbe7df;
+                border-radius: 14px;
+                padding: 20px;
+                background: #f7fbf8;
+            }
+
+            .payment-proof-card h2 {
+                margin: 0 0 8px;
+                color: #1f3b2a;
+                font-size: 1.1rem;
+            }
+
+            .payment-proof-card p {
+                margin: 0 0 14px;
+                color: #64748b;
+                font-size: 0.85rem;
+                line-height: 1.5;
+            }
+
+            .payment-proof-form {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .payment-proof-form input[type="file"] {
+                flex: 1 1 260px;
+                min-width: 0;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 9px;
+                background: white;
+                font-size: 0.8rem;
+            }
+
+            .payment-proof-form button {
+                border: 0;
+                border-radius: 8px;
+                padding: 11px 15px;
+                color: white;
+                background: #27ae60;
+                font: inherit;
+                font-size: 0.8rem;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+            .payment-proof-form button:disabled {
+                opacity: 0.6;
+                cursor: wait;
+            }
+
+            .payment-proof-message {
+                min-height: 20px;
+                margin: 12px 0 0 !important;
+                font-size: 0.82rem !important;
+            }
+
+            .payment-proof-message.success {
+                color: #15803d !important;
+            }
+
+            .payment-proof-message.error {
+                color: #b91c1c !important;
+            }
+
+            @media (max-width: 600px) {
+                .payment-proof-form {
+                    align-items: stretch;
+                    flex-direction: column;
+                }
+
+                .payment-proof-form button {
+                    width: 100%;
+                }
+            }
+            .map-placeholder {
+                position: relative;
+                display: grid;
+                place-items: center;
+                min-height: 260px;
+                height: 100%;
+                overflow: hidden;
+                isolation: isolate;
+                color: #e8fff1;
+                background:
+                    radial-gradient(circle at 50% 44%, rgba(39, 174, 96, 0.3), transparent 34%),
+                    linear-gradient(145deg, #0c2e1c 0%, #071c12 55%, #06150e 100%);
+            }
+            .map-placeholder::before {
+                content: "";
+                position: absolute;
+                inset: -20%;
+                z-index: -1;
+                opacity: 0.32;
+                background-image:
+                    linear-gradient(rgba(126, 231, 168, 0.12) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(126, 231, 168, 0.12) 1px, transparent 1px);
+                background-size: 34px 34px;
+                transform: perspective(420px) rotateX(55deg) translateY(18%);
+                transform-origin: center bottom;
+                animation: map-grid-drift 12s linear infinite;
+            }
+            .map-placeholder::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                z-index: -1;
+                background: radial-gradient(ellipse at center, transparent 30%, rgba(2, 12, 7, 0.62) 100%);
+                pointer-events: none;
+            }
+            .map-radar {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: min(64%, 320px);
+                aspect-ratio: 1;
+                border: 1px solid rgba(126, 231, 168, 0.38);
+                border-radius: 50%;
+                box-shadow:
+                    0 0 0 22px rgba(39, 174, 96, 0.07),
+                    0 0 0 46px rgba(39, 174, 96, 0.045),
+                    0 0 34px rgba(39, 174, 96, 0.18);
+                transform: translate(-50%, -50%);
+                animation: map-radar-spin 14s linear infinite;
+            }
+            .map-radar::before {
+                content: "";
+                position: absolute;
+                inset: 21%;
+                border: 1px dashed rgba(126, 231, 168, 0.42);
+                border-radius: 50%;
+            }
+            .map-radar::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(126, 231, 168, 0.7), transparent);
+                box-shadow: 0 0 12px rgba(126, 231, 168, 0.6);
+            }
+            .map-radar-dot {
+                position: absolute;
+                top: 12%;
+                right: 15%;
+                width: 9px;
+                height: 9px;
+                border-radius: 50%;
+                background: #86efac;
+                box-shadow: 0 0 0 5px rgba(134, 239, 172, 0.13), 0 0 18px #86efac;
+                animation: map-dot-pulse 2.2s ease-in-out infinite;
+            }
+            .map-placeholder-content {
+                position: relative;
+                z-index: 2;
+                max-width: 92%;
+                padding: 24px;
+                text-align: center;
+            }
+            .map-placeholder-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 11px;
+                border: 1px solid rgba(134, 239, 172, 0.35);
+                border-radius: 999px;
+                color: #a7f3d0;
+                background: rgba(15, 47, 29, 0.62);
+                font-size: 0.65rem;
+                font-weight: 800;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                animation: map-badge-pulse 2.6s ease-in-out infinite;
+            }
+            .map-placeholder-icon {
+                display: grid;
+                place-items: center;
+                width: 74px;
+                height: 74px;
+                margin: 15px auto 13px;
+                border: 1px solid rgba(134, 239, 172, 0.55);
+                border-radius: 50%;
+                color: #86efac;
+                background: rgba(15, 47, 29, 0.78);
+                box-shadow: 0 0 0 9px rgba(39, 174, 96, 0.08), 0 0 30px rgba(39, 174, 96, 0.28);
+                animation: map-icon-float 3s ease-in-out infinite;
+            }
+            .map-placeholder-icon i {
+                font-size: 29px;
+            }
+            .map-placeholder-title {
+                margin: 0;
+                color: #f0fff5;
+                font-size: clamp(2.4rem, 9vw, 4.6rem);
+                font-weight: 900;
+                line-height: 0.95;
+                letter-spacing: 0.16em;
+                text-indent: 0.16em;
+                text-shadow: 0 0 18px rgba(134, 239, 172, 0.55), 0 4px 18px rgba(0, 0, 0, 0.45);
+                animation: map-title-glow 2.6s ease-in-out infinite;
+            }
+            .map-placeholder-subtitle {
+                margin: 13px auto 0;
+                max-width: 340px;
+                color: rgba(216, 255, 228, 0.78);
+                font-size: 0.82rem;
+                font-weight: 600;
+                line-height: 1.5;
+                letter-spacing: 0.06em;
+            }
+            .map-placeholder-dots {
+                display: flex;
+                justify-content: center;
+                gap: 6px;
+                margin-top: 16px;
+            }
+            .map-placeholder-dots span {
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: #86efac;
+                animation: map-dot-wave 1.4s ease-in-out infinite;
+            }
+            .map-placeholder-dots span:nth-child(2) {
+                animation-delay: 0.18s;
+            }
+            .map-placeholder-dots span:nth-child(3) {
+                animation-delay: 0.36s;
+            }
+            @keyframes map-grid-drift {
+                from {
+                    background-position: 0 0, 0 0;
+                }
+                to {
+                    background-position: 0 34px, 34px 0;
+                }
+            }
+            @keyframes map-radar-spin {
+                from {
+                    transform: translate(-50%, -50%) rotate(0deg);
+                }
+                to {
+                    transform: translate(-50%, -50%) rotate(360deg);
+                }
+            }
+            @keyframes map-dot-pulse {
+                0%,
+                100% {
+                    opacity: 0.45;
+                    transform: scale(0.8);
+                }
+                50% {
+                    opacity: 1;
+                    transform: scale(1.25);
+                }
+            }
+            @keyframes map-badge-pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 0 rgba(134, 239, 172, 0);
+                }
+                50% {
+                    box-shadow: 0 0 18px rgba(134, 239, 172, 0.24);
+                }
+            }
+            @keyframes map-icon-float {
+                0%,
+                100% {
+                    transform: translateY(0) rotate(-4deg);
+                }
+                50% {
+                    transform: translateY(-9px) rotate(4deg);
+                }
+            }
+            @keyframes map-title-glow {
+                0%,
+                100% {
+                    opacity: 0.82;
+                    transform: scale(0.98);
+                }
+                50% {
+                    opacity: 1;
+                    transform: scale(1.02);
+                }
+            }
+            @keyframes map-dot-wave {
+                0%,
+                100% {
+                    opacity: 0.35;
+                    transform: translateY(0);
+                }
+                50% {
+                    opacity: 1;
+                    transform: translateY(-4px);
+                }
+            }
+            @media (max-width: 600px) {
+                body {
+                    padding: 12px;
+                    background-attachment: scroll;
+                }
+
+                .navbar {
+                    padding: 10px 48px;
+                    border-radius: 14px;
+                }
+
+                .home-box {
+                    left: 12px;
+                }
+
+                .info-icon {
+                    width: 26px;
+                    margin-right: 10px;
+                    font-size: 16px;
+                }
+
+                .info-row {
+                    padding: 10px 0;
+                }
+
+                .map-placeholder-content {
+                    padding: 14px;
+                }
+
+                .map-placeholder-icon {
+                    width: 54px;
+                    height: 54px;
+                    margin: 10px auto;
+                }
+
+                .map-placeholder-icon i {
+                    font-size: 22px;
+                }
+
+                .map-placeholder-title {
+                    font-size: clamp(2rem, 12vw, 3rem);
+                }
+            }
+
+            @media (max-width: 400px) {
+                .navbar {
+                    padding-left: 42px;
+                    padding-right: 42px;
+                }
+
+                .payment-proof-form input[type="file"] {
+                    font-size: 0.72rem;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .map-placeholder::before,
+                .map-radar,
+                .map-radar-dot,
+                .map-placeholder-badge,
+                .map-placeholder-icon,
+                .map-placeholder-title,
+                .map-placeholder-dots span {
+                    animation: none;
                 }
             }
         </style>
@@ -328,6 +723,16 @@
                 </div>
             </div>
 
+            <section class="payment-proof-card" id="paymentProofCard" hidden>
+                <h2><i class="fa-solid fa-receipt"></i> Bukti Transfer Admission</h2>
+                <p>Upload screenshot atau PDF bukti transfer. File disimpan secara private dan hanya dapat dilihat oleh Anda serta owner/admin komunitas.</p>
+                <form class="payment-proof-form" id="paymentProofForm">
+                    <input id="paymentProofFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required />
+                    <button id="paymentProofSubmit" type="submit">UPLOAD BUKTI</button>
+                </form>
+                <p class="payment-proof-message" id="paymentProofMessage"></p>
+            </section>
+
             <div class="stadium-name loading-text" id="displayNama">
                 LOCATING STADIUM...
             </div>
@@ -358,19 +763,197 @@
         </div>
 
         <script>
-            const SB_URL = "https://yyngexaagxboclzvhtlt.supabase.co";
-            const SB_KEY =
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5bmdleGFhZ3hib2NsenZodGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzI4ODcsImV4cCI6MjA5MzY0ODg4N30.gl1XXutl4va8pty1OO1CIT7jdW62wAWMFO0IyUiWNb4";
-            const _supabase = supabase.createClient(SB_URL, SB_KEY);
+            const _supabase = window.KOP.supabase;
+            let context;
+            let currentMatch;
+
+            const paymentProofCard = document.getElementById("paymentProofCard");
+            const paymentProofForm = document.getElementById("paymentProofForm");
+            const paymentProofFile = document.getElementById("paymentProofFile");
+            const paymentProofSubmit = document.getElementById("paymentProofSubmit");
+            const paymentProofMessage = document.getElementById("paymentProofMessage");
+
+            function showPaymentMessage(text, type = "") {
+                paymentProofMessage.textContent = text;
+                paymentProofMessage.className = `payment-proof-message ${type}`;
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return `${bytes} B`;
+                if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+                return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+            }
+
+            function setPaymentProofFormVisible(visible) {
+                paymentProofForm.hidden = !visible;
+                paymentProofFile.required = visible;
+                paymentProofSubmit.disabled = !visible;
+            }
+
+            async function loadPaymentProof() {
+                if (!currentMatch) return;
+                const version = currentMatch.match_version || 1;
+                const { data: proof, error } = await _supabase
+                    .from("community_payment_proofs")
+                    .select("original_name, size_bytes, status, created_at")
+                    .eq("community_id", context.community.id)
+                    .eq("match_id", currentMatch.id)
+                    .eq("match_version", version)
+                    .eq("user_id", context.user.id)
+                    .order("created_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) {
+                    setPaymentProofFormVisible(true);
+                    showPaymentMessage("Bukti transfer belum dapat dimuat.", "error");
+                    return;
+                }
+                if (!proof) {
+                    setPaymentProofFormVisible(true);
+                    showPaymentMessage("Belum ada bukti transfer untuk pertandingan ini.");
+                    return;
+                }
+
+                const fileInfo = `${proof.original_name} (${formatFileSize(proof.size_bytes)})`;
+                if (proof.status === "verified") {
+                    setPaymentProofFormVisible(false);
+                    showPaymentMessage(`${fileInfo} — sudah terverifikasi.`, "success");
+                } else if (proof.status === "rejected") {
+                    setPaymentProofFormVisible(true);
+                    showPaymentMessage("Bukti ditolak, silakan upload bukti terbaru.", "error");
+                } else {
+                    setPaymentProofFormVisible(false);
+                    showPaymentMessage(`${fileInfo} — menunggu verifikasi admin.`, "success");
+                }
+            }
+
+            let paymentProofPollTimer;
+            function startPaymentProofPolling() {
+                clearInterval(paymentProofPollTimer);
+                paymentProofPollTimer = setInterval(() => {
+                    if (currentMatch && document.visibilityState === "visible") {
+                        loadPaymentProof();
+                    }
+                }, 5000);
+            }
+
+            async function uploadPaymentProof(event) {
+                event.preventDefault();
+                if (!currentMatch) return;
+                const file = paymentProofFile.files?.[0];
+                if (!file) return;
+
+                const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+                if (!allowedTypes.includes(file.type)) {
+                    showPaymentMessage("Format file harus JPG, PNG, WEBP, atau PDF.", "error");
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    showPaymentMessage("Ukuran file maksimal 5 MB.", "error");
+                    return;
+                }
+
+                paymentProofSubmit.disabled = true;
+                showPaymentMessage("Mengunggah bukti transfer...");
+                const randomId = window.crypto?.randomUUID
+                    ? window.crypto.randomUUID()
+                    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80) || "proof";
+                const path = `${context.community.id}/${currentMatch.id}/${context.user.id}/${randomId}-${safeName}`;
+
+                const { error: uploadError } = await _supabase.storage
+                    .from("payment-proofs")
+                    .upload(path, file, { contentType: file.type, upsert: false });
+                if (uploadError) {
+                    showPaymentMessage(`Upload gagal: ${uploadError.message}`, "error");
+                    setPaymentProofFormVisible(true);
+                    return;
+                }
+
+                const { error: insertError } = await _supabase
+                    .from("community_payment_proofs")
+                    .insert({
+                        community_id: context.community.id,
+                        match_id: currentMatch.id,
+                        match_version: currentMatch.match_version || 1,
+                        user_id: context.user.id,
+                        storage_path: path,
+                        original_name: file.name,
+                        mime_type: file.type,
+                        size_bytes: file.size,
+                    });
+                if (insertError) {
+                    await _supabase.storage.from("payment-proofs").remove([path]);
+                    showPaymentMessage(`Bukti tidak dapat disimpan: ${insertError.message}`, "error");
+                    setPaymentProofFormVisible(true);
+                    return;
+                }
+
+                paymentProofForm.reset();
+                setPaymentProofFormVisible(false);
+                await loadPaymentProof();
+            }
+
+            paymentProofForm.addEventListener("submit", uploadPaymentProof);
+
+            function renderMapPlaceholder() {
+                const mapContainer = document.getElementById("mapContainer");
+                mapContainer.innerHTML = `
+                    <div class="map-placeholder" role="status" aria-live="polite">
+                        <div class="map-radar" aria-hidden="true"><span class="map-radar-dot"></span></div>
+                        <div class="map-placeholder-content">
+                            <div class="map-placeholder-badge"><i class="fa-solid fa-location-dot"></i> MAPS LOCATION </div>
+                            <div class="map-placeholder-icon"><i class="fa-solid fa-futbol"></i></div>
+                            <div class="map-placeholder-title">TBA</div>
+                            <p class="map-placeholder-subtitle">Lokasi lapangan sedang disiapkan. Akan berubah saat jadwal resmi diumumkan.</p>
+                            <div class="map-placeholder-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                        </div>
+                    </div>`;
+            }
 
             async function loadInfo() {
                 const { data } = await _supabase
-                    .from("jadwal_lapangan")
+                    .from("community_matches")
                     .select("*")
-                    .eq("id", 1)
-                    .single();
+                    .eq("community_id", context.community.id)
+                    .maybeSingle();
+
+                if (!data) {
+                    currentMatch = null;
+                    clearInterval(paymentProofPollTimer);
+                    paymentProofCard.hidden = true;
+                    document.querySelectorAll(".loading-text").forEach((el) =>
+                        el.classList.remove("loading-text"),
+                    );
+                    document.getElementById("displayEvent").innerText = "TBA";
+                    document.getElementById("displayNama").innerText = "TBA";
+                    document.getElementById("displayDateTime").innerText = "Schedule TBA";
+                    document.getElementById("displayJersey").innerText = "TBA";
+                    document.getElementById("displayHtm").innerText = "0";
+                    document.getElementById("displayRekening").innerText = "TBA";
+                    const badge = document.getElementById("statusBadge");
+                    const icon = document.getElementById("statusIcon");
+                    badge.innerText = "WAITING";
+                    badge.classList.add("PENDING");
+                    icon.className = "fa-solid fa-clock";
+                    icon.style.color = "#e74c3c";
+                    renderMapPlaceholder();
+                    return;
+                }
 
                 if (data) {
+                    currentMatch = data;
+                    const hasAdmissionFee = data.htm && data.htm !== "0" && data.event_name !== "TBA";
+                    paymentProofCard.hidden = !hasAdmissionFee;
+                    if (hasAdmissionFee) {
+                        loadPaymentProof();
+                        startPaymentProofPolling();
+                    } else {
+                        clearInterval(paymentProofPollTimer);
+                        setPaymentProofFormVisible(true);
+                    }
+
                     // Remove loading states
                     const loaders = document.querySelectorAll(".loading-text");
                     loaders.forEach((el) =>
@@ -411,37 +994,26 @@
                             "Schedule TBA";
                     }
 
-                    // Map Logic
-                    const mapContainer =
-                        document.getElementById("mapContainer");
-                    if (data.maps_url) {
-                        if (
-                            data.maps_url.includes("google.com/maps/embed") ||
-                            data.maps_url.includes("googleusercontent")
-                        ) {
-                            mapContainer.innerHTML = `<iframe src="${data.maps_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
-                        } else {
-                            mapContainer.innerHTML = `
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); overflow: hidden;">
-                                    <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                                        <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
-                                            <i class="fa-solid fa-map-pin" style="font-size: 28px; color: #e74c3c;"></i>
-                                        </div>
-                                        <div style="text-align: center;">
-                                            <p style="margin: 0; font-weight: 800; color: #1e293b; font-size: 16px; letter-spacing: 0.5px;">LOCATION READY</p>
-                                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500;">Tap button below to navigate</p>
-                                        </div>
-                                        <a href="${data.maps_url}" target="_blank" class="btn" style="background: #1e293b; width: 200px; padding: 12px; border-radius: 12px; font-size: 13px; color: white;">
-                                            <i class="fa-solid fa-location-arrow" style="margin-right: 8px;"></i> GET DIRECTIONS
-                                        </a>
-                                    </div>
-                                </div>
-                            `;
-                        }
+                    // Map Logic: only a Google Embed iframe is rendered.
+                    const mapContainer = document.getElementById("mapContainer");
+                    const isEmbedMap =
+                        data.maps_url
+                        && window.KOP.isSafeMapUrl(data.maps_url)
+                        && (
+                            data.maps_url.includes("google.com/maps/embed")
+                            || data.maps_url.includes("googleusercontent")
+                        );
+                    if (isEmbedMap) {
+                        mapContainer.innerHTML = `<iframe src="${window.KOP.escapeHtml(data.maps_url)}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+                    } else {
+                        renderMapPlaceholder();
                     }
                 }
             }
-            window.onload = loadInfo;
+            window.onload = async () => {
+                context = await window.KOP.auth.getContext({ requireCommunity: true });
+                if (context) loadInfo();
+            };
         </script>
     </body>
 </html>
