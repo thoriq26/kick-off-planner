@@ -209,6 +209,120 @@ select:focus {
     }
 }
 
+@media (max-height: 900px) {
+    body {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        overflow-y: auto;
+    }
+
+    .auth-shell {
+        margin-top: 0;
+    }
+
+    .auth-card {
+        padding: clamp(16px, 3vh, 22px);
+    }
+
+    .brand {
+        font-size: 0.98rem;
+    }
+
+    h1 {
+        margin: 6px 0 4px;
+        font-size: clamp(1.35rem, 4.5vh, 1.65rem);
+    }
+
+    .subtitle {
+        margin-bottom: 12px;
+        font-size: 0.88rem;
+        line-height: 1.35;
+    }
+
+    .tabs {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .tabs button,
+    button {
+        padding: 9px 12px;
+    }
+
+    button.primary {
+        margin-top: 14px;
+    }
+
+    button.link-button {
+        margin-top: 8px;
+        padding: 8px 10px;
+    }
+
+    label {
+        margin: 11px 0 5px;
+    }
+
+    input,
+    select {
+        padding: 9px 10px;
+    }
+
+    .form-message {
+        min-height: 18px;
+        margin-top: 8px;
+        font-size: 0.82rem;
+    }
+
+    .auth-footer {
+        margin-top: 10px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 520px) and (max-height: 900px) {
+    body {
+        padding: 10px;
+    }
+
+    .auth-card {
+        padding: 16px;
+    }
+
+    .brand {
+        font-size: 0.9rem;
+    }
+
+    .subtitle {
+        font-size: 0.82rem;
+    }
+
+    .tabs {
+        margin-bottom: 10px;
+    }
+
+    .tabs button,
+    button {
+        padding: 8px 9px;
+    }
+
+    label {
+        margin: 9px 0 4px;
+    }
+
+    input,
+    select {
+        padding: 8px 9px;
+    }
+
+    button.primary {
+        margin-top: 12px;
+    }
+
+    .form-message {
+        font-size: 0.78rem;
+    }
+}
+
 @media (max-width: 360px) {
     body {
         padding: 8px;
