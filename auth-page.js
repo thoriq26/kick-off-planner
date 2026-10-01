@@ -23,6 +23,7 @@
     const email = document.getElementById("email");
     const passwordLabel = document.getElementById("passwordLabel");
     const password = document.getElementById("password");
+    const passwordField = document.getElementById("passwordField");
     const confirmPassword = document.getElementById("confirmPassword");
     const submitButton = document.getElementById("submitButton");
     const forgotButton = document.getElementById("forgotButton");
@@ -42,6 +43,34 @@
         resendButton.hidden = !resendEmail;
     }
 
+    function setPasswordToggleState(button, visible) {
+        button.classList.toggle("is-visible", visible);
+        button.setAttribute(
+            "aria-label",
+            visible ? "Sembunyikan password" : "Tampilkan password",
+        );
+        const icon = button.querySelector("i");
+        if (icon) icon.className = visible ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+    }
+
+    function resetPasswordToggles() {
+        document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+            const target = document.getElementById(button.dataset.passwordToggle);
+            if (target) target.type = "password";
+            setPasswordToggleState(button, false);
+        });
+    }
+
+    document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const target = document.getElementById(button.dataset.passwordToggle);
+            if (!target) return;
+            const visible = target.type === "text";
+            target.type = visible ? "password" : "text";
+            setPasswordToggleState(button, !visible);
+        });
+    });
+
     function setMode(nextMode) {
         mode = nextMode;
         resetMode = false;
@@ -59,7 +88,9 @@
         password.disabled = false;
         password.required = true;
         password.hidden = false;
+        passwordField.hidden = false;
         passwordLabel.hidden = false;
+        resetPasswordToggles();
         password.setAttribute("autocomplete", signup ? "new-password" : "current-password");
         confirmPassword.setAttribute("autocomplete", "new-password");
         submitButton.textContent = signup ? "DAFTAR SEKARANG" : "MASUK";
@@ -167,6 +198,7 @@
         password.disabled = true;
         password.required = false;
         password.hidden = true;
+        passwordField.hidden = true;
         passwordLabel.hidden = true;
         resendButton.hidden = true;
         submitButton.textContent = "KIRIM TAUTAN RESET";

@@ -6,6 +6,10 @@
         <title>Auth - KickOff Planner</title>
         <link rel="icon" type="image/png" href="aaa.png" />
         <link rel="stylesheet" href="auth.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
     </head>
     <body>
         <main class="auth-shell">
@@ -27,10 +31,30 @@
                     <label for="email">EMAIL</label>
                     <input id="email" name="email" type="email" autocomplete="email" required />
                     <label id="passwordLabel" for="password">PASSWORD</label>
-                    <input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required />
+                    <div class="password-field" id="passwordField">
+                        <input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required />
+                        <button
+                            class="password-toggle"
+                            type="button"
+                            data-password-toggle="password"
+                            aria-label="Tampilkan password"
+                        >
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
                     <div id="confirmField" hidden>
                         <label for="confirmPassword">KONFIRMASI PASSWORD</label>
-                        <input id="confirmPassword" name="confirmPassword" type="password" minlength="6" autocomplete="new-password" />
+                        <div class="password-field">
+                            <input id="confirmPassword" name="confirmPassword" type="password" minlength="6" autocomplete="new-password" />
+                            <button
+                                class="password-toggle"
+                                type="button"
+                                data-password-toggle="confirmPassword"
+                                aria-label="Tampilkan konfirmasi password"
+                            >
+                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
                     <button class="primary" id="submitButton" type="submit">MASUK</button>
                     <button class="link-button" id="forgotButton" type="button">LUPA PASSWORD?</button>

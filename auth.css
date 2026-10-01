@@ -137,6 +137,42 @@ select:focus {
     border-color: var(--green);
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    color: #64748b;
+    background: transparent;
+    transform: translateY(-50%);
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+    color: var(--green);
+    background: #eef9f1;
+    outline: none;
+}
+
+.password-toggle i {
+    font-size: 16px;
+    pointer-events: none;
+}
+
 .form-message {
     min-height: 22px;
     margin: 12px 0 0;
