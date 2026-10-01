@@ -582,6 +582,7 @@
                 font-size: 0.78rem;
                 font-weight: 800;
                 cursor: pointer;
+                text-decoration: none;
                 transition: 0.2s;
             }
             .share-button:hover {
@@ -2243,6 +2244,16 @@
 
                 const shareActions = document.createElement("div");
                 shareActions.className = "invite-share-actions";
+                const addShareLink = (label, icon, className, href) => {
+                    const link = document.createElement("a");
+                    link.className = `share-button ${className}`;
+                    link.href = href;
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                    link.innerHTML = `<i class="${icon}"></i> ${label}`;
+                    shareActions.appendChild(link);
+                    return link;
+                };
                 const addShareButton = (label, icon, className, handler) => {
                     const button = document.createElement("button");
                     button.type = "button";
@@ -2252,16 +2263,18 @@
                     shareActions.appendChild(button);
                     return button;
                 };
-                addShareButton("WHATSAPP", "fa-brands fa-whatsapp", "share-whatsapp", () => {
-                    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener,noreferrer");
-                });
-                addShareButton("TELEGRAM", "fa-brands fa-telegram-plane", "share-telegram", () => {
-                    window.open(
-                        `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareMessage)}`,
-                        "_blank",
-                        "noopener,noreferrer",
-                    );
-                });
+                addShareLink(
+                    "WHATSAPP",
+                    "fa-brands fa-whatsapp",
+                    "share-whatsapp",
+                    `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+                );
+                addShareLink(
+                    "TELEGRAM",
+                    "fa-brands fa-telegram-plane",
+                    "share-telegram",
+                    `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareMessage)}`,
+                );
                 addShareButton("BAGIKAN LAINNYA", "fa-solid fa-share-nodes", "share-other", async () => {
                     if (navigator.share) {
                         try {
