@@ -60,7 +60,8 @@
         password.required = true;
         password.hidden = false;
         passwordLabel.hidden = false;
-        password.autocomplete = signup ? "new-password" : "current-password";
+        password.setAttribute("autocomplete", signup ? "new-password" : "current-password");
+        confirmPassword.setAttribute("autocomplete", "new-password");
         submitButton.textContent = signup ? "DAFTAR SEKARANG" : "MASUK";
         forgotButton.hidden = signup;
         resendButton.hidden = false;
@@ -70,6 +71,20 @@
     async function redirectAfterAuth() {
         window.location.replace(next);
     }
+
+    form.addEventListener(
+        "invalid",
+        (event) => {
+            if (event.target === email) {
+                showMessage("Masukkan email yang valid.", "error");
+            } else if (event.target === password) {
+                showMessage("Isi password dengan minimal 6 karakter.", "error");
+            } else if (event.target === confirmPassword) {
+                showMessage("Ulangi password pada kolom konfirmasi.", "error");
+            }
+        },
+        true,
+    );
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();

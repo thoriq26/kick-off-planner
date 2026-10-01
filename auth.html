@@ -22,15 +22,15 @@
                 <form id="authForm">
                     <div id="nameField" hidden>
                         <label for="fullName">NAMA LENGKAP</label>
-                        <input id="fullName" type="text" autocomplete="name" />
+                        <input id="fullName" name="name" type="text" autocomplete="name" />
                     </div>
                     <label for="email">EMAIL</label>
-                    <input id="email" type="email" autocomplete="email" required />
+                    <input id="email" name="email" type="email" autocomplete="email" required />
                     <label id="passwordLabel" for="password">PASSWORD</label>
-                    <input id="password" type="password" minlength="6" autocomplete="current-password" required />
+                    <input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required />
                     <div id="confirmField" hidden>
                         <label for="confirmPassword">KONFIRMASI PASSWORD</label>
-                        <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" />
+                        <input id="confirmPassword" name="confirmPassword" type="password" minlength="6" autocomplete="new-password" />
                     </div>
                     <button class="primary" id="submitButton" type="submit">MASUK</button>
                     <button class="link-button" id="forgotButton" type="button">LUPA PASSWORD?</button>
