@@ -105,20 +105,20 @@
                 margin-right: 8px;
             }
             .nav-home {
-                display: inline-flex;
+                display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                flex: 0 1 auto;
-                min-width: 0;
+                align-self: center;
+                width: fit-content;
                 max-width: 100%;
-                padding: 10px 14px;
-                border: 2px solid rgba(255, 255, 255, 0.45);
-                border-radius: 8px;
+                padding: 9px 16px;
+                border: 2px solid rgba(255, 255, 255, 0.4);
+                border-radius: 999px;
                 color: white;
-                background: rgba(0, 0, 0, 0.2);
-                font-weight: bold;
-                font-size: 0.8rem;
+                background: rgba(0, 0, 0, 0.22);
+                font-weight: 700;
+                font-size: 0.78rem;
                 text-decoration: none;
                 white-space: nowrap;
                 transition: 0.3s;
@@ -1477,8 +1477,9 @@
                 }
 
                 .nav-home {
-                    width: 100%;
+                    align-self: center;
                     min-height: 44px;
+                    padding: 10px 14px;
                 }
 
                 .navbar-top {
@@ -1528,9 +1529,9 @@
                 </div>
             </div>
             <a class="nav-home" href="index.html" aria-label="Kembali ke halaman utama">
-                <i class="fa-solid fa-house"></i>
-                <span>HALAMAN UTAMA</span>
-            </a>
+                    <i class="fa-solid fa-house"></i>
+                    <span>Kembali ke Home</span>
+                </a>
         </div>
 
         <!-- ============ ADMIN SHELL ============ -->
