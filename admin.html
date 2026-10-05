@@ -1474,7 +1474,7 @@
         <div class="navbar">
             <span class="nav-title"
                 ><i class="fa-solid fa-user-shield"></i
-                ><span>ADMIN PANEL</span></span
+                ><span>PANEL ADMIN</span></span
             >
             <div class="nav-actions" id="navActions">
                 <select class="nav-community-select" id="adminCommunitySelect" aria-label="Pilih komunitas"></select>
@@ -1519,9 +1519,9 @@
                         <form id="playerForm">
                             <div class="input-group">
                                 <div>
-                                    <label>MEMBER</label>
+                                    <label>ANGGOTA</label>
                                     <select id="playerMember" required>
-                                        <option value="">Memuat member...</option>
+                                        <option value="">Memuat anggota...</option>
                                     </select>
                                 </div>
                                 <div>
@@ -1619,9 +1619,9 @@
                         </div>
                         <ol>
                             <li>Pastikan data pemain di tab "Data Pemain" sudah lengkap.</li>
-                            <li>Pilih jumlah tim (2/3/4) lalu klik <b>SHUFFLE</b> — pemain akan diacak merata berdasarkan posisi.</li>
+                            <li>Pilih jumlah tim (2/3/4) lalu klik <b>ACAK TIM</b> — pemain akan diacak merata berdasarkan posisi.</li>
                             <li>Pemain berstatus <b>SPECTATOR (FAN)</b> otomatis tidak diikutkan undian.</li>
-                            <li>Klik <b>RESET</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
+                            <li>Klik <b>ULANGI PEMBAGIAN</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
                             <li>Hasil undian ini akan tampil kepada member komunitas di halaman Team Draft.</li>
                         </ol>
                     </div>
@@ -1636,10 +1636,10 @@
                                 <option value="4">4 TIM</option>
                             </select>
                             <button class="btn-action btn-submit" style="flex: none; padding: 10px 20px;" onclick="confirmShuffle()">
-                                <i class="fa-solid fa-shuffle"></i> SHUFFLE
+                                <i class="fa-solid fa-shuffle"></i> ACAK TIM
                             </button>
                             <button class="btn-action btn-reset" style="flex: none; padding: 10px 20px;" onclick="confirmResetDraft()">
-                                <i class="fa-solid fa-rotate-right"></i> RESET
+                                <i class="fa-solid fa-rotate-right"></i> ULANGI PEMBAGIAN
                             </button>
                         </div>
                     </div>
@@ -1659,8 +1659,8 @@
                         <ol>
                             <li>Isi detail pertandingan, jadwal, admission fee, pembayaran, dan lokasi.</li>
                             <li>Untuk lokasi, gunakan kode embed iframe Google Maps, bukan link share biasa.</li>
-                            <li>Klik <b>PUBLISH MATCH</b> agar member dapat melihat dan mengunggah bukti transfer.</li>
-                            <li>Gunakan <b>RESET</b> untuk match baru atau <b>ARCHIVE</b> untuk menyimpan riwayat.</li>
+                            <li>Klik <b>PUBLIKASIKAN</b> agar anggota dapat melihat dan mengunggah bukti transfer.</li>
+                            <li>Gunakan <b>RESET</b> untuk pertandingan baru atau <b>ARSIPKAN</b> untuk menyimpan riwayat.</li>
                         </ol>
                     </div>
 
@@ -1698,12 +1698,12 @@
                         </div>
                         <div class="btn-group" style="margin-bottom: 12px;">
                             <button class="btn-action btn-save" onclick="updateInfo()">
-                                <i class="fa-solid fa-circle-check"></i> PUBLISH MATCH
+                                <i class="fa-solid fa-circle-check"></i> PUBLIKASIKAN
                             </button>
                         </div>
                         <div class="btn-group">
                             <button class="btn-action btn-archive" onclick="archiveMatch()">
-                                <i class="fa-solid fa-box-archive"></i> ARCHIVE
+                                <i class="fa-solid fa-box-archive"></i> ARSIPKAN
                             </button>
                             <button class="btn-action btn-reset" onclick="resetMatchOnly()">
                                 <i class="fa-solid fa-rotate-left"></i> RESET
@@ -1730,7 +1730,7 @@
                         </div>
                         <div class="table-container">
                             <table>
-                                <thead><tr><th>MEMBER</th><th>FILE</th><th>STATUS</th><th>AKSI</th></tr></thead>
+                                <thead><tr><th>ANGGOTA</th><th>FILE</th><th>STATUS</th><th>AKSI</th></tr></thead>
                                 <tbody id="paymentProofTableBody"></tbody>
                             </table>
                         </div>
@@ -1752,7 +1752,7 @@
                         <h2><i class="fa-solid fa-link"></i> Buat Link Undangan</h2>
                         <div class="input-group">
                             <div>
-                                <label>ROLE MEMBER</label>
+                                <label>PERAN ANGGOTA</label>
                                 <select id="inviteRole">
                                     <option value="member">MEMBER</option>
                                     <option value="admin">ADMIN</option>
@@ -1796,7 +1796,7 @@
             </button>
             <button class="account-btn logout-btn" onclick="doLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i>
-                <span>LOGOUT</span>
+                <span>KELUAR</span>
             </button>
             <p class="account-note">Owner/Admin komunitas <b id="accountCommunityName">-</b></p>
         </div>
@@ -1857,6 +1857,13 @@
 
             const POS_ORDER = ["GK","CB","LB","RB","LWB","RWB","DMF","CMF","AMF","LMF","RMF","LWF","RWF","SS","CF"];
             const TEAM_NAMES = ["Red", "Blue", "Green", "Purple"];
+            // Database stores English team names; only the label shown to users is localized.
+            const TEAM_LABELS = {
+                Red: "Merah",
+                Blue: "Biru",
+                Green: "Hijau",
+                Purple: "Ungu",
+            };
             const PROOF_STATUS_META = {
                 submitted: { label: "Menunggu", className: "proof-status-pending" },
                 verified: { label: "Terverifikasi", className: "proof-status-verified" },
@@ -2096,7 +2103,7 @@
                     grid.innerHTML = `
                         <div class="waiting-box" style="grid-column:1/-1;">
                             <i class="fa-solid fa-users-viewfinder"></i>
-                            <p>Belum ada hasil undian.<br>Hasil akan muncul setelah SHUFFLE.</p>
+                            <p>Hasil pembagian tim belum tersedia.</p>
                         </div>`;
                 } else {
                     renderTeams(players);
@@ -2116,7 +2123,7 @@
                     if (teamPlayers.length > 0) {
                         html += `
                             <div class="team-card">
-                                <div class="team-header header-${color.toLowerCase()}">${color} Team</div>
+                                <div class="team-header header-${color.toLowerCase()}">Tim ${TEAM_LABELS[color] || color}</div>
                                 <div>
                                     ${teamPlayers.map((p) => `
                                         <div class="player-item">

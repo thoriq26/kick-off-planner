@@ -7,7 +7,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
         />
-        <title>Event History - KickOff Planner</title>
+        <title>Riwayat Event - KickOff Planner</title>
 
         <link
             rel="stylesheet"
@@ -112,6 +112,15 @@
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 overflow: hidden;
+            }
+
+            .empty-state {
+                background: rgba(255, 255, 255, 0.98);
+                color: #64748b;
+                text-align: center;
+                padding: 40px 16px;
+                border-radius: 12px;
+                font-size: 0.92rem;
             }
 
             summary {
@@ -375,7 +384,7 @@
                     ><i class="fa-solid fa-arrow-left"></i
                 ></a>
             </div>
-            <div class="nav-label">Event History</div>
+            <div class="nav-label">Riwayat Event</div>
         </div>
 
         <div class="container" id="historyList"></div>
@@ -412,7 +421,7 @@
                 if (totalPages > 1) {
                     html += `
                     <div class="mini-pagination-container">
-                        <div class="mini-info-text">Showing ${start + 1} to ${end} of ${total} entries</div>
+                        <div class="mini-info-text">Menampilkan ${start + 1}–${end}</div>
                         <div class="mini-btns">`;
                     for (let j = 1; j <= totalPages; j++) {
                         html += `<button class="mini-btn ${j === page ? "active" : ""}" onclick="changeSquadPage('${eventId}', ${j})">${j}</button>`;
@@ -443,7 +452,14 @@
                     .eq("community_id", context.community.id)
                     .order("created_at", { ascending: false });
                 if (error) return;
-                totalData = data;
+                totalData = data || [];
+                if (!totalData.length) {
+                    const container = document.getElementById("historyList");
+                    container.innerHTML =
+                        '<div class="empty-state">Belum ada riwayat event.</div>';
+                    document.getElementById("paginationControls").innerHTML = "";
+                    return;
+                }
                 renderPage(1);
             }
 
@@ -475,10 +491,10 @@
                             <div class="info-grid">
                                 <div class="match-info"><i class="fa-solid fa-location-dot"></i> ${window.KOP.escapeHtml(item.location_name)}</div>
                                 <div class="match-info"><i class="fa-solid fa-calendar"></i> ${window.KOP.escapeHtml(formatDateTime(item.match_date))}</div>
-                                <div class="match-info"><i class="fa-solid fa-users"></i> ${window.KOP.escapeHtml(item.player_count)} Participants</div>
+                                <div class="match-info"><i class="fa-solid fa-users"></i> ${window.KOP.escapeHtml(item.player_count)} Peserta</div>
                             </div>
                             <div class="squad-section">
-                                <span class="squad-label">ATTENDANCE LIST</span>
+                                <span class="squad-label">DAFTAR HADIR</span>
                                 <div id="squad-container-${item.id}"></div>
                             </div>
                         </div>

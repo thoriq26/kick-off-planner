@@ -231,7 +231,7 @@
             <a href="index.html" class="home-link">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
-            <span class="nav-title">TEAM DRAFT</span>
+            <span class="nav-title">PEMBAGIAN TIM</span>
         </div>
 
         <div class="team-grid" id="mainGrid"></div>
@@ -261,6 +261,13 @@
                 "CF",
             ];
             const TEAM_NAMES = ["Red", "Blue", "Green", "Purple"];
+            // Database stores English team names; only the label shown to users is localized.
+            const TEAM_LABELS = {
+                Red: "Merah",
+                Blue: "Biru",
+                Green: "Hijau",
+                Purple: "Ungu",
+            };
 
             // --- TEAM DRAFT DISPLAY LOGIC (READ-ONLY) ---
             async function loadData() {
@@ -281,7 +288,7 @@
                     grid.innerHTML = `
                         <div class="waiting-box">
                             <i class="fa-solid fa-users-viewfinder"></i>
-                            <p>Draft results not available yet.<br>Results will appear after Shuffle.</p>
+                            <p>Hasil pembagian tim belum tersedia.</p>
                         </div>`;
                 } else {
                     renderTeams(players);
@@ -307,7 +314,7 @@
                     if (teamPlayers.length > 0) {
                         html += `
                             <div class="team-card">
-                                <div class="team-header header-${color.toLowerCase()}">${color} Team</div>
+                                <div class="team-header header-${color.toLowerCase()}">Tim ${TEAM_LABELS[color] || color}</div>
                                 <div class="player-list">
                                     ${teamPlayers
                                         .map(

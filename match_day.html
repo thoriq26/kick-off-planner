@@ -7,7 +7,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
         />
-        <title>Match Info - KickOff Planner</title>
+        <title>Info Pertandingan - KickOff Planner</title>
 
         <link
             rel="stylesheet"
@@ -638,7 +638,7 @@
                     ><i class="fa-solid fa-arrow-left"></i
                 ></a>
             </div>
-            <div class="nav-label">Match Day</div>
+            <div class="nav-label">Hari Pertandingan</div>
         </div>
 
         <div class="container">
@@ -648,9 +648,9 @@
                         <i class="fa-solid fa-trophy"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Event Name</span>
+                        <span class="info-label">Nama_Event</span>
                         <span id="displayEvent" class="info-value loading-text"
-                            >Scanning events...</span
+                            >Memuat data...</span
                         >
                     </div>
                 </div>
@@ -659,11 +659,11 @@
                         <i class="fa-solid fa-calendar-day"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Date & Time</span>
+                        <span class="info-label">Tanggal & Waktu</span>
                         <span
                             id="displayDateTime"
                             class="info-value loading-text"
-                            >Checking schedule...</span
+                            >Memuat jadwal...</span
                         >
                     </div>
                 </div>
@@ -672,9 +672,9 @@
                         <i class="fa-solid fa-shirt"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Jersey Color</span>
+                        <span class="info-label">Warna Jersey</span>
                         <span id="displayJersey" class="info-value loading-text"
-                            >Waiting info...</span
+                            >Belum diatur...</span
                         >
                     </div>
                 </div>
@@ -683,7 +683,7 @@
                         <i class="fa-solid fa-ticket"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Admission Fee</span>
+                        <span class="info-label">Biaya Pendaftaran</span>
                         <span class="info-value"
                             >IDR
                             <span id="displayHtm" class="loading-text"
@@ -697,11 +697,11 @@
                         <i class="fa-solid fa-wallet"></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Payment Gateway</span>
+                        <span class="info-label">Info Pembayaran</span>
                         <span
                             id="displayRekening"
                             class="info-value loading-text"
-                            >Waiting info...</span
+                            >Belum diatur...</span
                         >
                     </div>
                 </div>
@@ -713,10 +713,10 @@
                         ></i>
                     </div>
                     <div class="info-content">
-                        <span class="info-label">Match Status</span>
+                        <span class="info-label">Status Pertandingan</span>
                         <div>
                             <span id="statusBadge" class="badge"
-                                >Checking...</span
+                                >Memuat...</span
                             >
                         </div>
                     </div>
@@ -724,17 +724,17 @@
             </div>
 
             <section class="payment-proof-card" id="paymentProofCard" hidden>
-                <h2><i class="fa-solid fa-receipt"></i> Bukti Transfer Admission</h2>
-                <p>Upload screenshot atau PDF bukti transfer. File disimpan secara private dan hanya dapat dilihat oleh Anda serta owner/admin komunitas.</p>
+                <h2><i class="fa-solid fa-receipt"></i> Bukti Transfer</h2>
+                <p>Unggah screenshot atau PDF bukti transfer. File disimpan secara private dan hanya dapat dilihat oleh Anda serta owner/admin komunitas.</p>
                 <form class="payment-proof-form" id="paymentProofForm">
                     <input id="paymentProofFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required />
-                    <button id="paymentProofSubmit" type="submit">UPLOAD BUKTI</button>
+                    <button id="paymentProofSubmit" type="submit">UNGGAH BUKTI BAYAR</button>
                 </form>
                 <p class="payment-proof-message" id="paymentProofMessage"></p>
             </section>
 
             <div class="stadium-name loading-text" id="displayNama">
-                LOCATING STADIUM...
+                MEMUAT NAMA LAPANGAN...
             </div>
 
             <div id="mapContainer" class="map-frame">
@@ -903,7 +903,7 @@
                     <div class="map-placeholder" role="status" aria-live="polite">
                         <div class="map-radar" aria-hidden="true"><span class="map-radar-dot"></span></div>
                         <div class="map-placeholder-content">
-                            <div class="map-placeholder-badge"><i class="fa-solid fa-location-dot"></i> MAPS LOCATION </div>
+                            <div class="map-placeholder-badge"><i class="fa-solid fa-location-dot"></i> LOKASI LAPANGAN </div>
                             <div class="map-placeholder-icon"><i class="fa-solid fa-futbol"></i></div>
                             <div class="map-placeholder-title">TBA</div>
                             <p class="map-placeholder-subtitle">Lokasi lapangan sedang disiapkan. Akan berubah saat jadwal resmi diumumkan.</p>
@@ -928,13 +928,13 @@
                     );
                     document.getElementById("displayEvent").innerText = "TBA";
                     document.getElementById("displayNama").innerText = "TBA";
-                    document.getElementById("displayDateTime").innerText = "Schedule TBA";
+                    document.getElementById("displayDateTime").innerText = "Jadwal menyusul";
                     document.getElementById("displayJersey").innerText = "TBA";
                     document.getElementById("displayHtm").innerText = "0";
                     document.getElementById("displayRekening").innerText = "TBA";
                     const badge = document.getElementById("statusBadge");
                     const icon = document.getElementById("statusIcon");
-                    badge.innerText = "WAITING";
+                    badge.innerText = "MENUNGGU";
                     badge.classList.add("PENDING");
                     icon.className = "fa-solid fa-clock";
                     icon.style.color = "#e74c3c";
@@ -961,26 +961,26 @@
                     );
 
                     document.getElementById("displayEvent").innerText =
-                        data.event_name || "No Event Scheduled";
+                        data.event_name || "Belum ada pertandingan";
                     document.getElementById("displayNama").innerText =
-                        data.nama_lp || "Stadium TBA";
+                        data.nama_lp || "Lapangan TBA";
                     document.getElementById("displayJersey").innerText =
-                        data.jersey || "Not Set";
+                        data.jersey || "Belum diatur";
                     document.getElementById("displayHtm").innerText =
                         data.htm || "0";
                     document.getElementById("displayRekening").innerText =
-                        data.rekening || "Not Set";
+                        data.rekening || "Belum diatur";
 
                     const badge = document.getElementById("statusBadge");
                     const icon = document.getElementById("statusIcon");
 
                     if (!data.event_name || data.event_name === "TBA") {
-                        badge.innerText = "WAITING";
+                        badge.innerText = "MENUNGGU";
                         badge.classList.add("PENDING");
                         icon.className = "fa-solid fa-clock";
                         icon.style.color = "#e74c3c";
                     } else {
-                        badge.innerText = "CONFIRMED";
+                        badge.innerText = "TERKONFIRMASI";
                         badge.classList.remove("PENDING");
                         icon.className = "fa-solid fa-circle-check";
                         icon.style.color = "#27ae60";
@@ -991,7 +991,7 @@
                             data.waktu.replace("T", " | ") + " WIB";
                     } else {
                         document.getElementById("displayDateTime").innerText =
-                            "Schedule TBA";
+                            "Jadwal menyusul";
                     }
 
                     // Map Logic: only a Google Embed iframe is rendered.

@@ -7,7 +7,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
         />
-        <title>Confirmation List - KickOff Planner</title>
+        <title>Daftar Peserta - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -336,23 +336,23 @@
             <a href="index.html" class="home-link"
                 ><i class="fa-solid fa-arrow-left"></i
             ></a>
-            <span class="nav-title">CONFIRMATION LIST</span>
+            <span class="nav-title">DAFTAR PESERTA</span>
         </div>
 
         <div class="container" id="registrationContainer">
-            <h2><i class="fa-solid fa-user-pen"></i> Registration Form</h2>
+            <h2><i class="fa-solid fa-user-pen"></i> Formulir Pendaftaran</h2>
             <form id="playerForm">
                 <div class="input-group">
-                    <label>PLAYER NAME</label>
+                    <label>NAMA PEMAIN</label>
                     <input
                         type="text"
                         id="nama"
-                        placeholder="Enter name..."
+                        placeholder="Masukkan nama kamu..."
                         required
                     />
                 </div>
                 <div class="input-group">
-                    <label>POSITION</label>
+                    <label>POSISI</label>
                     <select id="posisi">
                         <option value="GK">GK</option>
                         <option value="CB">CB</option>
@@ -364,12 +364,12 @@
                         <option value="LWF">LWF</option>
                         <option value="RWF">RWF</option>
                         <option value="CF">CF</option>
-                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                        <option value="SPECTATOR (FAN)">PENONTON</option>
                     </select>
                 </div>
                 <div class="btn-group">
                     <button type="submit" class="btn-action btn-submit">
-                        <i class="fa-solid fa-check"></i> SIGN ME UP!
+                        <i class="fa-solid fa-check"></i> DAFTAR SEKARANG!
                     </button>
                 </div>
             </form>
@@ -378,8 +378,8 @@
         <div class="table-container-outer">
             <div class="table-header">
                 <span
-                    ><i class="fa-solid fa-users"></i> Registered
-                    Attendees</span
+                    ><i class="fa-solid fa-users"></i> Peserta
+                    Terdaftar</span
                 >
                 <span
                     style="
@@ -397,7 +397,7 @@
                     <thead>
                         <tr>
                             <th style="width: 60px; text-align: center">NO</th>
-                            <th>NAME</th>
+                            <th>NAMA</th>
                             <th>POS</th>
                         </tr>
                     </thead>
@@ -467,10 +467,10 @@
                         p_position: posisi,
                     });
                     if (!error) {
-                        alert("Registered successfully!");
+                        alert("Pendaftaran berhasil!");
                         muatPemain();
                     } else {
-                        alert("Registration failed: " + error.message);
+                        alert("Pendaftaran gagal: " + error.message);
                     }
                 });
 

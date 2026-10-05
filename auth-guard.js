@@ -154,7 +154,7 @@
         bar.replaceChildren();
         const user = await getUser();
         if (!user) {
-            const login = addTextElement(bar, "a", "LOGIN / REGISTER", "account-link");
+            const login = addTextElement(bar, "a", "MASUK / DAFTAR", "account-link");
             login.href = "auth.html";
             return;
         }
@@ -163,7 +163,7 @@
         const communities = await getCommunities(user);
         let selectedCommunity = null;
         if (communities.length === 0) {
-            const onboarding = addTextElement(bar, "a", "CREATE / JOIN COMMUNITY", "account-link");
+            const onboarding = addTextElement(bar, "a", "BUAT / GABUNG KOMUNITAS", "account-link");
             onboarding.href = "onboarding.html";
         } else {
             const rememberedId = localStorage.getItem(storageKey);
@@ -181,15 +181,15 @@
                 window.location.reload();
             });
             bar.dataset.communityId = selectedCommunity.id;
-            const joinAnother = addTextElement(bar, "a", "JOIN / CREATE", "account-link");
+            const joinAnother = addTextElement(bar, "a", "GABUNG / BUAT", "account-link");
             joinAnother.href = "onboarding.html";
         }
 
         if (selectedCommunity && ["owner", "admin"].includes(selectedCommunity.role)) {
-            const admin = addTextElement(bar, "a", "ADMIN PANEL", "account-link");
+            const admin = addTextElement(bar, "a", "PANEL ADMIN", "account-link");
             admin.href = "admin.html";
         }
-        const logout = addTextElement(bar, "button", "LOGOUT", "account-link account-button");
+        const logout = addTextElement(bar, "button", "KELUAR", "account-link account-button");
         logout.addEventListener("click", signOut);
     }
 
