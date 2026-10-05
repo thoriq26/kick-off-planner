@@ -2364,19 +2364,37 @@
             }
 
             async function openPaymentProof(storagePath) {
+                // Open a tab synchronously. Calling window.open after an await is
+                // treated as not user-initiated and gets blocked by the popup blocker.
+                const viewer = window.open("", "_blank", "noopener,noreferrer");
+                const showError = (message) => {
+                    alert("Bukti tidak dapat dibuka: " + message);
+                    if (viewer && !viewer.closed) viewer.close();
+                };
+
                 const { data, error } = await _supabase.storage
                     .from("payment-proofs")
                     .createSignedUrl(storagePath, 300);
                 if (error || !data?.signedUrl) {
-                    alert("Bukti tidak dapat dibuka: " + (error?.message || "URL bertanda tidak tersedia"));
+                    showError(error?.message || "URL bertanda tidak tersedia");
                     return;
                 }
+
                 // Supabase returns a project-relative path, so it must be resolved
                 // against the Storage origin. Opening it as-is would hit this site.
+                const base = _supabase.supabaseUrl || "";
                 const signedPath = data.signedUrl.startsWith("http")
                     ? data.signedUrl
-                    : `${_supabase.supabaseUrl}/storage/v1${data.signedUrl}`;
-                window.open(signedPath, "_blank", "noopener,noreferrer");
+                    : `${base}/storage/v1${data.signedUrl}`;
+                if (!base) {
+                    showError("Alamat Storage tidak tersedia");
+                    return;
+                }
+                if (viewer) {
+                    viewer.location.href = signedPath;
+                } else {
+                    window.location.href = signedPath;
+                }
             }
 
             function openPaymentProofStatusEditor(proofId, currentStatus) {
