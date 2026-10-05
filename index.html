@@ -42,6 +42,8 @@
                 min-height: 100svh;
                 display: flex;
                 flex-direction: column;
+                justify-content: center;
+                gap: 18px;
             }
 
             /* --- WRAPPER HERO (posisi kiri atas) --- */
@@ -95,7 +97,6 @@
 
             /* --- ISI KONTEN (TOMBOL) --- */
             .isi-konten {
-                flex: 1;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -156,27 +157,30 @@
 
             /* --- FOOTER --- */
             .footer {
-                padding: 20px;
+                padding: 18px 12px;
                 background: none;
                 color: white;
                 text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 14px;
             }
 
+            /* Akun selalu di paling bawah, tidak pernah menabrak header. */
             .account-bar {
-                position: fixed;
-                top: 16px;
-                right: 20px;
-                z-index: 10;
                 display: flex;
                 align-items: center;
                 flex-wrap: wrap;
-                justify-content: flex-end;
+                justify-content: center;
                 gap: 8px;
-                max-width: min(620px, calc(100vw - 40px));
-                padding: 8px 10px;
+                width: calc(100% - 24px);
+                max-width: 460px;
+                margin: 0 auto;
+                padding: 10px;
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 10px;
-                background: rgba(15, 36, 24, 0.88);
+                border-radius: 12px;
+                background: rgba(15, 36, 24, 0.9);
                 color: white;
                 font-size: 0.75rem;
             }
@@ -219,16 +223,6 @@
 
             /* --- MEDIA QUERIES --- */
             @media screen and (max-width: 768px) {
-                .account-bar {
-                    position: relative;
-                    top: auto;
-                    right: auto;
-                    width: calc(100% - 24px);
-                    max-width: 100%;
-                    margin: 12px auto 0;
-                    justify-content: center;
-                }
-
                 .hero-wrapper {
                     width: 100%;
                     padding: 28px 18px 8px;
@@ -316,7 +310,6 @@
         </style>
     </head>
     <body>
-        <div class="account-bar" id="accountBar"></div>
         <div class="container-utama">
             <div class="hero-wrapper">
                 <header class="hero">
@@ -345,6 +338,7 @@
             </main>
 
             <footer class="footer">
+                <div class="account-bar" id="accountBar"></div>
                 <p class="h1-footer">KickOff Planner © 2026 by Thoriq.</p>
             </footer>
         </div>

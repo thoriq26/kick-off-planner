@@ -17,7 +17,7 @@
             /* --- RESET & BACKGROUND --- */
             html,
             body {
-                height: 100%;
+                min-height: 100%;
                 margin: 0;
                 padding: 0;
             }
@@ -25,7 +25,7 @@
                 font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
+                align-items: stretch;
                 min-height: 100vh;
                 min-height: 100svh;
                 width: 100%;
@@ -38,7 +38,7 @@
                     url("geminix.jpg");
                 background-position: center center;
                 background-repeat: no-repeat;
-                background-attachment: fixed;
+                background-attachment: scroll;
                 background-size: cover;
                 background-color: #1a1a1a;
             }
@@ -47,13 +47,14 @@
             .navbar {
                 background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
-                width: 100%;
+                box-sizing: border-box;
+                width: calc(100% - 24px);
                 max-width: 1000px;
                 border-radius: 12px;
                 margin-bottom: 20px;
                 min-height: 64px;
                 height: auto;
-                padding: 12px 64px;
+                padding: 12px clamp(40px, 11vw, 64px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -78,22 +79,31 @@
                 color: white;
                 font-weight: 900;
                 letter-spacing: clamp(0.5px, 0.6vw, 2px);
-                font-size: clamp(1rem, 4.2vw, 1.6rem);
+                font-size: clamp(0.8rem, 3.4vw, 1.6rem);
                 text-align: center;
                 min-width: 0;
+                max-width: 100%;
                 overflow-wrap: anywhere;
+                word-break: break-word;
                 text-transform: uppercase;
             }
 
             /* --- CONTAINER (Registration) --- */
+            .navbar,
+            .container,
+            .table-container-outer {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
             .container {
                 background-color: white;
                 padding: clamp(18px, 4vw, 30px);
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                width: 100%;
+                width: calc(100% - 24px);
                 max-width: 600px;
-                margin-bottom: 25px;
+                margin-bottom: 20px;
                 box-sizing: border-box;
             }
 
@@ -176,13 +186,14 @@
 
             /* --- TABLE --- */
             .table-container-outer {
-                width: 100%;
+                width: calc(100% - 24px);
                 max-width: 1000px;
                 background: white;
                 border-radius: 12px;
                 padding: clamp(14px, 3vw, 25px);
                 box-sizing: border-box;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                overflow-wrap: anywhere;
             }
 
             .table-header {
@@ -259,7 +270,7 @@
 
             @media (max-width: 700px) {
                 .table-container table {
-                    min-width: 520px;
+                    min-width: 100%;
                 }
             }
 
@@ -280,7 +291,8 @@
                 }
 
                 .nav-title {
-                    font-size: clamp(0.95rem, 4.2vw, 1.2rem);
+                    font-size: clamp(0.78rem, 3.4vw, 1.2rem);
+                    letter-spacing: 0.5px;
                 }
 
                 h2 {
