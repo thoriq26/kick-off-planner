@@ -73,14 +73,21 @@
                 margin-bottom: 20px;
                 min-height: 70px;
                 display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
                 position: relative;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 padding: 12px 20px;
+            }
+            .navbar-top {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                min-width: 0;
             }
             .nav-title {
                 color: white;
@@ -105,7 +112,7 @@
                 flex: 0 1 auto;
                 min-width: 0;
                 max-width: 100%;
-                padding: 8px 14px;
+                padding: 10px 14px;
                 border: 2px solid rgba(255, 255, 255, 0.45);
                 border-radius: 8px;
                 color: white;
@@ -1471,7 +1478,12 @@
 
                 .nav-home {
                     width: 100%;
-                    min-height: 42px;
+                    min-height: 44px;
+                }
+
+                .navbar-top {
+                    justify-content: center;
+                    text-align: center;
                 }
 
                 .nav-actions {
@@ -1506,17 +1518,19 @@
     </head>
     <body>
         <div class="navbar">
-            <span class="nav-title"
-                ><i class="fa-solid fa-user-shield"></i
-                ><span>PANEL ADMIN</span></span
-            >
+            <div class="navbar-top">
+                <span class="nav-title"
+                    ><i class="fa-solid fa-user-shield"></i
+                    ><span>PANEL ADMIN</span></span
+                >
+                <div class="nav-actions" id="navActions">
+                    <select class="nav-community-select" id="adminCommunitySelect" aria-label="Pilih komunitas"></select>
+                </div>
+            </div>
             <a class="nav-home" href="index.html" aria-label="Kembali ke halaman utama">
                 <i class="fa-solid fa-house"></i>
                 <span>HALAMAN UTAMA</span>
             </a>
-            <div class="nav-actions" id="navActions">
-                <select class="nav-community-select" id="adminCommunitySelect" aria-label="Pilih komunitas"></select>
-            </div>
         </div>
 
         <!-- ============ ADMIN SHELL ============ -->
