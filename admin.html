@@ -2367,11 +2367,16 @@
                 const { data, error } = await _supabase.storage
                     .from("payment-proofs")
                     .createSignedUrl(storagePath, 300);
-                if (error) {
-                    alert("Bukti tidak dapat dibuka: " + error.message);
+                if (error || !data?.signedUrl) {
+                    alert("Bukti tidak dapat dibuka: " + (error?.message || "URL bertanda tidak tersedia"));
                     return;
                 }
-                window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+                // Supabase returns a project-relative path, so it must be resolved
+                // against the Storage origin. Opening it as-is would hit this site.
+                const signedPath = data.signedUrl.startsWith("http")
+                    ? data.signedUrl
+                    : `${_supabase.supabaseUrl}/storage/v1${data.signedUrl}`;
+                window.open(signedPath, "_blank", "noopener,noreferrer");
             }
 
             function openPaymentProofStatusEditor(proofId, currentStatus) {
