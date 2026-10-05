@@ -97,6 +97,35 @@
                 color: #27ae60;
                 margin-right: 8px;
             }
+            .nav-home {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                flex: 0 1 auto;
+                min-width: 0;
+                max-width: 100%;
+                padding: 8px 14px;
+                border: 2px solid rgba(255, 255, 255, 0.45);
+                border-radius: 8px;
+                color: white;
+                background: rgba(0, 0, 0, 0.2);
+                font-weight: bold;
+                font-size: 0.8rem;
+                text-decoration: none;
+                white-space: nowrap;
+                transition: 0.3s;
+            }
+            .nav-home span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .nav-home:hover {
+                border-color: #27ae60;
+                background: #27ae60;
+                color: white;
+            }
             .nav-actions {
                 display: none;
                 align-items: center;
@@ -1440,6 +1469,11 @@
                     letter-spacing: 1px;
                 }
 
+                .nav-home {
+                    width: 100%;
+                    min-height: 42px;
+                }
+
                 .nav-actions {
                     gap: 6px;
                 }
@@ -1476,6 +1510,10 @@
                 ><i class="fa-solid fa-user-shield"></i
                 ><span>PANEL ADMIN</span></span
             >
+            <a class="nav-home" href="index.html" aria-label="Kembali ke halaman utama">
+                <i class="fa-solid fa-house"></i>
+                <span>HALAMAN UTAMA</span>
+            </a>
             <div class="nav-actions" id="navActions">
                 <select class="nav-community-select" id="adminCommunitySelect" aria-label="Pilih komunitas"></select>
             </div>
