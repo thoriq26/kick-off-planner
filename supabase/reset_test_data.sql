@@ -25,6 +25,9 @@ begin
     if to_regclass('public.community_players') is not null then
         execute 'delete from public.community_players';
     end if;
+    if to_regclass('public.community_invite_uses') is not null then
+        execute 'delete from public.community_invite_uses';
+    end if;
     if to_regclass('public.community_invites') is not null then
         execute 'delete from public.community_invites';
     end if;
@@ -64,4 +67,5 @@ commit;
 --   community_matches       0
 --   community_event_history 0
 --   community_invites       0
+--   community_invite_uses   0
 --   community_payment_proofs 0

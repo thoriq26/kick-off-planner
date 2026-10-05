@@ -2,7 +2,8 @@
 -- This removes community/application data and recreates an empty schema on the
 -- next migration run, but intentionally DOES NOT delete auth.users accounts.
 -- Review before running. Run once in Supabase SQL Editor, then run migrations
--- 20260924000000, 20260924010000, 20260924020000, and 20260924025000 in order.
+-- 20260924000000, 20260924010000, 20260924020000, 20260924025000, and
+-- 20260924030000 in order.
 --
 -- Supabase intentionally blocks direct DELETE from storage.objects. Delete the
 -- payment-proof bucket through Dashboard > Storage (or the Storage API) before
@@ -25,6 +26,7 @@ drop function if exists public.create_community(text, text) cascade;
 drop function if exists public.create_community_invite(uuid, text, integer, integer) cascade;
 drop function if exists public.list_community_invites(uuid) cascade;
 drop function if exists public.revoke_community_invite(uuid) cascade;
+drop function if exists public.list_community_invite_users(uuid) cascade;
 drop function if exists public.accept_community_invite(text) cascade;
 drop function if exists public.publish_community_match(uuid, text, text, text, text, text, text, text) cascade;
 drop function if exists public.archive_community_match(uuid) cascade;
@@ -42,6 +44,7 @@ drop table if exists public.community_payment_proofs cascade;
 drop table if exists public.community_event_history cascade;
 drop table if exists public.community_matches cascade;
 drop table if exists public.community_players cascade;
+drop table if exists public.community_invite_uses cascade;
 drop table if exists public.community_invites cascade;
 drop table if exists public.community_members cascade;
 drop table if exists public.communities cascade;

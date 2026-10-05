@@ -49,12 +49,13 @@ query once in the listed order. Do not continuously rerun completed migrations.
 3. Then run [`migrations/20260924010000_short_invite_codes.sql`](migrations/20260924010000_short_invite_codes.sql) to generate short `KOP-...` invitation codes.
 4. Run [`migrations/20260924020000_payment_proofs.sql`](migrations/20260924020000_payment_proofs.sql) to create the private `payment-proofs` bucket, metadata table, and storage RLS.
 5. Run [`migrations/20260924025000_fix_invite_ambiguity.sql`](migrations/20260924025000_fix_invite_ambiguity.sql) to fix the invite redemption function used by the onboarding page.
-6. In **Authentication → URL Configuration**, set the site URL to the production origin.
-7. Add the production auth redirect URLs:
+6. Run [`migrations/20260924030000_invite_usage_audit.sql`](migrations/20260924030000_invite_usage_audit.sql) to record which account accepted each invitation. It powers the **LIHAT DAFTAR** button in the Undangan tab. Invitations accepted before this migration have no usage history and will show an empty list.
+7. In **Authentication → URL Configuration**, set the site URL to the production origin.
+8. Add the production auth redirect URLs:
    - `https://YOUR-DOMAIN/auth.html`
    - `https://YOUR-DOMAIN/reset-password.html`
    - `https://YOUR-DOMAIN/join.html` (for older direct invite links)
-8. Keep email confirmation enabled for production. Configure SMTP before relying
+9. Keep email confirmation enabled for production. Configure SMTP before relying
    on password reset for real users.
 
 The migration creates new `community_*` tables and does not drop the old public
