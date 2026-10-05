@@ -2364,38 +2364,95 @@
             }
 
             async function openPaymentProof(storagePath) {
-                // Open a tab synchronously. Calling window.open after an await is
-                // treated as not user-initiated and gets blocked by the popup blocker.
-                // "noopener" must not be passed here: it makes window.open return null,
-                // which would send the fallback down window.location and replace this tab.
-                const viewer = window.open("", "_blank");
-                const showError = (message) => {
-                    alert("Bukti tidak dapat dibuka: " + message);
-                    if (viewer && !viewer.closed) viewer.close();
+                if (!storagePath) {
+                    alert("Bukti tidak dapat dibuka: path file kosong.");
+                    return;
+                }
+
+                // Open the tab synchronously inside the click handler. Any await before
+                // window.open makes the call "not user-initiated" and the popup blocker
+                // silently drops it. "noopener" is deliberately omitted because it makes
+                // window.open return null, which would break the navigation below.
+                let viewer = null;
+                try {
+                    viewer = window.open("about:blank", "_blank");
+                } catch {
+                    viewer = null;
+                }
+
+                const closeViewer = () => {
+                    try {
+                        if (viewer && !viewer.closed) viewer.close();
+                    } catch {
+                        /* ignore */
+                    }
                 };
 
-                const { data, error } = await _supabase.storage
-                    .from("payment-proofs")
-                    .createSignedUrl(storagePath, 300);
-                if (error || !data?.signedUrl) {
-                    showError(error?.message || "URL bertanda tidak tersedia");
+                const failWithLink = (message, url) => {
+                    alert(
+                        `${message}\n\nURL bukti (salin ke browser bila tab tidak terbuka):\n${
+                            url || "tidak tersedia"
+                        }`,
+                    );
+                    closeViewer();
+                };
+
+                if (viewer) {
+                    try {
+                        viewer.document.title = "Memuat bukti...";
+                        viewer.document.body.textContent = "Memuat bukti transfer...";
+                    } catch {
+                        /* ignore */
+                    }
+                }
+
+                let signedUrl = null;
+                try {
+                    const { data, error } = await _supabase.storage
+                        .from("payment-proofs")
+                        .createSignedUrl(storagePath, 300);
+                    if (error) {
+                        failWithLink("Bukti tidak dapat dibuka: " + error.message);
+                        return;
+                    }
+                    signedUrl = data?.signedUrl || null;
+                } catch (exception) {
+                    failWithLink("Bukti tidak dapat dibuka: " + (exception?.message || "kesalahan jaringan"));
                     return;
                 }
 
-                // Supabase returns a project-relative path, so it must be resolved
-                // against the Storage origin. Opening it as-is would hit this site.
+                // Supabase returns a project-relative path ("/object/sign/..."), so it
+                // must be resolved against the Storage origin before it is opened.
                 const base = _supabase.supabaseUrl || "";
-                const signedPath = data.signedUrl.startsWith("http")
-                    ? data.signedUrl
-                    : `${base}/storage/v1${data.signedUrl}`;
-                if (!base) {
-                    showError("Alamat Storage tidak tersedia");
+                let fullUrl = signedUrl;
+                if (fullUrl && !fullUrl.startsWith("http")) {
+                    fullUrl = `${base}/storage/v1${fullUrl}`;
+                }
+
+                if (!fullUrl) {
+                    failWithLink("Bukti tidak dapat dibuka: URL bertanda tidak tersedia.");
                     return;
                 }
+
                 if (viewer && !viewer.closed) {
-                    viewer.location.href = signedPath;
-                } else {
-                    window.open(signedPath, "_blank", "noopener,noreferrer");
+                    try {
+                        viewer.location.replace(fullUrl);
+                        return;
+                    } catch {
+                        /* fall through to the anchor fallback */
+                    }
+                }
+
+                // Popup was blocked, or the blank tab was closed. Open a real anchor so
+                // the browser still gets a user-initiated navigation.
+                try {
+                    const link = document.createElement("a");
+                    link.href = fullUrl;
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                    link.click();
+                } catch {
+                    failWithLink("Popup diblokir browser. Izinkan popups untuk situs ini.", fullUrl);
                 }
             }
 
