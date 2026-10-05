@@ -2366,7 +2366,9 @@
             async function openPaymentProof(storagePath) {
                 // Open a tab synchronously. Calling window.open after an await is
                 // treated as not user-initiated and gets blocked by the popup blocker.
-                const viewer = window.open("", "_blank", "noopener,noreferrer");
+                // "noopener" must not be passed here: it makes window.open return null,
+                // which would send the fallback down window.location and replace this tab.
+                const viewer = window.open("", "_blank");
                 const showError = (message) => {
                     alert("Bukti tidak dapat dibuka: " + message);
                     if (viewer && !viewer.closed) viewer.close();
@@ -2391,9 +2393,11 @@
                     return;
                 }
                 if (viewer) {
-                    viewer.location.href = signedPath;
+                    // Detach the new tab from this window once navigation is set up.
+                    viewer.opener = null;
+                    viewer.location.replace(signedPath);
                 } else {
-                    window.location.href = signedPath;
+                    window.open(signedPath, "_blank", "noopener,noreferrer");
                 }
             }
 
