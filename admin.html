@@ -2392,10 +2392,8 @@
                     showError("Alamat Storage tidak tersedia");
                     return;
                 }
-                if (viewer) {
-                    // Detach the new tab from this window once navigation is set up.
-                    viewer.opener = null;
-                    viewer.location.replace(signedPath);
+                if (viewer && !viewer.closed) {
+                    viewer.location.href = signedPath;
                 } else {
                     window.open(signedPath, "_blank", "noopener,noreferrer");
                 }
