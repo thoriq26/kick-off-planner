@@ -3759,12 +3759,19 @@
                     edit.type = "button";
                     edit.title = "Isi / perbarui hasil pertandingan";
                     edit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
-                    edit.addEventListener("click", () => {
+                    edit.addEventListener("click", async () => {
                         switchTab("archive");
+
+                        // The editor groups players per team, so the team split must be
+                        // loaded first. switchTab fires loadArchivePlayers() without
+                        // awaiting it, which would render an empty editor.
+                        await loadArchivePlayers();
+
                         archiveFixtures = fixtures.length
                             ? fixtures
                             : buildRoundRobin(archiveActiveTeams(), selectedRounds());
                         renderFixtureEditor(archiveFixtures);
+
                         window._editingArchiveId = row.id;
                         const note = document.getElementById("archiveEditingNote");
                         if (note) {
