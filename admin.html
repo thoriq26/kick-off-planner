@@ -3377,10 +3377,12 @@
                 host.replaceChildren();
 
                 if (source.length < 1) {
-                    const empty = document.createElement("p");
+                    const empty = document.createElement("div");
                     empty.className = "no-result";
-                    empty.textContent =
-                        "Belum ada 2 tim hasil undian, jadi belum ada pertandingan yang bisa diisi. Anda tetap bisa mengarsipkan tanpa skor.";
+                    empty.style.padding = "14px";
+                    empty.textContent = window._editingArchiveId
+                        ? "Event ini diarsipkan tanpa pembagian tim, jadi tidak ada pertandingan yang bisa diisi skor. Hapus event ini dari riwayat, lalu lakukan Undi Tim dan arsipkan ulang."
+                        : "Belum ada 2 tim hasil undian, jadi belum ada pertandingan yang bisa diisi. Anda tetap bisa mengarsipkan tanpa skor.";
                     host.appendChild(empty);
                     return;
                 }
@@ -3807,11 +3809,57 @@
                             .scrollIntoView({ behavior: "smooth", block: "start" });
                     });
                     group.appendChild(edit);
+
+                    const remove = document.createElement("button");
+                    remove.className = "btn-table btn-delete";
+                    remove.type = "button";
+                    remove.title = "Hapus event dari riwayat";
+                    remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                    remove.addEventListener("click", () =>
+                        deleteArchivedEvent(row, remove),
+                    );
+                    group.appendChild(remove);
+
                     actions.appendChild(group);
 
                     tr.append(eventCell, dateCell, scoreCell, playerCell, actions);
                     body.appendChild(tr);
                 });
+            }
+
+            async function deleteArchivedEvent(row, button) {
+                const label = row.event_name || "event ini";
+                if (
+                    !confirm(
+                        `Hapus "${label}" dari riwayat?\n\n` +
+                            "Riwayat, jadwal, dan hasil akan hilang permanen.",
+                    )
+                ) {
+                    return;
+                }
+                button.disabled = true;
+                const { error } = await _supabase
+                    .from("community_event_history")
+                    .delete()
+                    .eq("id", row.id)
+                    .eq("community_id", context.community.id);
+                if (error) {
+                    alert("Riwayat tidak dapat dihapus: " + describeRpcError(error));
+                    button.disabled = false;
+                    return;
+                }
+                if (window._editingArchiveId === row.id) {
+                    window._editingArchiveId = null;
+                    const note = document.getElementById("archiveEditingNote");
+                    if (note) note.hidden = true;
+                    const submit = document.getElementById("archiveSubmitButton");
+                    if (submit) {
+                        submit.innerHTML =
+                            '<i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG';
+                    }
+                    resetArchiveForm();
+                }
+                await loadArchiveList();
             }
 
             /* ==================================================
