@@ -2138,7 +2138,12 @@
                         <div id="fixtureEditor"></div>
 
                         <div class="btn-group" style="margin-top:18px;">
-                            <button class="btn-action btn-archive" type="button" onclick="submitArchive()">
+                            <button
+                                class="btn-action btn-archive"
+                                id="archiveSubmitButton"
+                                type="button"
+                                onclick="submitArchive()"
+                            >
                                 <i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG
                             </button>
                             <button class="btn-action btn-cancel" type="button" onclick="resetArchiveForm()">
@@ -3668,6 +3673,13 @@
                     return;
                 }
                 alert("Pertandingan berhasil diarsipkan!");
+                const submitLabel = document.getElementById("archiveSubmitButton");
+                if (submitLabel) {
+                    submitLabel.innerHTML =
+                        '<i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG';
+                }
+                const editingNote = document.getElementById("archiveEditingNote");
+                if (editingNote) editingNote.hidden = true;
                 currentMatch = null;
                 archivePlayersByTeam = {};
                 archiveFixtures = [];
@@ -3759,17 +3771,26 @@
                     edit.type = "button";
                     edit.title = "Isi / perbarui hasil pertandingan";
                     edit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
-                    edit.addEventListener("click", async () => {
+                    edit.addEventListener("click", () => {
                         switchTab("archive");
 
-                        // The editor groups players per team, so the team split must be
-                        // loaded first. switchTab fires loadArchivePlayers() without
-                        // awaiting it, which would render an empty editor.
-                        await loadArchivePlayers();
+                        // Archiving deletes the community's player rows, so the live
+                        // player list is empty. The archived event carries its own
+                        // team split snapshot, which is what the editor must use.
+                        archivePlayersByTeam = {};
+                        const snapshot =
+                            row.team_players && typeof row.team_players === "object"
+                                ? row.team_players
+                                : {};
+                        Object.entries(snapshot).forEach(([team, players]) => {
+                            if (Array.isArray(players) && players.length) {
+                                archivePlayersByTeam[team] = players;
+                            }
+                        });
 
                         archiveFixtures = fixtures.length
                             ? fixtures
-                            : buildRoundRobin(archiveActiveTeams(), selectedRounds());
+                            : buildRoundRobin(archiveActiveTeams());
                         renderFixtureEditor(archiveFixtures);
 
                         window._editingArchiveId = row.id;
@@ -3778,6 +3799,9 @@
                             note.textContent = `Sedang mengedit: ${row.event_name}`;
                             note.hidden = false;
                         }
+                        const submit = document.getElementById("archiveSubmitButton");
+                        if (submit) submit.innerHTML =
+                            '<i class="fa-solid fa-floppy-disk"></i> SIMPAN HASIL';
                         document
                             .getElementById("archiveMatchName")
                             .scrollIntoView({ behavior: "smooth", block: "start" });
