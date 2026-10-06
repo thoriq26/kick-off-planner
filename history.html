@@ -269,6 +269,22 @@
                 background: #8e44ad;
                 border-color: #8e44ad;
             }
+            .team-chip-orange.active {
+                background: #e67e22;
+                border-color: #e67e22;
+            }
+            .team-chip-pink.active {
+                background: #d6336c;
+                border-color: #d6336c;
+            }
+            .team-chip-teal.active {
+                background: #20c997;
+                border-color: #20c997;
+            }
+            .team-chip-navy.active {
+                background: #1f3a93;
+                border-color: #1f3a93;
+            }
             .td-team {
                 font-size: 0.74rem;
                 font-weight: 800;
@@ -278,6 +294,10 @@
             .team-blue { color: #2980b9; }
             .team-green { color: #27ae60; }
             .team-purple { color: #8e44ad; }
+            .team-orange { color: #e67e22; }
+            .team-pink { color: #d6336c; }
+            .team-teal { color: #0ca678; }
+            .team-navy { color: #1f3a93; }
             .team-tanpa_tim { color: #64748b; }
 
             summary {
@@ -570,9 +590,16 @@
                 Blue: "Biru",
                 Green: "Hijau",
                 Purple: "Ungu",
+                Orange: "Oranye",
+                Pink: "Merah Muda",
+                Teal: "Toska",
+                Navy: "Biru Tua",
                 "Tanpa Tim": "Tanpa Tim",
             };
-            const TEAM_ORDER = ["Red", "Blue", "Green", "Purple", "Tanpa Tim"];
+            const TEAM_ORDER = [
+                "Red", "Blue", "Green", "Purple",
+                "Orange", "Pink", "Teal", "Navy", "Tanpa Tim",
+            ];
 
             function normalizeTeamName(team) {
                 const match = TEAM_ORDER.find(
