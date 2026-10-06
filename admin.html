@@ -1934,7 +1934,8 @@
                             <li>Pemain berstatus <b>SPECTATOR (FAN)</b> otomatis tidak diikutkan undian.</li>
                             <li>Klik <b>ULANGI PEMBAGIAN</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
                             <li>Hasil undian ini akan tampil kepada member komunitas di halaman Team Draft.</li>
-                            <li>Setelah undi, cek <b>Jadwal Pertandingan</b>. Untuk 3 tim otomatis ada 3 pertandingan (A vs B, B vs C, A vs C).</li>
+                            <li>Setelah undi, cek <b>Jadwal Pertandingan</b>. Untuk 3 tim satu siklus penuh hanya 3 pertandingan (A vs B, B vs C, A vs C).</li>
+                            <li>Atur <b>Jumlah ronde</b> di Pengaturan Jadwal bila hanya ingin:main sebagian ronde.</li>
                             <li>Skor tiap pertandingan diisi di tab <b>Arsipkan</b>.</li>
                         </ol>
                     </div>
@@ -1958,6 +1959,21 @@
                     </div>
 
                     <div class="card">
+                        <h2><i class="fa-solid fa-sliders"></i> Pengaturan Jadwal</h2>
+                        <p class="member-hint">
+                            Tentukan berapa ronde yang dimainkan. Untuk 3 tim, satu siklus penuh
+                            adalah 3 pertandingan (A vs B, B vs C, A vs C) — bukan 6.
+                        </p>
+                        <div class="draft-controls" style="margin-bottom:0;">
+                            <span class="label-text">Jumlah ronde:</span>
+                            <select id="numRounds" onchange="refreshArchiveSchedule()"
+                                style="width: auto; padding: 10px;">
+                                <option value="">Belum ada tim</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card">
                         <h2><i class="fa-solid fa-people-group"></i> Hasil Pembagian Tim</h2>
                         <div class="team-grid" id="mainGrid"></div>
                     </div>
@@ -1965,9 +1981,9 @@
                     <div class="card">
                         <h2><i class="fa-solid fa-calendar-days"></i> Jadwal Pertandingan</h2>
                         <p class="member-hint">
-                            Jadwal round-robin dibuat otomatis: setiap tim bertemu setiap tim lain sekali.
-                           (round 1) Merah vs Biru — (round 2) Biru vs Hijau — (round 3) Merah vs Hijau.
-                            Skor diisi di tab <b>Arsipkan</b>.
+                            Jadwal round-robin dibuat otomatis: setiap tim bertemu setiap tim lain sekali
+                            dalam satu siklus. Untuk 3 tim cukup 3 pertandingan (A vs B, B vs C, A vs C).
+                            Jumlah ronde diatur di <b>Pengaturan Jadwal</b>. Skor diisi di tab <b>Arsipkan</b>.
                         </p>
                         <div class="table-container">
                             <table>
@@ -3082,20 +3098,26 @@
             }
 
             // Client-side round robin so the admin sees the schedule instantly.
-            // The server regenerates it and drops anything that does not match.
-            function buildRoundRobin(teams) {
+            // With 3 teams this yields exactly 3 pairings, never 6. The server
+            // regenerates the same schedule and drops anything that does not match.
+            function buildRoundRobin(teams, maxRounds) {
                 if (teams.length < 2) return [];
                 const pool = [...teams];
+                // The circle method needs an even field; a BYE slot rotates with
+                // the rest, which is what keeps every pairing unique.
                 if (pool.length % 2 === 1) pool.push("__BYE__");
-                const totalRounds = pool.length - 1;
+                const fieldSize = pool.length;
+                const fullRounds = fieldSize - 1;
+                const roundsToRun = maxRounds
+                    ? Math.min(Math.max(1, maxRounds), fullRounds)
+                    : fullRounds;
                 let rotating = [...pool];
                 const schedule = [];
 
-                for (let round = 1; round <= totalRounds; round += 1) {
-                    const half = pool.length / 2;
-                    for (let i = 0; i < half; i += 1) {
+                for (let round = 1; round <= roundsToRun; round += 1) {
+                    for (let i = 0; i < fieldSize / 2; i += 1) {
                         const first = rotating[i];
-                        const second = rotating[pool.length - 1 - i];
+                        const second = rotating[fieldSize - 1 - i];
                         if (first === "__BYE__" || second === "__BYE__") continue;
                         const swap = round % 2 === 0;
                         schedule.push({
@@ -3104,17 +3126,62 @@
                             away: swap ? first : second,
                         });
                     }
+                    // Keep position 0 fixed, move the last entry to position 1,
+                    // shift the rest right. Reversing the inner block repeats
+                    // pairings on later rounds.
                     const rest = [...rotating];
-                    rotating = [rotating[0]];
-                    for (let i = 1; i < rotating.length; i += 1) {
-                        rotating.push(rest[rest.length - i - 1]);
-                    }
+                    rotating = [rest[0], rest[fieldSize - 1], ...rest.slice(1, fieldSize - 1)];
                 }
                 return schedule;
             }
 
+            function maxRoundsForTeamCount(teamCount) {
+                if (teamCount < 2) return 0;
+                const fieldSize = teamCount % 2 === 0 ? teamCount : teamCount + 1;
+                return fieldSize - 1;
+            }
+
+            function selectedRounds() {
+                const max = maxRoundsForTeamCount(archiveActiveTeams().length);
+                const raw = Number(document.getElementById("numRounds")?.value || 0);
+                if (!raw || raw <= 0) return max;
+                return Math.min(Math.max(1, raw), max);
+            }
+
+            function refreshRoundOptions() {
+                const select = document.getElementById("numRounds");
+                if (!select) return;
+                const max = maxRoundsForTeamCount(archiveActiveTeams().length);
+                if (max < 1) {
+                    select.replaceChildren();
+                    const none = document.createElement("option");
+                    none.value = "";
+                    none.textContent = "Belum ada tim";
+                    select.appendChild(none);
+                    select.disabled = true;
+                    return;
+                }
+                select.disabled = false;
+                const previous = Number(select.value);
+                select.replaceChildren();
+                for (let rounds = 1; rounds <= max; rounds += 1) {
+                    const option = document.createElement("option");
+                    option.value = String(rounds);
+                    option.textContent =
+                        rounds === max ? `${rounds} ronde (penuh)` : `${rounds} ronde`;
+                    select.appendChild(option);
+                }
+                select.value = String(
+                    previous >= 1 && previous <= max ? previous : max,
+                );
+            }
+
             function refreshArchiveSchedule() {
-                archiveFixtures = buildRoundRobin(archiveActiveTeams());
+                refreshRoundOptions();
+                archiveFixtures = buildRoundRobin(
+                    archiveActiveTeams(),
+                    selectedRounds(),
+                );
                 renderFixtureTable();
                 renderFixtureEditor();
             }
@@ -3532,7 +3599,7 @@
 
                 const { error } = await _supabase.rpc("archive_community_match", {
                     p_community: context.community.id,
-                    p_result: { fixtures },
+                    p_result: { fixtures, rounds: selectedRounds() },
                 });
                 if (error) {
                     alert("Gagal mengarsipkan: " + error.message);
@@ -3634,7 +3701,7 @@
                         switchTab("archive");
                         archiveFixtures = fixtures.length
                             ? fixtures
-                            : buildRoundRobin(archiveActiveTeams());
+                            : buildRoundRobin(archiveActiveTeams(), selectedRounds());
                         renderFixtureEditor(archiveFixtures);
                         window._editingArchiveId = row.id;
                         const note = document.getElementById("archiveEditingNote");

@@ -7,10 +7,13 @@
 alter table public.community_event_history
     add column if not exists fixtures jsonb not null default '[]'::jsonb;
 
--- Build a single round-robin schedule. Every team meets every other team once.
--- The rotation algorithm needs an even field, so an odd team count gets a hidden
--- BYE slot that never produces a fixture.
-create or replace function public.generate_round_robin(p_teams text[])
+-- Build a round-robin schedule. With 3 teams a full cycle yields exactly
+-- A vs B, B vs C, A vs C — never six games. p_rounds caps how many rounds are
+-- generated so an admin can play a single round instead of a full cycle.
+create or replace function public.generate_round_robin(
+    p_teams text[],
+    p_rounds integer default null
+)
 returns jsonb
 language plpgsql
 immutable
@@ -18,11 +21,13 @@ set search_path = public, extensions
 as $$
 declare
     teams text[];
-    total_rounds integer;
+    full_rounds integer;
+    rounds_to_run integer;
     rotating text[];
     rest text[];
+    field_size integer;
     i integer;
-    fixture_no integer;
+    pair_index integer;
     output jsonb := '[]'::jsonb;
     home_team text;
     away_team text;
@@ -41,20 +46,28 @@ begin
         return output;
     end if;
 
+    -- The circle method needs an even field, so an odd team count gets a hidden
+    -- BYE slot. It rotates like any other entry, which is what keeps every
+    -- pairing unique across the rounds.
     if array_length(teams, 1) % 2 = 1 then
         teams := array_append(teams, '__BYE__');
     end if;
 
-    total_rounds := array_length(teams, 1) - 1;
+    field_size := array_length(teams, 1);
+    full_rounds := field_size - 1;
+    rounds_to_run := full_rounds;
+
+    if p_rounds is not null then
+        rounds_to_run := greatest(1, least(p_rounds, full_rounds));
+    end if;
+
     rotating := teams;
 
-    for i in 1..total_rounds loop
-        fixture_no := 0;
-
+    for i in 1..rounds_to_run loop
         -- Pair the outside entries and work inwards.
-        while fixture_no + 1 < array_length(rotating, 1) / 2 + 1 loop
-            home_team := rotating[fixture_no + 1];
-            away_team := rotating[array_length(rotating, 1) - fixture_no];
+        for pair_index in 0..(field_size / 2 - 1) loop
+            home_team := rotating[pair_index + 1];
+            away_team := rotating[field_size - pair_index];
 
             if home_team <> '__BYE__' and away_team <> '__BYE__' then
                 -- Alternate home/away between rounds so nobody plays two home
@@ -77,15 +90,15 @@ begin
                     );
                 end if;
             end if;
-
-            fixture_no := fixture_no + 1;
         end loop;
 
-        -- Rotate every entry except the first one.
+        -- Circle rotation: keep position 1 fixed, move the last entry into
+        -- position 2, and shift everything else right by one. Reversing the inner
+        -- block instead would repeat the same pairings in later rounds.
         rest := rotating;
-        rotating := array[rotating[1]];
-        for fixture_no in 2..array_length(rotating, 1) loop
-            rotating := rotating || (rest[array_length(rest, 1) - fixture_no + 2]);
+        rotating := array[rest[1], rest[field_size]];
+        for pair_index in 2..(field_size - 1) loop
+            rotating := rotating || (rest[pair_index]);
         end loop;
     end loop;
 
@@ -93,7 +106,7 @@ begin
 end;
 $$;
 
-revoke all on function public.generate_round_robin(text[]) from public, anon, authenticated;
+revoke all on function public.generate_round_robin(text[], integer) from public, anon, authenticated;
 
 -- Reuse the existing per-entry sanitizer for the nested goal/assist/card lists.
 create or replace function public.normalize_fixture_result(p_incoming jsonb)
@@ -280,7 +293,8 @@ begin
         array(
             select jsonb_object_keys(team_split)
             where jsonb_object_keys(team_split) <> 'Tanpa Tim'
-        )
+        ),
+        public.safe_int(p_result ->> 'rounds', 0, 99)
     );
 
     submitted_fixtures := coalesce(p_result -> 'fixtures', '[]'::jsonb);
@@ -387,7 +401,8 @@ begin
                         '{}'::jsonb
                     )
                 ) <> 'Tanpa Tim'
-            )
+            ),
+            public.safe_int(p_result ->> 'rounds', 0, 99)
         );
     end if;
 
