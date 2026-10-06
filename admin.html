@@ -931,6 +931,58 @@
                 color: #94a3b8;
                 font-size: 0.9rem;
             }
+            .member-hint {
+                margin: -6px 0 14px;
+                color: #64748b;
+                font-size: 0.8rem;
+                line-height: 1.5;
+            }
+            .member-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 5px 10px;
+                border-radius: 999px;
+                font-size: 0.72rem;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .member-status::before {
+                content: "";
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: currentColor;
+            }
+            .member-status-active {
+                color: #166534;
+                background: #dcfce7;
+            }
+            .member-status-inactive {
+                color: #991b1b;
+                background: #fee2e2;
+            }
+            .member-row-inactive td {
+                background-color: #fff1f2;
+            }
+            .member-role {
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 5px;
+                background: #e2e8f0;
+                color: #334155;
+                font-size: 0.7rem;
+                font-weight: 800;
+                letter-spacing: 0.03em;
+            }
+            .member-role-owner {
+                background: #fef3c7;
+                color: #92400e;
+            }
+            .member-role-admin {
+                background: #dbeafe;
+                color: #1d4ed8;
+            }
 
             /* ============ TEAM DRAFT ============ */
             .draft-controls {
@@ -1802,6 +1854,7 @@
                             <li>Buat kode undangan untuk komunitas <b id="inviteCommunityName">ini</b>.</li>
                             <li>Kirim tautan undangan menggunakan tombol WhatsApp, Telegram, atau Bagikan Lainnya. Kode akan otomatis terisi di halaman onboarding.</li>
                             <li>Klik <b>LIHAT DAFTAR</b> di Undangan Aktif untuk melihat nama dan email akun yang sudah memakai kode undangan tersebut.</li>
+                            <li>Di <b>Anggota Terdaftar</b>, ubah status akun menjadi NONAKTIF untuk menonaktifkan akses, atau HAPUS untuk melepas anggota.</li>
                             <li>Kode dapat kedaluwarsa atau dibatalkan dari daftar undangan.</li>
                         </ol>
                     </div>
@@ -1835,6 +1888,27 @@
                             <table>
                                 <thead><tr><th>ROLE</th><th>KADALUARSA</th><th>TERPAKAI</th><th>AKSI</th></tr></thead>
                                 <tbody id="inviteTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2><i class="fa-solid fa-users-gear"></i> Anggota Terdaftar</h2>
+                        <p class="member-hint">
+                           _NONAKTIF tidak bisa membuka halaman komunitas. Hapus anggota melepas akses
+                            dan data pemainnya, tetapi akun login tetap ada.
+                        </p>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>NAMA</th>
+                                        <th>EMAIL</th>
+                                        <th>PERAN</th>
+                                        <th>STATUS</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="memberTableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1968,6 +2042,7 @@
                 loadDraft();
                 loadMatchInfo();
                 loadInvites();
+                loadMembersTable();
             }
 
             window.onload = async function () {
@@ -2885,6 +2960,159 @@
                     siteLink,
                 );
                 await loadInvites();
+            }
+
+            /* ==================================================
+               TAB 4: MANAJEMEN ANGGOTA
+               ================================================== */
+            const MEMBER_ROLE_LABELS = {
+                owner: "OWNER",
+                admin: "ADMIN",
+                member: "MEMBER",
+            };
+
+            function renderMembers(rows) {
+                const body = document.getElementById("memberTableBody");
+                if (!body) return;
+
+                if (!rows.length) {
+                    body.innerHTML =
+                        '<tr><td colspan="5" class="empty-state">Belum ada anggota terdaftar.</td></tr>';
+                    return;
+                }
+
+                body.replaceChildren();
+                rows.forEach((row) => {
+                    const role = row.role || "member";
+                    const isSelf = row.user_id === context.user.id;
+                    const tr = document.createElement("tr");
+                    if (!row.is_active) tr.className = "member-row-inactive";
+
+                    const name = document.createElement("td");
+                    name.style.fontWeight = "600";
+                    name.textContent = row.full_name || "(tanpa nama)";
+                    if (isSelf) {
+                        const you = document.createElement("span");
+                        you.textContent = " (Anda)";
+                        you.style.fontSize = "0.72rem";
+                        you.style.color = "#64748b";
+                        name.appendChild(you);
+                    }
+
+                    const email = document.createElement("td");
+                    email.textContent = row.email || "email tidak tersedia";
+
+                    const roleCell = document.createElement("td");
+                    const badge = document.createElement("span");
+                    badge.className = `member-role member-role-${role}`;
+                    badge.textContent = MEMBER_ROLE_LABELS[role] || role.toUpperCase();
+                    roleCell.appendChild(badge);
+
+                    const statusCell = document.createElement("td");
+                    const status = document.createElement("span");
+                    status.className = `member-status member-status-${
+                        row.is_active ? "active" : "inactive"
+                    }`;
+                    status.textContent = row.is_active ? "AKTIF" : "NONAKTIF";
+                    statusCell.appendChild(status);
+
+                    const actions = document.createElement("td");
+                    const group = document.createElement("div");
+                    group.className = "action-cell";
+
+                    if (isSelf) {
+                        const note = document.createElement("span");
+                        note.style.fontSize = "0.72rem";
+                        note.style.color = "#94a3b8";
+                        note.textContent = "Tidak bisa diubah";
+                        group.appendChild(note);
+                    } else {
+                        const toggle = document.createElement("button");
+                        toggle.className = `btn-table ${
+                            row.is_active ? "btn-status-edit" : "btn-save"
+                        }`;
+                        toggle.type = "button";
+                        toggle.title = row.is_active
+                            ? "Jadikan nonaktif"
+                            : "Jadikan aktif";
+                        toggle.innerHTML = row.is_active
+                            ? '<i class="fa-solid fa-user-slash"></i>'
+                            : '<i class="fa-solid fa-user-check"></i>';
+                        toggle.addEventListener("click", () =>
+                            toggleMemberStatus(row, !row.is_active, toggle),
+                        );
+                        group.appendChild(toggle);
+
+                        const remove = document.createElement("button");
+                        remove.className = "btn-table btn-delete";
+                        remove.type = "button";
+                        remove.title = "Hapus anggota";
+                        remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                        remove.addEventListener("click", () => removeMember(row, remove));
+                        group.appendChild(remove);
+                    }
+
+                    actions.appendChild(group);
+                    tr.append(name, email, roleCell, statusCell, actions);
+                    body.appendChild(tr);
+                });
+            }
+
+            async function loadMembersTable() {
+                const body = document.getElementById("memberTableBody");
+                if (!body) return;
+                const { data, error } = await _supabase.rpc("list_community_members", {
+                    p_community: context.community.id,
+                });
+                if (error) {
+                    if (/does not exist|not found|schema cache/i.test(error.message || "")) {
+                        body.innerHTML =
+                            '<tr><td colspan="5" class="empty-state">Fitur ini butuh migration terbaru. Jalankan <b>20260924040000_member_status.sql</b> di Supabase SQL Editor.</td></tr>';
+                        return;
+                    }
+                    body.innerHTML = `<tr><td colspan="5" class="empty-state">Gagal memuat anggota: ${window.KOP.escapeHtml(
+                        error.message,
+                    )}</td></tr>`;
+                    return;
+                }
+                renderMembers(data || []);
+            }
+
+            async function toggleMemberStatus(row, nextActive, button) {
+                button.disabled = true;
+                const { error } = await _supabase.rpc("set_community_member_status", {
+                    p_community: context.community.id,
+                    p_user: row.user_id,
+                    p_active: nextActive,
+                });
+                if (error) {
+                    alert("Status anggota tidak dapat diubah: " + error.message);
+                    button.disabled = false;
+                    return;
+                }
+                await Promise.all([loadMembersTable(), loadMembers(), loadInvites()]);
+            }
+
+            async function removeMember(row, button) {
+                const name = row.full_name || row.email || "anggota ini";
+                if (
+                    !confirm(
+                        `Hapus ${name} dari komunitas?\n\nData pemainnya akan dihapus juga. Akun login tidak ikut terhapus.`,
+                    )
+                ) {
+                    return;
+                }
+                button.disabled = true;
+                const { error } = await _supabase.rpc("remove_community_member", {
+                    p_community: context.community.id,
+                    p_user: row.user_id,
+                });
+                if (error) {
+                    alert("Anggota tidak dapat dihapus: " + error.message);
+                    button.disabled = false;
+                    return;
+                }
+                await Promise.all([loadMembersTable(), loadMembers(), muatPemain()]);
             }
 
             async function revokeInvite(id) {
