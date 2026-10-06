@@ -320,7 +320,30 @@ begin
         archived_players,
         archived_count,
         team_split,
-        public.fixture_team_totals(merged_fixtures),
+        -- Per-team goal totals are computed inline instead of through a helper.
+        -- A helper called from this RLS-checked INSERT can trip PostgreSQL's
+        -- "set-returning functions are not allowed in WHERE" if its proretset flag
+        -- was ever inferred incorrectly, which would break archiving entirely.
+        coalesce((
+            select jsonb_object_agg(teams.team_name, counts.goals)
+            from (
+                values
+                    ('Red'), ('Blue'), ('Green'), ('Purple'),
+                    ('Orange'), ('Pink'), ('Teal'), ('Navy')
+            ) as teams(team_name)
+            left join lateral (
+                select count(*)::integer as goals
+                from jsonb_array_elements(
+                    case when jsonb_typeof(merged_fixtures) = 'array'
+                         then merged_fixtures else '[]'::jsonb end
+                ) as fixture(fixture_doc)
+                cross join lateral jsonb_array_elements(
+                    case when jsonb_typeof(fixture.fixture_doc -> 'goals') = 'array'
+                         then fixture.fixture_doc -> 'goals' else '[]'::jsonb end
+                ) as entry(entry_doc)
+                where entry.entry_doc ->> 'team' = teams.team_name
+            ) as counts on true
+        ), '{}'::jsonb),
         '[]'::jsonb,
         '[]'::jsonb,
         '[]'::jsonb,
@@ -409,7 +432,30 @@ begin
 
     update public.community_event_history
     set fixtures = merged_fixtures,
-        score = public.fixture_team_totals(merged_fixtures),
+        score = -- Per-team goal totals are computed inline instead of through a helper.
+        -- A helper called from this RLS-checked INSERT can trip PostgreSQL's
+        -- "set-returning functions are not allowed in WHERE" if its proretset flag
+        -- was ever inferred incorrectly, which would break archiving entirely.
+        coalesce((
+            select jsonb_object_agg(teams.team_name, counts.goals)
+            from (
+                values
+                    ('Red'), ('Blue'), ('Green'), ('Purple'),
+                    ('Orange'), ('Pink'), ('Teal'), ('Navy')
+            ) as teams(team_name)
+            left join lateral (
+                select count(*)::integer as goals
+                from jsonb_array_elements(
+                    case when jsonb_typeof(merged_fixtures) = 'array'
+                         then merged_fixtures else '[]'::jsonb end
+                ) as fixture(fixture_doc)
+                cross join lateral jsonb_array_elements(
+                    case when jsonb_typeof(fixture.fixture_doc -> 'goals') = 'array'
+                         then fixture.fixture_doc -> 'goals' else '[]'::jsonb end
+                ) as entry(entry_doc)
+                where entry.entry_doc ->> 'team' = teams.team_name
+            ) as counts on true
+        ), '{}'::jsonb),,
         goals = '[]'::jsonb,
         assists = '[]'::jsonb,
         cards = '[]'::jsonb
