@@ -3604,6 +3604,20 @@
                 refreshArchiveSchedule();
             }
 
+            // PostgREST sometimes returns an empty message, so surface every field it does
+            // send. Without this the alert only says "Gagal mengarsipkan:" and the
+            // real cause stays hidden.
+            function describeRpcError(error) {
+                if (!error) return "kesalahan tidak diketahui";
+                const parts = [
+                    error.message,
+                    error.code ? `[${error.code}]` : "",
+                    error.hint ? `hint: ${error.hint}` : "",
+                    error.details ? `detail: ${error.details}` : "",
+                ].filter(Boolean);
+                return parts.length ? parts.join(" ") : JSON.stringify(error);
+            }
+
             async function submitArchive() {
                 const fixtures = collectArchiveFixtures();
                 const editingId = window._editingArchiveId;
@@ -3650,7 +3664,7 @@
                     p_result: { fixtures, rounds: selectedRounds() },
                 });
                 if (error) {
-                    alert("Gagal mengarsipkan: " + error.message);
+                    alert("Gagal mengarsipkan: " + describeRpcError(error));
                     return;
                 }
                 alert("Pertandingan berhasil diarsipkan!");

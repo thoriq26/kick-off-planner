@@ -287,10 +287,14 @@ begin
 
     -- The schedule is generated server-side from the real team split, so the
     -- browser cannot add or remove matchups.
+    -- jsonb_object_keys is a set-returning function, so it may only appear in
+    -- FROM. Putting it directly in a WHERE clause makes PostgreSQL raise
+    -- "set-returning functions are not allowed in WHERE" and archiving fails.
     schedule := public.generate_round_robin(
         array(
-            select jsonb_object_keys(team_split)
-            where jsonb_object_keys(team_split) <> 'Tanpa Tim'
+            select keys.team_name
+            from jsonb_object_keys(team_split) as keys(team_name)
+            where keys.team_name is distinct from 'Tanpa Tim'
         ),
         public.safe_int(p_result ->> 'rounds', 0, 99)
     );
@@ -410,18 +414,14 @@ begin
     if jsonb_typeof(existing_fixtures) <> 'array' or jsonb_array_length(existing_fixtures) = 0 then
         existing_fixtures := public.generate_round_robin(
             array(
-                select jsonb_object_keys(
+                select keys.team_name
+                from jsonb_object_keys(
                     coalesce(
                         (select team_players from public.community_event_history where id = p_history),
                         '{}'::jsonb
                     )
-                )
-                where jsonb_object_keys(
-                    coalesce(
-                        (select team_players from public.community_event_history where id = p_history),
-                        '{}'::jsonb
-                    )
-                ) <> 'Tanpa Tim'
+                ) as keys(team_name)
+                where keys.team_name is distinct from 'Tanpa Tim'
             ),
             public.safe_int(p_result ->> 'rounds', 0, 99)
         );
@@ -455,7 +455,7 @@ begin
                 ) as entry(entry_doc)
                 where entry.entry_doc ->> 'team' = teams.team_name
             ) as counts on true
-        ), '{}'::jsonb),,
+        ), '{}'::jsonb),
         goals = '[]'::jsonb,
         assists = '[]'::jsonb,
         cards = '[]'::jsonb
