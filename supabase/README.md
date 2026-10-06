@@ -51,12 +51,14 @@ query once in the listed order. Do not continuously rerun completed migrations.
 5. Run [`migrations/20260924025000_fix_invite_ambiguity.sql`](migrations/20260924025000_fix_invite_ambiguity.sql) to fix the invite redemption function used by the onboarding page.
 6. Run [`migrations/20260924030000_invite_usage_audit.sql`](migrations/20260924030000_invite_usage_audit.sql) to record which account accepted each invitation. It powers the **LIHAT DAFTAR** button in the Undangan tab. Invitations accepted before this migration have no usage history and will show an empty list.
 7. Run [`migrations/20260924040000_member_status.sql`](migrations/20260924040000_member_status.sql) to add `community_members.is_active` plus the admin-only RPCs used by the **Anggota Terdaftar** card: `list_community_members`, `set_community_member_status`, and `remove_community_member`. Inactive members keep their membership row but lose all community access. Owner/admin rows cannot be deactivated or removed when they are the last active owner.
-8. In **Authentication → URL Configuration**, set the site URL to the production origin.
-9. Add the production auth redirect URLs:
+8. Run [`migrations/20260924050000_match_results.sql`](migrations/20260924050000_match_results.sql) to add archived match results: score, scorers, assists, cards, and the team split snapshot. It backs the admin **Arsipkan** tab and the per-team breakdown in `history.html`.
+9. Run [`migrations/20260924060000_match_fixtures.sql`](migrations/20260924060000_match_fixtures.sql) to store results per matchup instead of per team. It adds the `fixtures` column plus `generate_round_robin`, `normalize_fixture_result`, `merge_match_fixtures`, and `fixture_team_totals`, and replaces `archive_community_match`/`update_event_history_result` so the schedule is generated server-side from the real team split. The browser cannot invent matchups, and events archived before this migration get a schedule generated on first edit.
+10. In **Authentication → URL Configuration**, set the site URL to the production origin.
+11. Add the production auth redirect URLs:
    - `https://YOUR-DOMAIN/auth.html`
    - `https://YOUR-DOMAIN/reset-password.html`
    - `https://YOUR-DOMAIN/join.html` (for older direct invite links)
-10. Keep email confirmation enabled for production. Configure SMTP before relying
+12. Keep email confirmation enabled for production. Configure SMTP before relying
     on password reset for real users.
 
 The migration creates new `community_*` tables and does not drop the old public

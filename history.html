@@ -122,6 +122,163 @@
                 border-radius: 12px;
                 font-size: 0.92rem;
             }
+            .no-result {
+                color: #94a3b8;
+                font-size: 0.82rem;
+                font-style: italic;
+                padding: 8px 0;
+            }
+            .score-line {
+                font-weight: 900;
+                color: #16693a;
+            }
+            .fixture-block {
+                margin: 12px 0;
+                padding: 12px;
+                border: 1px solid #d7e9dd;
+                border-radius: 12px;
+                background: rgba(238, 249, 241, 0.75);
+            }
+            .fixture-block-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.76rem;
+                font-weight: 900;
+                letter-spacing: 0.04em;
+                color: #205c37;
+                margin-bottom: 8px;
+            }
+            .fixture-line {
+                padding: 9px 0;
+                border-top: 1px solid #d7e9dd;
+            }
+            .fixture-line:first-of-type {
+                border-top: none;
+            }
+            .fixture-line-label {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 999px;
+                background: #dcfce7;
+                color: #166534;
+                font-size: 0.66rem;
+                font-weight: 800;
+                margin-bottom: 6px;
+            }
+            .fixture-line-score {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                font-size: 0.88rem;
+                color: #2c3e50;
+                margin-bottom: 4px;
+            }
+            .fixture-line-score b {
+                padding: 3px 12px;
+                border-radius: 6px;
+                background: #16693a;
+                color: white;
+                font-size: 0.95rem;
+                letter-spacing: 0.04em;
+            }
+            .stat-block {
+                list-style: none;
+                margin: 8px 0;
+                display: grid;
+                gap: 5px;
+            }
+            .stat-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 7px 12px;
+                border-radius: 8px;
+                background: rgba(238, 249, 241, 0.9);
+                border: 1px solid #d7e9dd;
+                font-size: 0.8rem;
+                color: #205c37;
+                flex-wrap: wrap;
+            }
+            .stat-item i {
+                flex: 0 0 auto;
+                color: #16693a;
+            }
+            .stat-player {
+                font-weight: 800;
+                overflow-wrap: anywhere;
+            }
+            .stat-team {
+                font-size: 0.72rem;
+                color: #4b7c5f;
+            }
+            .stat-value {
+                margin-left: auto;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .stat-card {
+                background: rgba(254, 249, 195, 0.55);
+                border-color: #fde68a;
+                color: #92400e;
+            }
+            .stat-card i,
+            .stat-card .stat-value {
+                color: #b45309;
+            }
+            .filter-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin: 8px 0 10px;
+            }
+            .filter-chip {
+                border: 1px solid #cbd5e1;
+                border-radius: 999px;
+                background: #f8fafc;
+                color: #475569;
+                font: inherit;
+                font-size: 0.72rem;
+                font-weight: 800;
+                padding: 6px 12px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .filter-chip:hover {
+                border-color: #94a3b8;
+            }
+            .filter-chip.active {
+                background: #27ae60;
+                border-color: #27ae60;
+                color: white;
+            }
+            .team-chip-red.active {
+                background: #c0392b;
+                border-color: #c0392b;
+            }
+            .team-chip-blue.active {
+                background: #2980b9;
+                border-color: #2980b9;
+            }
+            .team-chip-green.active {
+                background: #27ae60;
+                border-color: #27ae60;
+            }
+            .team-chip-purple.active {
+                background: #8e44ad;
+                border-color: #8e44ad;
+            }
+            .td-team {
+                font-size: 0.74rem;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+            .team-red { color: #c0392b; }
+            .team-blue { color: #2980b9; }
+            .team-green { color: #27ae60; }
+            .team-purple { color: #8e44ad; }
+            .team-tanpa_tim { color: #64748b; }
 
             summary {
                 padding: 15px 40px 15px 58px;
@@ -249,6 +406,11 @@
             .td-name {
                 font-weight: 600;
                 text-transform: capitalize;
+            }
+
+            .squad-table td.td-team {
+                width: 110px;
+                text-align: right;
             }
 
             /* Info Text & Mini Pagination Buttons */
@@ -403,46 +565,207 @@
                 return dateString.replace("T", " | ").substring(0, 21);
             }
 
+            const TEAM_LABELS = {
+                Red: "Merah",
+                Blue: "Biru",
+                Green: "Hijau",
+                Purple: "Ungu",
+                "Tanpa Tim": "Tanpa Tim",
+            };
+            const TEAM_ORDER = ["Red", "Blue", "Green", "Purple", "Tanpa Tim"];
+
+            function normalizeTeamName(team) {
+                const match = TEAM_ORDER.find(
+                    (key) => key.toLowerCase() === String(team || "").trim().toLowerCase(),
+                );
+                return match || "Tanpa Tim";
+            }
+
+            function teamLabel(team) {
+                return TEAM_LABELS[team] || team;
+            }
+
+            // The archived row already stores the team split, so the list stays
+            // correct even after the player rows were deleted.
+            function getTeamGroups(item) {
+                const split = item.team_players;
+                if (split && typeof split === "object" && !Array.isArray(split)) {
+                    const groups = TEAM_ORDER.filter(
+                        (team) => Array.isArray(split[team]) && split[team].length,
+                    ).map((team) => ({ team, players: split[team] }));
+                    if (groups.length) return groups;
+                }
+                const players =
+                    item.player_list && item.player_list !== "-"
+                        ? item.player_list
+                              .split(",")
+                              .map((p) => p.trim())
+                              .filter((p) => p !== "")
+                        : [];
+                return players.length ? [{ team: "Tanpa Tim", players }] : [];
+            }
+
+            function getFixtures(item) {
+                return Array.isArray(item.fixtures) ? item.fixtures : [];
+            }
+
+            function fixtureHasScore(fixture) {
+                return (
+                    Number(fixture.score_home) > 0 || Number(fixture.score_away) > 0
+                );
+            }
+
+            // Each matchup is shown on its own so a 3-team round robin reads as
+            // three separate results rather than one ambiguous score.
+            function renderFixtures(item) {
+                const fixtures = getFixtures(item);
+                if (!fixtures.length) return "";
+                const rows = fixtures
+                    .map((fixture) => {
+                        const home = normalizeTeamName(fixture.home);
+                        const away = normalizeTeamName(fixture.away);
+                        const score = fixtureHasScore(fixture)
+                            ? `${fixture.score_home} - ${fixture.score_away}`
+                            : "-";
+                        const detail = [
+                            renderStatEntries(fixture.goals, "goal"),
+                            renderStatEntries(fixture.assists, "assist"),
+                            renderStatEntries(fixture.cards, "card"),
+                        ].join("");
+                        return `<div class="fixture-line">
+                            <span class="fixture-line-label">Round ${fixture.round || "-"}</span>
+                            <span class="fixture-line-score">
+                                ${window.KOP.escapeHtml(teamLabel(home))}
+                                <b>${window.KOP.escapeHtml(score)}</b>
+                                ${window.KOP.escapeHtml(teamLabel(away))}
+                            </span>
+                            ${detail}
+                        </div>`;
+                    })
+                    .join("");
+                return `<div class="fixture-block"><div class="fixture-block-title">
+                        <i class="fa-solid fa-trophy"></i> Hasil per Pertandingan
+                    </div>${rows}</div>`;
+            }
+
+            function renderStatEntries(entries, kind) {
+                if (!Array.isArray(entries) || !entries.length) return "";
+                const icon =
+                    kind === "goal"
+                        ? "fa-futbol"
+                        : kind === "assist"
+                        ? "fa-hand-pointer"
+                        : "fa-rectangle";
+                const rows = entries
+                    .map((entry) => {
+                        const team = normalizeTeamName(entry.team);
+                        const label =
+                            kind === "card"
+                                ? entry.type === "red"
+                                    ? "Kartu Merah"
+                                    : "Kartu Kuning"
+                                : `${entry.minute || 0}'`;
+                        return `<li class="stat-item stat-${kind}"><i class="fa-solid ${icon}"></i>
+                            <span class="stat-player">${window.KOP.escapeHtml(entry.player || "")}</span>
+                            <span class="stat-team">Tim ${window.KOP.escapeHtml(teamLabel(team))}</span>
+                            <span class="stat-value">${window.KOP.escapeHtml(label)}</span>
+                        </li>`;
+                    })
+                    .join("");
+                return `<ul class="stat-block">${rows}</ul>`;
+            }
+
             // --- LOGIKA MINI PAGINATION SQUAD ---
-            function renderSquadTable(eventId, players, page = 1) {
+            function renderSquadTable(eventId, groups, filter = "all", page = 1) {
                 const limit = 5;
-                const total = players.length;
-                const totalPages = Math.ceil(total / limit);
-                const start = (page - 1) * limit;
+                const visible =
+                    filter === "all"
+                        ? groups
+                        : groups.filter((group) => group.team === filter);
+                const flat = visible.flatMap((group) =>
+                    group.players.map((player) => ({
+                        player,
+                        team: group.team,
+                    })),
+                );
+                const total = flat.length;
+                const totalPages = Math.max(1, Math.ceil(total / limit));
+                const safePage = Math.min(Math.max(1, page), totalPages);
+                const start = (safePage - 1) * limit;
                 const end = Math.min(start + limit, total);
-                const paginatedPlayers = players.slice(start, end);
+                const rows = flat.slice(start, end);
 
-                let html = `<table class="squad-table">`;
-                paginatedPlayers.forEach((p, i) => {
-                    html += `<tr><td class="td-number">${start + i + 1}</td><td class="td-name">${window.KOP.escapeHtml(p)}</td></tr>`;
-                });
-                html += `</table>`;
+                let html = "";
+                if (!total) {
+                    html = '<p class="no-result">Tidak ada pemain pada filter ini.</p>';
+                } else {
+                    html = `<table class="squad-table"><tbody>`;
+                    rows.forEach((row, i) => {
+                        html += `<tr>
+                            <td class="td-number">${start + i + 1}</td>
+                            <td class="td-name">${window.KOP.escapeHtml(row.player)}</td>
+                            <td class="td-team team-${row.team.toLowerCase()}">Tim ${window.KOP.escapeHtml(teamLabel(row.team))}</td>
+                        </tr>`;
+                    });
+                    html += `</tbody></table>`;
 
-                if (totalPages > 1) {
-                    html += `
-                    <div class="mini-pagination-container">
-                        <div class="mini-info-text">Menampilkan ${start + 1}–${end}</div>
-                        <div class="mini-btns">`;
-                    for (let j = 1; j <= totalPages; j++) {
-                        html += `<button class="mini-btn ${j === page ? "active" : ""}" onclick="changeSquadPage('${eventId}', ${j})">${j}</button>`;
+                    if (totalPages > 1) {
+                        html += `
+                        <div class="mini-pagination-container">
+                            <div class="mini-info-text">Menampilkan ${start + 1}–${end}</div>
+                            <div class="mini-btns">`;
+                        for (let j = 1; j <= totalPages; j++) {
+                            html += `<button class="mini-btn ${
+                                j === safePage ? "active" : ""
+                            }" onclick="changeSquadPage('${eventId}', '${filter}', ${j})">${j}</button>`;
+                        }
+                        html += `</div></div>`;
                     }
-                    html += `</div></div>`;
                 }
 
-                const target = document.getElementById(
-                    `squad-container-${eventId}`,
-                );
+                const target = document.getElementById(`squad-container-${eventId}`);
                 if (target) target.innerHTML = html;
             }
 
+            function renderTeamFilter(eventId, groups) {
+                const target = document.getElementById(`filter-container-${eventId}`);
+                if (!target) return;
+                const options = [`<button class="filter-chip active" data-filter="all">Semua (${groups.reduce(
+                    (sum, group) => sum + group.players.length,
+                    0,
+                )})</button>`];
+                groups.forEach((group) => {
+                    options.push(
+                        `<button class="filter-chip team-chip-${group.team.toLowerCase()}" data-filter="${group.team}">Tim ${window.KOP.escapeHtml(
+                            teamLabel(group.team),
+                        )} (${group.players.length})</button>`,
+                    );
+                });
+                target.innerHTML = options.join("");
+                target.querySelectorAll(".filter-chip").forEach((chip) => {
+                    chip.addEventListener("click", () => {
+                        target
+                            .querySelectorAll(".filter-chip")
+                            .forEach((other) => other.classList.remove("active"));
+                        chip.classList.add("active");
+                        const item = totalData.find((d) => d.id == eventId);
+                        if (item) {
+                            renderSquadTable(
+                                eventId,
+                                getTeamGroups(item),
+                                chip.dataset.filter,
+                                1,
+                            );
+                        }
+                    });
+                });
+            }
+
             // Fungsi global untuk ganti halaman squad (dipanggil via onclick)
-            window.changeSquadPage = (eventId, page) => {
+            window.changeSquadPage = (eventId, filter, page) => {
                 const item = totalData.find((d) => d.id == eventId);
-                const players = (item?.player_list || "-")
-                    .split(",")
-                    .map((p) => p.trim())
-                    .filter((p) => p !== "");
-                renderSquadTable(eventId, players, page);
+                if (!item) return;
+                renderSquadTable(eventId, getTeamGroups(item), filter, page);
             };
 
             async function loadData() {
@@ -475,13 +798,11 @@
 
                 pageData.forEach((item, index) => {
                     const matchNumber = totalData.length - (startIndex + index);
-                    const players =
-                        item.player_list && item.player_list !== "-"
-                            ? item.player_list
-                                  .split(",")
-                                  .map((p) => p.trim())
-                                  .filter((p) => p !== "")
-                            : [];
+                    const groups = getTeamGroups(item);
+                    const totalPlayers = groups.reduce(
+                        (sum, group) => sum + group.players.length,
+                        0,
+                    );
 
                     const card = document.createElement("details");
                     card.className = "history-card";
@@ -491,16 +812,19 @@
                             <div class="info-grid">
                                 <div class="match-info"><i class="fa-solid fa-location-dot"></i> ${window.KOP.escapeHtml(item.location_name)}</div>
                                 <div class="match-info"><i class="fa-solid fa-calendar"></i> ${window.KOP.escapeHtml(formatDateTime(item.match_date))}</div>
-                                <div class="match-info"><i class="fa-solid fa-users"></i> ${window.KOP.escapeHtml(item.player_count)} Peserta</div>
+                                <div class="match-info"><i class="fa-solid fa-users"></i> ${totalPlayers} Peserta</div>
                             </div>
+                            ${renderFixtures(item)}
                             <div class="squad-section">
                                 <span class="squad-label">DAFTAR HADIR</span>
+                                <div class="filter-row" id="filter-container-${item.id}"></div>
                                 <div id="squad-container-${item.id}"></div>
                             </div>
                         </div>
                     `;
                     container.appendChild(card);
-                    renderSquadTable(item.id, players, 1);
+                    renderTeamFilter(item.id, groups);
+                    renderSquadTable(item.id, groups, "all", 1);
                 });
                 renderPagination();
             }

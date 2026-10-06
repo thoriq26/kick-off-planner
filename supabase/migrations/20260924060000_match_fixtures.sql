@@ -1,0 +1,445 @@
+-- Per-fixture results for round-robin events.
+-- With 3 teams an admin cannot sensibly fill one flat score per team: the event
+-- is really A vs B, B vs C, and A vs C. This migration stores the generated
+-- schedule plus the result of each matchup separately.
+-- Apply after 20260924050000_match_results.sql.
+
+alter table public.community_event_history
+    add column if not exists fixtures jsonb not null default '[]'::jsonb;
+
+-- Build a single round-robin schedule. Every team meets every other team once.
+-- The rotation algorithm needs an even field, so an odd team count gets a hidden
+-- BYE slot that never produces a fixture.
+create or replace function public.generate_round_robin(p_teams text[])
+returns jsonb
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+    teams text[];
+    total_rounds integer;
+    rotating text[];
+    rest text[];
+    i integer;
+    fixture_no integer;
+    output jsonb := '[]'::jsonb;
+    home_team text;
+    away_team text;
+begin
+    if p_teams is null then
+        return output;
+    end if;
+
+    -- Drop blanks and duplicates, keeping the caller's order.
+    select coalesce(array_agg(distinct t order by t), '{}'::text[])
+    into teams
+    from unnest(p_teams) as t
+    where btrim(coalesce(t, '')) <> '';
+
+    if coalesce(array_length(teams, 1), 0) < 2 then
+        return output;
+    end if;
+
+    if array_length(teams, 1) % 2 = 1 then
+        teams := array_append(teams, '__BYE__');
+    end if;
+
+    total_rounds := array_length(teams, 1) - 1;
+    rotating := teams;
+
+    for i in 1..total_rounds loop
+        fixture_no := 0;
+
+        -- Pair the outside entries and work inwards.
+        while fixture_no + 1 < array_length(rotating, 1) / 2 + 1 loop
+            home_team := rotating[fixture_no + 1];
+            away_team := rotating[array_length(rotating, 1) - fixture_no];
+
+            if home_team <> '__BYE__' and away_team <> '__BYE__' then
+                -- Alternate home/away between rounds so nobody plays two home
+                -- matches in a row where that can be avoided.
+                if (i % 2) = 0 then
+                    output := output || jsonb_build_array(
+                        jsonb_build_object(
+                            'round', i,
+                            'home', away_team,
+                            'away', home_team
+                        )
+                    );
+                else
+                    output := output || jsonb_build_array(
+                        jsonb_build_object(
+                            'round', i,
+                            'home', home_team,
+                            'away', away_team
+                        )
+                    );
+                end if;
+            end if;
+
+            fixture_no := fixture_no + 1;
+        end loop;
+
+        -- Rotate every entry except the first one.
+        rest := rotating;
+        rotating := array[rotating[1]];
+        for fixture_no in 2..array_length(rotating, 1) loop
+            rotating := rotating || (rest[array_length(rest, 1) - fixture_no + 2]);
+        end loop;
+    end loop;
+
+    return output;
+end;
+$$;
+
+revoke all on function public.generate_round_robin(text[]) from public, anon, authenticated;
+
+-- Reuse the existing per-entry sanitizer for the nested goal/assist/card lists.
+create or replace function public.normalize_fixture_result(p_incoming jsonb)
+returns jsonb
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+    cleaned jsonb;
+begin
+    cleaned := public.normalize_match_result(
+        jsonb_build_object(
+            'score', coalesce(p_incoming -> 'score', '{}'::jsonb),
+            'goals', coalesce(p_incoming -> 'goals', '[]'::jsonb),
+            'assists', coalesce(p_incoming -> 'assists', '[]'::jsonb),
+            'cards', coalesce(p_incoming -> 'cards', '[]'::jsonb)
+        )
+    );
+
+    return jsonb_build_object(
+        'score_home', public.safe_int(p_incoming ->> 'score_home', 0, 99),
+        'score_away', public.safe_int(p_incoming ->> 'score_away', 0, 99),
+        'goals', cleaned -> 'goals',
+        'assists', cleaned -> 'assists',
+        'cards', cleaned -> 'cards'
+    );
+end;
+$$;
+
+revoke all on function public.normalize_fixture_result(jsonb) from public, anon, authenticated;
+
+-- Merge a browser-supplied fixture list into the generated schedule. Only
+-- matchups that already exist in the schedule can be written, so the browser
+-- cannot invent new pairings.
+create or replace function public.merge_match_fixtures(
+    p_existing jsonb,
+    p_incoming jsonb
+)
+returns jsonb
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+    fixture jsonb;
+    submitted jsonb;
+    merged jsonb := '[]'::jsonb;
+begin
+    if jsonb_typeof(p_existing) <> 'array' then
+        return merged;
+    end if;
+
+    for fixture in select value from jsonb_array_elements(p_existing)
+    loop
+        submitted := null;
+
+        if jsonb_typeof(p_incoming) = 'array' then
+            select value into submitted
+            from jsonb_array_elements(p_incoming)
+            where (value ->> 'home') = (fixture ->> 'home')
+              and (value ->> 'away') = (fixture ->> 'away')
+            limit 1;
+        end if;
+
+        if submitted is null then
+            -- Untouched fixture: keep an empty result set so the UI can show a
+            -- consistent shape for every matchup.
+            merged := merged || jsonb_build_array(
+                fixture || public.normalize_fixture_result('{}'::jsonb)
+            );
+        else
+            merged := merged || jsonb_build_array(
+                fixture || public.normalize_fixture_result(submitted)
+            );
+        end if;
+    end loop;
+
+    return merged;
+end;
+$$;
+
+revoke all on function public.merge_match_fixtures(jsonb, jsonb) from public, anon, authenticated;
+
+-- Total goals/assists/cards per team, summed across every fixture. The admin
+-- list shows this instead of the ambiguous single score per team.
+create or replace function public.fixture_team_totals(p_fixtures jsonb)
+returns jsonb
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+    team text;
+    goals int;
+    total jsonb := '{}'::jsonb;
+begin
+    if jsonb_typeof(p_fixtures) <> 'array' then
+        return total;
+    end if;
+
+    foreach team in array array['Red', 'Blue', 'Green', 'Purple']
+    loop
+        select
+            coalesce(sum(
+                (select coalesce(sum((entry ->> 'goals')::integer), 0)
+                 from jsonb_array_elements(coalesce(fixture -> 'goals', '[]'::jsonb)) as entry
+                 where entry ->> 'team' = team)
+                +
+                (select coalesce(sum((entry ->> 'goals')::integer), 0)
+                 from jsonb_array_elements(coalesce(fixture -> 'goals', '[]'::jsonb)) as entry
+                 where entry ->> 'team' = team)
+            ), 0)::integer
+        into goals
+        from jsonb_array_elements(p_fixtures) as fixture;
+
+        total := total || jsonb_build_object(team, goals);
+    end loop;
+
+    return total;
+end;
+$$;
+
+revoke all on function public.fixture_team_totals(jsonb) from public, anon, authenticated;
+
+-- Archive the current match together with its per-fixture results.
+drop function if exists public.archive_community_match(uuid, jsonb);
+
+create function public.archive_community_match(
+    p_community uuid,
+    p_result jsonb default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+    match_row public.community_matches%rowtype;
+    archived_players text;
+    archived_count integer;
+    history_id uuid;
+    team_split jsonb;
+    clean_result jsonb;
+    schedule jsonb;
+    merged_fixtures jsonb;
+    submitted_fixtures jsonb;
+begin
+    if not public.is_community_admin(p_community, auth.uid()) then
+        raise exception 'Only community admins can archive matches';
+    end if;
+
+    select * into match_row
+    from public.community_matches
+    where community_id = p_community
+    for update;
+
+    if not found then
+        raise exception 'Current match not found';
+    end if;
+
+    select coalesce(string_agg(name, ', ' order by created_at), '-'), count(*)::integer
+    into archived_players, archived_count
+    from public.community_players
+    where community_id = p_community;
+
+    -- Snapshot the team split now, before the player rows are deleted.
+    select coalesce(jsonb_object_agg(grouped.team_name, grouped.players), '{}'::jsonb)
+    into team_split
+    from (
+        select
+            coalesce(nullif(p.team, ''), 'Tanpa Tim') as team_name,
+            jsonb_agg(p.name order by p.created_at) as players
+        from public.community_players p
+        where p.community_id = p_community
+        group by coalesce(nullif(p.team, ''), 'Tanpa Tim')
+    ) as grouped;
+
+    clean_result := public.normalize_match_result(coalesce(p_result, '{}'::jsonb));
+
+    -- The schedule is generated server-side from the real team split, so the
+    -- browser cannot add or remove matchups.
+    schedule := public.generate_round_robin(
+        array(
+            select jsonb_object_keys(team_split)
+            where jsonb_object_keys(team_split) <> 'Tanpa Tim'
+        )
+    );
+
+    submitted_fixtures := coalesce(p_result -> 'fixtures', '[]'::jsonb);
+    merged_fixtures := public.merge_match_fixtures(schedule, submitted_fixtures);
+
+    insert into public.community_event_history (
+        community_id,
+        event_name,
+        location_name,
+        match_date,
+        player_list,
+        player_count,
+        team_players,
+        score,
+        goals,
+        assists,
+        cards,
+        fixtures,
+        archived_at
+    ) values (
+        p_community,
+        match_row.event_name,
+        match_row.nama_lp,
+        match_row.waktu,
+        archived_players,
+        archived_count,
+        team_split,
+        public.fixture_team_totals(merged_fixtures),
+        '[]'::jsonb,
+        '[]'::jsonb,
+        '[]'::jsonb,
+        merged_fixtures,
+        now()
+    ) returning id into history_id;
+
+    update public.community_matches
+    set event_name = 'TBA',
+        nama_lp = 'TBA',
+        waktu = null,
+        jersey = '-',
+        htm = '0',
+        rekening = '-',
+        maps_url = '',
+        updated_at = now()
+    where community_id = p_community;
+
+    delete from public.community_players where community_id = p_community;
+    return history_id;
+end;
+$$;
+
+revoke all on function public.archive_community_match(uuid, jsonb) from public, anon;
+grant execute on function public.archive_community_match(uuid, jsonb) to authenticated;
+
+-- Backfill or correct the results of an already-archived event.
+create or replace function public.update_event_history_result(
+    p_history uuid,
+    p_result jsonb
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+    history_community uuid;
+    existing_fixtures jsonb;
+    submitted_fixtures jsonb;
+    merged_fixtures jsonb;
+    clean_result jsonb;
+begin
+    select community_id into history_community
+    from public.community_event_history
+    where id = p_history;
+
+    if history_community is null then
+        raise exception 'Archived event not found';
+    end if;
+
+    if not public.is_community_admin(history_community, auth.uid()) then
+        raise exception 'Only community admins can edit match results';
+    end if;
+
+    clean_result := public.normalize_match_result(coalesce(p_result, '{}'::jsonb));
+    existing_fixtures := coalesce(
+        (select fixtures from public.community_event_history where id = p_history),
+        '[]'::jsonb
+    );
+
+    -- An event archived before this migration has no schedule yet, so build one
+    -- from its stored team split before merging the submitted results.
+    if jsonb_typeof(existing_fixtures) <> 'array' or jsonb_array_length(existing_fixtures) = 0 then
+        existing_fixtures := public.generate_round_robin(
+            array(
+                select jsonb_object_keys(
+                    coalesce(
+                        (select team_players from public.community_event_history where id = p_history),
+                        '{}'::jsonb
+                    )
+                )
+                where jsonb_object_keys(
+                    coalesce(
+                        (select team_players from public.community_event_history where id = p_history),
+                        '{}'::jsonb
+                    )
+                ) <> 'Tanpa Tim'
+            )
+        );
+    end if;
+
+    submitted_fixtures := coalesce(p_result -> 'fixtures', '[]'::jsonb);
+    merged_fixtures := public.merge_match_fixtures(existing_fixtures, submitted_fixtures);
+
+    update public.community_event_history
+    set fixtures = merged_fixtures,
+        score = public.fixture_team_totals(merged_fixtures),
+        goals = '[]'::jsonb,
+        assists = '[]'::jsonb,
+        cards = '[]'::jsonb
+    where id = p_history;
+end;
+$$;
+
+revoke all on function public.update_event_history_result(uuid, jsonb) from public, anon;
+grant execute on function public.update_event_history_result(uuid, jsonb) to authenticated;
+
+-- Admin-only archive list, now including the fixture schedule.
+create or replace function public.list_event_history_admin(p_community uuid)
+returns setof jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+    if not public.is_community_admin(p_community, auth.uid()) then
+        raise exception 'Only community admins can view the archive list';
+    end if;
+
+    return query
+        select jsonb_build_object(
+            'id', h.id,
+            'event_name', h.event_name,
+            'location_name', h.location_name,
+            'match_date', h.match_date,
+            'player_count', h.player_count,
+            'team_players', h.team_players,
+            'score', h.score,
+            'fixtures', h.fixtures,
+            'goals', h.goals,
+            'assists', h.assists,
+            'cards', h.cards,
+            'archived_at', h.archived_at,
+            'has_result', jsonb_array_length(h.fixtures) > 0
+        )
+        from public.community_event_history h
+        where h.community_id = p_community
+        order by h.archived_at desc;
+end;
+$$;
+
+revoke all on function public.list_event_history_admin(uuid) from public, anon;
+grant execute on function public.list_event_history_admin(uuid) to authenticated;

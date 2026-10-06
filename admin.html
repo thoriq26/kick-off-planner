@@ -937,6 +937,202 @@
                 font-size: 0.8rem;
                 line-height: 1.5;
             }
+            .form-subtitle {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin: 22px 0 10px;
+                color: #34495e;
+                font-size: 0.78rem;
+                font-weight: 900;
+                letter-spacing: 0.06em;
+            }
+            .btn-mini {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 6px 12px;
+                border: 0;
+                border-radius: 7px;
+                background: #27ae60;
+                color: white;
+                font: inherit;
+                font-size: 0.68rem;
+                font-weight: 800;
+                letter-spacing: 0.02em;
+                cursor: pointer;
+            }
+            .btn-mini:hover {
+                background: #219150;
+            }
+            .score-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+                gap: 12px;
+            }
+            .score-box {
+                padding: 12px;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                background: #f8fafc;
+                text-align: center;
+            }
+            .score-box .score-team {
+                display: block;
+                font-weight: 900;
+                text-transform: uppercase;
+                font-size: 0.78rem;
+                margin-bottom: 8px;
+                color: #2c3e50;
+            }
+            .score-box input {
+                text-align: center;
+                font-size: 1.5rem !important;
+                font-weight: 900;
+                padding: 6px !important;
+            }
+            .score-team-red { color: #c0392b; }
+            .score-team-blue { color: #2980b9; }
+            .score-team-green { color: #27ae60; }
+            .score-team-purple { color: #8e44ad; }
+            .stat-list {
+                display: grid;
+                gap: 8px;
+            }
+            .stat-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr) minmax(0, 0.6fr) auto;
+                gap: 8px;
+                align-items: center;
+                padding: 9px 10px;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                background: #f8fafc;
+            }
+            .stat-row select,
+            .stat-row input {
+                padding: 8px !important;
+                font-size: 0.82rem !important;
+            }
+            .stat-remove {
+                width: 34px;
+                height: 34px;
+                flex-shrink: 0;
+                border: 0;
+                border-radius: 6px;
+                background: #e74c3c;
+                color: white;
+                cursor: pointer;
+            }
+            .fixture-row {
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                background: #f8fafc;
+                margin-bottom: 12px;
+                overflow: hidden;
+            }
+            .fixture-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 11px 14px;
+                background: #34495e;
+                color: white;
+                font-size: 0.8rem;
+                font-weight: 800;
+            }
+            .fixture-head .fixture-round {
+                padding: 3px 9px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.2);
+                font-size: 0.7rem;
+                letter-spacing: 0.04em;
+            }
+            .fixture-matchup {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .fixture-team-chip {
+                padding: 3px 10px;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.16);
+                font-size: 0.78rem;
+            }
+            .fixture-vs {
+                font-size: 0.7rem;
+                opacity: 0.8;
+            }
+            .fixture-body {
+                padding: 14px;
+            }
+            .fixture-score-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+            .fixture-score-input {
+                text-align: center;
+                font-size: 1.4rem !important;
+                font-weight: 900;
+                padding: 8px !important;
+            }
+            .fixture-dash {
+                color: #94a3b8;
+                font-weight: 900;
+            }
+            .fixture-sub {
+                margin: 16px 0 8px;
+                font-size: 0.74rem;
+                font-weight: 900;
+                letter-spacing: 0.05em;
+                color: #34495e;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .fixture-sub-label {
+                color: #475569;
+            }
+            .fixture-status {
+                font-size: 0.7rem;
+                font-weight: 800;
+                padding: 4px 10px;
+                border-radius: 999px;
+            }
+            .fixture-status-done {
+                background: #dcfce7;
+                color: #166534;
+            }
+            .fixture-status-todo {
+                background: #fef3c7;
+                color: #92400e;
+            }
+            .score-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-weight: 900;
+                font-size: 0.82rem;
+                white-space: nowrap;
+            }
+            .score-badge .sep {
+                color: #94a3b8;
+            }
+            .no-result {
+                color: #94a3b8;
+                font-size: 0.78rem;
+                font-style: italic;
+            }
             .member-status {
                 display: inline-flex;
                 align-items: center;
@@ -1602,6 +1798,9 @@
                 <button class="tab-btn" data-tab="matchday" onclick="switchTab('matchday')">
                     <i class="fa-solid fa-calendar-day"></i> Info Match Day
                 </button>
+                <button class="tab-btn" data-tab="archive" onclick="switchTab('archive')">
+                    <i class="fa-solid fa-box-archive"></i> Arsipkan
+                </button>
                 <button class="tab-btn" data-tab="invites" onclick="switchTab('invites')">
                     <i class="fa-solid fa-link"></i> Undangan
                 </button>
@@ -1735,6 +1934,8 @@
                             <li>Pemain berstatus <b>SPECTATOR (FAN)</b> otomatis tidak diikutkan undian.</li>
                             <li>Klik <b>ULANGI PEMBAGIAN</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
                             <li>Hasil undian ini akan tampil kepada member komunitas di halaman Team Draft.</li>
+                            <li>Setelah undi, cek <b>Jadwal Pertandingan</b>. Untuk 3 tim otomatis ada 3 pertandingan (A vs B, B vs C, A vs C).</li>
+                            <li>Skor tiap pertandingan diisi di tab <b>Arsipkan</b>.</li>
                         </ol>
                     </div>
 
@@ -1759,6 +1960,27 @@
                     <div class="card">
                         <h2><i class="fa-solid fa-people-group"></i> Hasil Pembagian Tim</h2>
                         <div class="team-grid" id="mainGrid"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-calendar-days"></i> Jadwal Pertandingan</h2>
+                        <p class="member-hint">
+                            Jadwal round-robin dibuat otomatis: setiap tim bertemu setiap tim lain sekali.
+                           (round 1) Merah vs Biru — (round 2) Biru vs Hijau — (round 3) Merah vs Hijau.
+                            Skor diisi di tab <b>Arsipkan</b>.
+                        </p>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ROUND</th>
+                                        <th>PERTANDINGAN</th>
+                                        <th>KETERANGAN</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fixtureTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1814,13 +2036,13 @@
                             </button>
                         </div>
                         <div class="btn-group">
-                            <button class="btn-action btn-archive" onclick="archiveMatch()">
-                                <i class="fa-solid fa-box-archive"></i> ARSIPKAN
-                            </button>
                             <button class="btn-action btn-reset" onclick="resetMatchOnly()">
                                 <i class="fa-solid fa-rotate-left"></i> RESET
                             </button>
                         </div>
+                        <p class="member-hint" style="margin-top:12px;">
+                            Untuk mengarsipkan beserta skor, buka tab <b>Arsipkan</b>.
+                        </p>
                     </div>
 
                     <div class="card">
@@ -1849,7 +2071,73 @@
                     </div>
                 </div>
 
-                <!-- ================= TAB 4: UNDANGAN ================= -->
+                <!-- ================= TAB 4: ARSIPKAN ================= -->
+                <div class="tab-panel" id="panel-archive">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Arsipkan
+                        </div>
+                        <ol>
+                            <li>Jadwal di tab <b>Undi Tim</b> dibuat otomatis. Untuk 3 tim ada 3 pertandingan: A vs B, B vs C, A vs C.</li>
+                            <li>Di bawah ini ada satu blok per pertandingan. Isi skor, lalu tambahkan <b>pencetak gol</b>, <b>assist</b>, dan <b>kartu</b> di blok yang sesuai.</li>
+                            <li>Dropdown pemain sudah dikelompokkan per tim, jadi gol otomatis terikat ke tim yang benar.</li>
+                            <li>Klik <b>ARSIPKAN SEKARANG</b> untuk menyimpan hasil ke Riwayat Event. Daftar pemain komunitas ikut dikosongkan.</li>
+                            <li>Untuk hasil yang sudah diarsipkan sebelumnya, klik ikon pensil di tabel riwayat untuk melengkapinya.</li>
+                            <li>Di halaman <b>Riwayat Event</b> milik member, hasil ditampilkan per pertandingan dan pemain bisa difilter per tim.</li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-trophy"></i> Hasil Pertandingan Saat Ini</h2>
+                        <p class="member-hint" style="margin-bottom:14px;">
+                            <span id="archiveMatchName">Belum ada pertandingan dipublikasikan.</span><br />
+                            <span id="archiveEditingNote" hidden
+                                style="color:#b45309; font-weight:700;"
+                            ></span>
+                        </p>
+                        <p class="member-hint" style="margin-bottom:16px;">
+                            Skor diisi per pertandingan, bukan per tim — jadi untuk 3 tim ada 3 blok
+                            (Merah vs Biru, Biru vs Hijau, Merah vs Hijau).
+                        </p>
+                        <div id="fixtureEditor"></div>
+
+                        <div class="btn-group" style="margin-top:18px;">
+                            <button class="btn-action btn-archive" type="button" onclick="submitArchive()">
+                                <i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG
+                            </button>
+                            <button class="btn-action btn-cancel" type="button" onclick="resetArchiveForm()">
+                                <i class="fa-solid fa-rotate-left"></i> BERSIHKAN
+                            </button>
+                        </div>
+                        <p class="member-hint" style="margin-top:12px;">
+                            Arsipkan bersifat permanen: data pemain komunitas dihapus dan tidak bisa dibatalkan.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pertandingan Terarsip</h2>
+                        <p class="member-hint">
+                            Daftar match yang sudah diarsipkan. Klik ISI HASIL untuk melengkapi skor, gol, assist,
+                            atau kartu pada match sebelumnya.
+                        </p>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>EVENT</th>
+                                        <th>TANGGAL</th>
+                                        <th>SKOR</th>
+                                        <th>PEMAIN</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="archiveTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 5: UNDANGAN ================= -->
                 <div class="tab-panel" id="panel-invites">
                     <div class="tutorial-box">
                         <div class="tutorial-title"><i class="fa-solid fa-circle-info"></i> Cara Pakai - Undangan</div>
@@ -2083,6 +2371,17 @@
                 const communityName = document.getElementById("memberCommunityName");
                 if (communityName) communityName.textContent = context.community.name;
                 if (tab === "members") loadMembersTable();
+                if (tab === "archive") {
+                    loadArchivePlayers();
+                    loadArchiveList();
+                    const matchLabel = document.getElementById("archiveMatchName");
+                    if (matchLabel) {
+                        matchLabel.textContent =
+                            currentMatch && currentMatch.event_name !== "TBA"
+                                ? `Pertandingan aktif: ${currentMatch.event_name} (${currentMatch.nama_lp || "lapangan TBA"})`
+                                : "Belum ada pertandingan dipublikasikan.";
+                    }
+                }
             }
 
             /* ==================================================
@@ -2429,6 +2728,13 @@
                     icon.style.color = "#27ae60";
                 }
                 loadPaymentProofs();
+                const archiveLabel = document.getElementById("archiveMatchName");
+                if (archiveLabel) {
+                    archiveLabel.textContent =
+                        data.event_name && data.event_name !== "TBA"
+                            ? `Pertandingan aktif: ${data.event_name} (${data.nama_lp || "lapangan TBA"})`
+                            : "Belum ada pertandingan dipublikasikan.";
+                }
             }
 
             async function loadPaymentProofs() {
@@ -2750,19 +3056,602 @@
                 }
             }
 
-            async function archiveMatch() {
-                if (!confirm("Pindahkan pertandingan saat ini ke Riwayat Event dan kosongkan daftar pemain komunitas ini?")) return;
+            /* ==================================================
+               ARSIPKAN MATCH (per-fixture)
+               ================================================== */
+            const ARCHIVE_TEAM_LABELS = {
+                Red: "Merah",
+                Blue: "Biru",
+                Green: "Hijau",
+                Purple: "Ungu",
+            };
+            // Players grouped by team, taken from the current draft.
+            let archivePlayersByTeam = {};
+            // Current round-robin schedule: [{ round, home, away }]
+            let archiveFixtures = [];
+            let archiveRowCounter = 0;
+
+            function teamDisplay(team) {
+                return `Tim ${ARCHIVE_TEAM_LABELS[team] || team}`;
+            }
+
+            function archiveActiveTeams() {
+                return Object.keys(archivePlayersByTeam)
+                    .filter((team) => team !== "Tanpa Tim")
+                    .filter((team) => archivePlayersByTeam[team].length);
+            }
+
+            // Client-side round robin so the admin sees the schedule instantly.
+            // The server regenerates it and drops anything that does not match.
+            function buildRoundRobin(teams) {
+                if (teams.length < 2) return [];
+                const pool = [...teams];
+                if (pool.length % 2 === 1) pool.push("__BYE__");
+                const totalRounds = pool.length - 1;
+                let rotating = [...pool];
+                const schedule = [];
+
+                for (let round = 1; round <= totalRounds; round += 1) {
+                    const half = pool.length / 2;
+                    for (let i = 0; i < half; i += 1) {
+                        const first = rotating[i];
+                        const second = rotating[pool.length - 1 - i];
+                        if (first === "__BYE__" || second === "__BYE__") continue;
+                        const swap = round % 2 === 0;
+                        schedule.push({
+                            round,
+                            home: swap ? second : first,
+                            away: swap ? first : second,
+                        });
+                    }
+                    const rest = [...rotating];
+                    rotating = [rotating[0]];
+                    for (let i = 1; i < rotating.length; i += 1) {
+                        rotating.push(rest[rest.length - i - 1]);
+                    }
+                }
+                return schedule;
+            }
+
+            function refreshArchiveSchedule() {
+                archiveFixtures = buildRoundRobin(archiveActiveTeams());
+                renderFixtureTable();
+                renderFixtureEditor();
+            }
+
+            /* ---------- Jadwal di tab Undi Tim ---------- */
+            function renderFixtureTable() {
+                const body = document.getElementById("fixtureTableBody");
+                if (!body) return;
+                const teams = archiveActiveTeams();
+
+                if (teams.length < 2) {
+                    body.innerHTML =
+                        '<tr><td colspan="3" class="empty-state">Belum ada minimal 2 tim hasil undian.</td></tr>';
+                    return;
+                }
+                if (!archiveFixtures.length) {
+                    body.innerHTML =
+                        '<tr><td colspan="3" class="empty-state">Jadwal belum dibuat.</td></tr>';
+                    return;
+                }
+
+                body.replaceChildren();
+                archiveFixtures.forEach((fixture) => {
+                    const tr = document.createElement("tr");
+                    const round = document.createElement("td");
+                    round.textContent = fixture.round;
+                    const matchup = document.createElement("td");
+                    matchup.innerHTML = `<span style="font-weight:800">${window.KOP.escapeHtml(
+                        teamDisplay(fixture.home),
+                    )}</span> <span style="color:#94a3b8">vs</span> <span style="font-weight:800">${window.KOP.escapeHtml(
+                        teamDisplay(fixture.away),
+                    )}</span>`;
+                    const note = document.createElement("td");
+                    const span = document.createElement("span");
+                    span.className = "no-result";
+                    span.textContent = "Skor diisi di tab Arsipkan";
+                    note.appendChild(span);
+                    tr.append(round, matchup, note);
+                    body.appendChild(tr);
+                });
+            }
+
+            /* ---------- Editor per pertandingan ---------- */
+            function buildPlayerOptions(select, allowedTeams) {
+                const teams = allowedTeams || archiveActiveTeams();
+                if (!teams.length) {
+                    const empty = document.createElement("option");
+                    empty.value = "";
+                    empty.textContent = "Belum ada pemain";
+                    select.appendChild(empty);
+                    return;
+                }
+                teams.forEach((team) => {
+                    const group = document.createElement("optgroup");
+                    group.label = teamDisplay(team);
+                    (archivePlayersByTeam[team] || []).forEach((player) => {
+                        const option = document.createElement("option");
+                        option.value = `${team}||${player}`;
+                        option.textContent = player;
+                        group.appendChild(option);
+                    });
+                    select.appendChild(group);
+                });
+            }
+
+            function addFixtureRow(fixtureIndex, kind) {
+                const list = document.getElementById(`fixture-${fixtureIndex}-${kind}`);
+                if (!list) return;
+                const fixture = archiveFixtures[fixtureIndex];
+                const teams = [fixture.home, fixture.away];
+
+                const row = document.createElement("div");
+                row.className = "stat-row";
+                row.dataset.kind = kind;
+
+                const playerSelect = document.createElement("select");
+                playerSelect.dataset.field = "player";
+                buildPlayerOptions(playerSelect, teams);
+
+                const teamSelect = document.createElement("select");
+                teamSelect.dataset.field = "team";
+                teams.forEach((team) => {
+                    const option = document.createElement("option");
+                    option.value = team;
+                    option.textContent = teamDisplay(team);
+                    teamSelect.appendChild(option);
+                });
+                playerSelect.addEventListener("change", () => {
+                    const [team] = playerSelect.value.split("||");
+                    if (team) teamSelect.value = team;
+                });
+
+                const minuteInput = document.createElement("input");
+                minuteInput.type = "number";
+                minuteInput.min = "0";
+                minuteInput.max = "150";
+                minuteInput.placeholder = "Menit";
+                minuteInput.dataset.field = "minute";
+
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "stat-remove";
+                remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                remove.addEventListener("click", () => {
+                    row.remove();
+                    if (!list.querySelector(".stat-row")) {
+                        const empty = document.createElement("p");
+                        empty.className = "no-result";
+                        empty.dataset.emptyFor = list.id;
+                        empty.textContent = "Belum ada data.";
+                        list.appendChild(empty);
+                    }
+                });
+
+                if (kind === "card") {
+                    const typeSelect = document.createElement("select");
+                    typeSelect.dataset.field = "type";
+                    [
+                        { value: "yellow", label: "Kuning" },
+                        { value: "red", label: "Merah" },
+                    ].forEach((option) => {
+                        const el = document.createElement("option");
+                        el.value = option.value;
+                        el.textContent = `Kartu ${option.label}`;
+                        typeSelect.appendChild(el);
+                    });
+                    row.append(playerSelect, teamSelect, typeSelect, remove);
+                } else {
+                    row.append(playerSelect, teamSelect, minuteInput, remove);
+                }
+
+                list.querySelector('[data-empty-for="' + list.id + '"]')?.remove();
+                list.appendChild(row);
+            }
+
+            function renderFixtureEditor(fixtures) {
+                const host = document.getElementById("fixtureEditor");
+                if (!host) return;
+                const source = fixtures || archiveFixtures;
+                host.replaceChildren();
+
+                if (source.length < 1) {
+                    const empty = document.createElement("p");
+                    empty.className = "no-result";
+                    empty.textContent =
+                        "Belum ada 2 tim hasil undian, jadi belum ada pertandingan yang bisa diisi. Anda tetap bisa mengarsipkan tanpa skor.";
+                    host.appendChild(empty);
+                    return;
+                }
+
+                source.forEach((fixture, index) => {
+                    const box = document.createElement("div");
+                    box.className = "fixture-row";
+                    box.dataset.fixtureIndex = index;
+
+                    const head = document.createElement("div");
+                    head.className = "fixture-head";
+                    const round = document.createElement("span");
+                    round.className = "fixture-round";
+                    round.textContent = `ROUND ${fixture.round || index + 1}`;
+                    const matchup = document.createElement("span");
+                    matchup.className = "fixture-matchup";
+                    matchup.innerHTML = `<span class="fixture-team-chip">${window.KOP.escapeHtml(
+                        teamDisplay(fixture.home),
+                    )}</span><span class="fixture-vs">vs</span><span class="fixture-team-chip">${window.KOP.escapeHtml(
+                        teamDisplay(fixture.away),
+                    )}</span>`;
+                    head.append(round, matchup);
+
+                    const body = document.createElement("div");
+                    body.className = "fixture-body";
+
+                    const scoreRow = document.createElement("div");
+                    scoreRow.className = "fixture-score-row";
+                    const homeBox = document.createElement("div");
+                    const homeLabel = document.createElement("div");
+                    homeLabel.className = "score-team";
+                    homeLabel.textContent = teamDisplay(fixture.home);
+                    const homeInput = document.createElement("input");
+                    homeInput.type = "number";
+                    homeInput.min = "0";
+                    homeInput.max = "99";
+                    homeInput.className = "fixture-score-input";
+                    homeInput.dataset.field = "score_home";
+                    homeInput.dataset.fixtureIndex = index;
+                    homeInput.value = fixture.score_home ?? 0;
+                    homeBox.append(homeLabel, homeInput);
+
+                    const dash = document.createElement("span");
+                    dash.className = "fixture-dash";
+                    dash.textContent = "-";
+
+                    const awayBox = document.createElement("div");
+                    const awayLabel = document.createElement("div");
+                    awayLabel.className = "score-team";
+                    awayLabel.textContent = teamDisplay(fixture.away);
+                    const awayInput = document.createElement("input");
+                    awayInput.type = "number";
+                    awayInput.min = "0";
+                    awayInput.max = "99";
+                    awayInput.className = "fixture-score-input";
+                    awayInput.dataset.field = "score_away";
+                    awayInput.dataset.fixtureIndex = index;
+                    awayInput.value = fixture.score_away ?? 0;
+                    awayBox.append(awayLabel, awayInput);
+
+                    scoreRow.append(homeBox, dash, awayBox);
+                    body.appendChild(scoreRow);
+
+                    ["goal", "assist", "card"].forEach((kind) => {
+                        const labels = {
+                            goal: "PENCETEC GOL",
+                            assist: "ASSIST",
+                            card: "KARTU KUNING / MERAH",
+                        };
+                        const sub = document.createElement("div");
+                        sub.className = "fixture-sub";
+                        const text = document.createElement("span");
+                        text.className = "fixture-sub-label";
+                        text.textContent = labels[kind];
+                        const add = document.createElement("button");
+                        add.type = "button";
+                        add.className = "btn-mini";
+                        add.innerHTML = '<i class="fa-solid fa-plus"></i> TAMBAH';
+                        add.addEventListener("click", () => addFixtureRow(index, kind));
+                        sub.append(text, add);
+
+                        const list = document.createElement("div");
+                        list.className = "stat-list";
+                        list.id = `fixture-${index}-${kind}`;
+                        const empty = document.createElement("p");
+                        empty.className = "no-result";
+                        empty.dataset.emptyFor = list.id;
+                        empty.textContent = "Belum ada data.";
+                        list.appendChild(empty);
+
+                        body.append(sub, list);
+                    });
+
+                    box.append(head, body);
+                    host.appendChild(box);
+                });
+
+                // Re-add any previously stored detail rows.
+                source.forEach((fixture, index) => {
+                    (fixture.goals || []).forEach((entry) =>
+                        fillFixtureRow(index, "goal", entry),
+                    );
+                    (fixture.assists || []).forEach((entry) =>
+                        fillFixtureRow(index, "assist", entry),
+                    );
+                    (fixture.cards || []).forEach((entry) =>
+                        fillFixtureRow(index, "card", entry),
+                    );
+                });
+            }
+
+            function fillFixtureRow(fixtureIndex, kind, entry) {
+                addFixtureRow(fixtureIndex, kind);
+                const list = document.getElementById(`fixture-${fixtureIndex}-${kind}`);
+                if (!list) return;
+                const row = list.querySelector(".stat-row:last-of-type");
+                if (!row) return;
+                const playerSelect = row.querySelector('[data-field="player"]');
+                const target = Array.from(playerSelect.options).find(
+                    (option) => option.value === `${entry.team}||${entry.player}`,
+                );
+                if (target) playerSelect.value = target.value;
+                row.querySelector('[data-field="team"]').value = entry.team;
+                row.querySelector('[data-field="minute"]').value = entry.minute ?? 0;
+                if (kind === "card") {
+                    row.querySelector('[data-field="type"]').value =
+                        entry.type || "yellow";
+                }
+            }
+
+            function resetArchiveForm() {
+                renderFixtureEditor(archiveFixtures);
+            }
+
+            function collectFixtureResult(fixture, index) {
+                const readRows = (kind) => {
+                    const list = document.getElementById(`fixture-${index}-${kind}`);
+                    if (!list) return [];
+                    return Array.from(list.querySelectorAll(".stat-row"))
+                        .map((row) => {
+                            const [team, player] = (
+                                row.querySelector('[data-field="player"]')?.value || ""
+                            ).split("||");
+                            if (!player) return null;
+                            const entry = {
+                                team,
+                                player,
+                                minute: Math.max(
+                                    0,
+                                    Math.min(
+                                        Number(
+                                            row.querySelector('[data-field="minute"]')
+                                                ?.value || 0,
+                                        ) || 0,
+                                        150,
+                                    ),
+                                ),
+                            };
+                            if (kind === "card") {
+                                entry.type =
+                                    row.querySelector('[data-field="type"]')?.value ||
+                                    "yellow";
+                            }
+                            return entry;
+                        })
+                        .filter(Boolean);
+                };
+
+                const host = document.getElementById("fixtureEditor");
+                const scoreHome = host?.querySelector(
+                    `[data-field="score_home"][data-fixture-index="${index}"]`,
+                );
+                const scoreAway = host?.querySelector(
+                    `[data-field="score_away"][data-fixture-index="${index}"]`,
+                );
+
+                return {
+                    home: fixture.home,
+                    away: fixture.away,
+                    score_home: Math.max(
+                        0,
+                        Math.min(Number(scoreHome?.value) || 0, 99),
+                    ),
+                    score_away: Math.max(
+                        0,
+                        Math.min(Number(scoreAway?.value) || 0, 99),
+                    ),
+                    goals: readRows("goal"),
+                    assists: readRows("assist"),
+                    cards: readRows("card"),
+                };
+            }
+
+            function collectArchiveFixtures() {
+                return archiveFixtures.map((fixture, index) =>
+                    collectFixtureResult(fixture, index),
+                );
+            }
+
+            function fixtureSummary(fixtures) {
+                if (!fixtures.length) return "tidak ada pertandingan";
+                return fixtures
+                    .map(
+                        (fixture) =>
+                            `${ARCHIVE_TEAM_LABELS[fixture.home] || fixture.home} ${
+                                fixture.score_home
+                            } - ${fixture.score_away} ${
+                                ARCHIVE_TEAM_LABELS[fixture.away] || fixture.away
+                            }`,
+                    )
+                    .join(" | ");
+            }
+
+            async function loadArchivePlayers() {
+                const { data: players } = await _supabase
+                    .from("community_players")
+                    .select("name, team")
+                    .eq("community_id", context.community.id);
+
+                archivePlayersByTeam = {};
+                (players || []).forEach((player) => {
+                    const team = player.team || "Tanpa Tim";
+                    if (!archivePlayersByTeam[team]) archivePlayersByTeam[team] = [];
+                    archivePlayersByTeam[team].push(player.name);
+                });
+                refreshArchiveSchedule();
+            }
+
+            async function submitArchive() {
+                const fixtures = collectArchiveFixtures();
+                const editingId = window._editingArchiveId;
+
+                if (editingId) {
+                    if (!confirm("Simpan perubahan hasil pertandingan ini?")) return;
+                    const { error } = await _supabase.rpc("update_event_history_result", {
+                        p_history: editingId,
+                        p_result: { fixtures },
+                    });
+                    if (error) {
+                        alert("Gagal menyimpan hasil: " + error.message);
+                        return;
+                    }
+                    window._editingArchiveId = null;
+                    const note = document.getElementById("archiveEditingNote");
+                    if (note) note.hidden = true;
+                    alert("Hasil pertandingan berhasil disimpan.");
+                    resetArchiveForm();
+                    await loadArchiveList();
+                    return;
+                }
+
+                if (!currentMatch || currentMatch.event_name === "TBA") {
+                    alert(
+                        "Belum ada pertandingan yang dipublikasikan. PUBLIKASIKAN dulu di tab Info Match Day.",
+                    );
+                    return;
+                }
+                if (
+                    !confirm(
+                        `Arsipkan "${currentMatch.event_name}"?\n\n${
+                            fixtures.length
+                                ? "Hasil:\n" + fixtureSummary(fixtures) + "\n\n"
+                                : ""
+                        }Daftar pemain komunitas akan dikosongkan dan match di-reset. Tindakan ini tidak bisa dibatalkan.`,
+                    )
+                ) {
+                    return;
+                }
+
                 const { error } = await _supabase.rpc("archive_community_match", {
                     p_community: context.community.id,
+                    p_result: { fixtures },
                 });
                 if (error) {
                     alert("Gagal mengarsipkan: " + error.message);
                     return;
                 }
                 alert("Pertandingan berhasil diarsipkan!");
+                currentMatch = null;
+                archivePlayersByTeam = {};
+                archiveFixtures = [];
+                renderFixtureTable();
+                resetArchiveForm();
                 loadMatchInfo();
                 muatPemain();
                 loadDraft();
+                await loadArchiveList();
+            }
+
+            async function loadArchiveList() {
+                const body = document.getElementById("archiveTableBody");
+                if (!body) return;
+                const { data, error } = await _supabase.rpc("list_event_history_admin", {
+                    p_community: context.community.id,
+                });
+                if (error) {
+                    if (/does not exist|not found|schema cache/i.test(error.message || "")) {
+                        body.innerHTML =
+                            '<tr><td colspan="5" class="empty-state">Fitur ini butuh migration terbaru. Jalankan <b>20260924050000</b> lalu <b>20260924060000</b> di Supabase SQL Editor.</td></tr>';
+                        return;
+                    }
+                    body.innerHTML = `<tr><td colspan="5" class="empty-state">Gagal memuat riwayat: ${window.KOP.escapeHtml(
+                        error.message,
+                    )}</td></tr>`;
+                    return;
+                }
+                renderArchiveList(data || []);
+            }
+
+            function renderArchiveList(rows) {
+                const body = document.getElementById("archiveTableBody");
+                if (!body) return;
+                if (!rows.length) {
+                    body.innerHTML =
+                        '<tr><td colspan="5" class="empty-state">Belum ada pertandingan yang diarsipkan.</td></tr>';
+                    return;
+                }
+                body.replaceChildren();
+                rows.forEach((row) => {
+                    const tr = document.createElement("tr");
+
+                    const eventCell = document.createElement("td");
+                    eventCell.style.fontWeight = "600";
+                    eventCell.textContent = row.event_name || "TBA";
+
+                    const dateCell = document.createElement("td");
+                    dateCell.textContent = row.match_date
+                        ? row.match_date.replace("T", " | ")
+                        : "-";
+
+                    const scoreCell = document.createElement("td");
+                    const fixtures = Array.isArray(row.fixtures) ? row.fixtures : [];
+                    const filled = fixtures.filter(
+                        (fixture) =>
+                            Number(fixture.score_home) > 0 || Number(fixture.score_away) > 0,
+                    );
+                    if (filled.length) {
+                        const wrap = document.createElement("div");
+                        wrap.style.display = "grid";
+                        wrap.style.gap = "3px";
+                        filled.forEach((fixture) => {
+                            const line = document.createElement("span");
+                            line.className = "score-badge";
+                            line.textContent = `${ARCHIVE_TEAM_LABELS[fixture.home] || fixture.home} ${
+                                fixture.score_home
+                            } - ${fixture.score_away} ${
+                                ARCHIVE_TEAM_LABELS[fixture.away] || fixture.away
+                            }`;
+                            wrap.appendChild(line);
+                        });
+                        scoreCell.appendChild(wrap);
+                    } else {
+                        const none = document.createElement("span");
+                        none.className = "no-result";
+                        none.textContent = "Belum diisi";
+                        scoreCell.appendChild(none);
+                    }
+
+                    const playerCell = document.createElement("td");
+                    playerCell.textContent = row.player_count ?? 0;
+
+                    const actions = document.createElement("td");
+                    const group = document.createElement("div");
+                    group.className = "action-cell";
+                    const edit = document.createElement("button");
+                    edit.className = "btn-table btn-status-edit";
+                    edit.type = "button";
+                    edit.title = "Isi / perbarui hasil pertandingan";
+                    edit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+                    edit.addEventListener("click", () => {
+                        switchTab("archive");
+                        archiveFixtures = fixtures.length
+                            ? fixtures
+                            : buildRoundRobin(archiveActiveTeams());
+                        renderFixtureEditor(archiveFixtures);
+                        window._editingArchiveId = row.id;
+                        const note = document.getElementById("archiveEditingNote");
+                        if (note) {
+                            note.textContent = `Sedang mengedit: ${row.event_name}`;
+                            note.hidden = false;
+                        }
+                        document
+                            .getElementById("archiveMatchName")
+                            .scrollIntoView({ behavior: "smooth", block: "start" });
+                    });
+                    group.appendChild(edit);
+                    actions.appendChild(group);
+
+                    tr.append(eventCell, dateCell, scoreCell, playerCell, actions);
+                    body.appendChild(tr);
+                });
             }
 
             /* ==================================================
