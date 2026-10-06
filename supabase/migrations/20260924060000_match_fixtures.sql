@@ -191,43 +191,41 @@ $$;
 
 revoke all on function public.merge_match_fixtures(jsonb, jsonb) from public, anon, authenticated;
 
--- Total goals/assists/cards per team, summed across every fixture. The admin
--- list shows this instead of the ambiguous single score per team.
-create or replace function public.fixture_team_totals(p_fixtures jsonb)
+-- Total goals per team, summed across every fixture. Written as language sql with
+-- no plpgsql variables: a plpgsql body that mixes a query with a RETURN can be
+-- classified by PostgreSQL as a set-returning function, which then fails with
+-- "set-returning functions are not allowed in WHERE" when the archive RPC writes an
+-- RLS-checked row. migration 20260924070000 replaces this with the wider version.
+drop function if exists public.fixture_team_totals(jsonb);
+
+create function public.fixture_team_totals(p_fixtures jsonb)
 returns jsonb
-language plpgsql
+language sql
 immutable
-set search_path = public, extensions
 as $$
-declare
-    team text;
-    goals int;
-    total jsonb := '{}'::jsonb;
-begin
-    if jsonb_typeof(p_fixtures) <> 'array' then
-        return total;
-    end if;
-
-    foreach team in array array['Red', 'Blue', 'Green', 'Purple']
-    loop
-        select
-            coalesce(sum(
-                (select coalesce(sum((entry ->> 'goals')::integer), 0)
-                 from jsonb_array_elements(coalesce(fixture -> 'goals', '[]'::jsonb)) as entry
-                 where entry ->> 'team' = team)
-                +
-                (select coalesce(sum((entry ->> 'goals')::integer), 0)
-                 from jsonb_array_elements(coalesce(fixture -> 'goals', '[]'::jsonb)) as entry
-                 where entry ->> 'team' = team)
-            ), 0)::integer
-        into goals
-        from jsonb_array_elements(p_fixtures) as fixture;
-
-        total := total || jsonb_build_object(team, goals);
-    end loop;
-
-    return total;
-end;
+    select coalesce(jsonb_object_agg(teams.team_name, counts.goals), '{}'::jsonb)
+    from (
+        values
+            ('Red'), ('Blue'), ('Green'), ('Purple'),
+            ('Orange'), ('Pink'), ('Teal'), ('Navy')
+    ) as teams(team_name)
+    left join lateral (
+        select count(*)::integer as goals
+        from jsonb_array_elements(
+            case
+                when jsonb_typeof(p_fixtures) = 'array' then p_fixtures
+                else '[]'::jsonb
+            end
+        ) as fixture(fixture_doc)
+        cross join lateral jsonb_array_elements(
+            case
+                when jsonb_typeof(fixture.fixture_doc -> 'goals') = 'array'
+                    then fixture.fixture_doc -> 'goals'
+                else '[]'::jsonb
+            end
+        ) as entry(entry_doc)
+        where entry.entry_doc ->> 'team' = teams.team_name
+    ) as counts on true;
 $$;
 
 revoke all on function public.fixture_team_totals(jsonb) from public, anon, authenticated;
