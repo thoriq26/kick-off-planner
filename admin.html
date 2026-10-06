@@ -1605,6 +1605,9 @@
                 <button class="tab-btn" data-tab="invites" onclick="switchTab('invites')">
                     <i class="fa-solid fa-link"></i> Undangan
                 </button>
+                <button class="tab-btn" data-tab="members" onclick="switchTab('members')">
+                    <i class="fa-solid fa-users-gear"></i> Anggota
+                </button>
             </div>
 
             <div class="content-area">
@@ -1854,7 +1857,6 @@
                             <li>Buat kode undangan untuk komunitas <b id="inviteCommunityName">ini</b>.</li>
                             <li>Kirim tautan undangan menggunakan tombol WhatsApp, Telegram, atau Bagikan Lainnya. Kode akan otomatis terisi di halaman onboarding.</li>
                             <li>Klik <b>LIHAT DAFTAR</b> di Undangan Aktif untuk melihat nama dan email akun yang sudah memakai kode undangan tersebut.</li>
-                            <li>Di <b>Anggota Terdaftar</b>, ubah status akun menjadi NONAKTIF untuk menonaktifkan akses, atau HAPUS untuk melepas anggota.</li>
                             <li>Kode dapat kedaluwarsa atau dibatalkan dari daftar undangan.</li>
                         </ol>
                     </div>
@@ -1891,11 +1893,28 @@
                             </table>
                         </div>
                     </div>
+                </div>
+
+                <!-- ================= TAB 5: ANGGOTA ================= -->
+                <div class="tab-panel" id="panel-members">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Anggota
+                        </div>
+                        <ol>
+                            <li>Daftar ini berisi semua akun yang sudah bergabung dengan komunitas <b id="memberCommunityName">ini</b>.</li>
+                            <li>Klik ikon <b>orang dicoret</b> untuk membuat akun NONAKTIF — akun tetap ada tapi tidak bisa membuka halaman komunitas.</li>
+                            <li>Klik ikon <b>orang centang</b> untuk mengaktifkan kembali.</li>
+                            <li>Klik ikon <b>tong sampah</b> untuk melepas anggota. Data pemainnya ikut terhapus, tetapi akun login dan emailnya tidak.</li>
+                            <li>Baris <b>(Anda)</b> tidak bisa diubah atau dihapus.</li>
+                        </ol>
+                    </div>
                     <div class="card">
                         <h2><i class="fa-solid fa-users-gear"></i> Anggota Terdaftar</h2>
                         <p class="member-hint">
-                           _NONAKTIF tidak bisa membuka halaman komunitas. Hapus anggota melepas akses
-                            dan data pemainnya, tetapi akun login tetap ada.
+                            NONAKTIF tidak bisa membuka halaman komunitas. Menghapus anggota hanya melepas
+                            akses dan data pemainnya — email dan akun login tetap ada, jadi orang tersebut
+                            masih bisa masuk dengan akun lamanya, dan tidak perlu daftar ulang.
                         </p>
                         <div class="table-container">
                             <table>
@@ -2061,6 +2080,9 @@
                 document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
                 document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add("active");
                 document.getElementById(`panel-${tab}`).classList.add("active");
+                const communityName = document.getElementById("memberCommunityName");
+                if (communityName) communityName.textContent = context.community.name;
+                if (tab === "members") loadMembersTable();
             }
 
             /* ==================================================
@@ -3097,7 +3119,8 @@
                 const name = row.full_name || row.email || "anggota ini";
                 if (
                     !confirm(
-                        `Hapus ${name} dari komunitas?\n\nData pemainnya akan dihapus juga. Akun login tidak ikut terhapus.`,
+                        `Hapus ${name} dari komunitas?\n\nYang dihapus: akses komunitas dan data pemainnya.\n` +
+                            "Yang TIDAK dihapus: akun login dan email. Orang ini masih bisa masuk dengan akun lamanya.",
                     )
                 ) {
                     return;
