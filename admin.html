@@ -3281,10 +3281,10 @@
                 return Math.min(Math.max(1, raw), max);
             }
 
-            function refreshRoundOptions() {
+            function refreshRoundOptions(teams) {
                 const select = document.getElementById("numRounds");
                 if (!select) return;
-                const max = maxRoundsForTeamCount(archiveActiveTeams().length);
+                const max = maxRoundsForTeamCount((teams || archiveActiveTeams()).length);
                 if (max < 1) {
                     select.replaceChildren();
                     const none = document.createElement("option");
@@ -3310,7 +3310,18 @@
             }
 
             function refreshArchiveSchedule() {
-                refreshRoundOptions();
+                // While an archived event is being edited, the editor is driven by that
+                // event's own team snapshot. Rebuilding the schedule from the live
+                // roster here emptied the editor a moment after it opened: archiving
+                // deletes the player rows, so the live roster is always empty here.
+                if (window._editingArchiveId) {
+                    refreshRoundOptions(editorActiveTeams());
+                    renderFixtureTable();
+                    renderFixtureEditor(archiveFixtures);
+                    return;
+                }
+
+                refreshRoundOptions(archiveActiveTeams());
                 archiveFixtures = buildRoundRobin(
                     archiveActiveTeams(),
                     selectedRounds(),
