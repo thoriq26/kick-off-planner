@@ -33,3 +33,5 @@
 ## Deployment
 
 - No deploy script or hosting workflow is defined. The repository is a set of root-level static files; deployment must serve the repository root and permit requests to the configured CDNs and Supabase project.
+- Deployment is implicit: pushing to `main` triggers the GitHub → Vercel build. **Always ask the user before `git push`**, even when the fix is ready and verified; an unwanted push publishes unreviewed code to the live site.
+- `admin.html` renders a build stamp (`data-build` on `<body>`, shown at the bottom of the page) and a `pointer-events: none` error banner for uncaught JS errors. Ask the user to confirm the stamp value before debugging further, since a stale browser cache is the usual cause of "my fix did nothing".
