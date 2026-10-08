@@ -1810,7 +1810,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-08a">
+    <body data-build="2026-10-08b">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -2170,7 +2170,7 @@
                     </div>
 
                     <div class="card">
-                        <h2><i class="fa-solid fa-trophy"></i> Hasil Pertandingan Saat Ini</h2>
+                        <h2 id="archiveCardTitle"><i class="fa-solid fa-trophy"></i> Hasil Pertandingan Saat Ini</h2>
                         <p class="member-hint" style="margin-bottom:14px;">
                             <span id="archiveMatchName">Belum ada pertandingan dipublikasikan.</span><br />
                             <span id="archiveEditingNote" hidden
@@ -2192,7 +2192,7 @@
                             >
                                 <i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG
                             </button>
-                            <button class="btn-action btn-cancel" type="button" onclick="resetArchiveForm()">
+                            <button class="btn-action btn-cancel" id="archiveClearButton" type="button" onclick="resetArchiveForm()">
                                 <i class="fa-solid fa-rotate-left"></i> BERSIHKAN
                             </button>
                         </div>
@@ -2478,7 +2478,8 @@
                     loadArchivePlayers();
                     loadArchiveList();
                     const matchLabel = document.getElementById("archiveMatchName");
-                    if (matchLabel) {
+                    // Saat mode edit aktif, jangan timpa label dengan info match baru.
+                    if (matchLabel && !window._editingArchiveId) {
                         matchLabel.textContent =
                             currentMatch && currentMatch.event_name !== "TBA"
                                 ? `Pertandingan aktif: ${currentMatch.event_name} (${currentMatch.nama_lp || "lapangan TBA"})`
@@ -3594,8 +3595,8 @@
             }
 
             function resetArchiveForm() {
-                // BERSIHKAN also leaves edit mode, otherwise the next archive would
-                // overwrite a past event instead of creating a new one.
+                // BERSIHKAN / BATALKAN EDIT juga meninggalkan mode edit, kalau tidak
+                // arsip berikutnya akan menimpa event lama.
                 window._editingArchiveId = null;
                 archiveEditTeams = null;
                 const note = document.getElementById("archiveEditingNote");
@@ -3603,10 +3604,19 @@
                     note.textContent = "";
                     note.hidden = true;
                 }
+                const cardTitle = document.getElementById("archiveCardTitle");
+                if (cardTitle) {
+                    cardTitle.innerHTML =
+                        '<i class="fa-solid fa-trophy"></i> Hasil Pertandingan Saat Ini';
+                }
                 const submit = document.getElementById("archiveSubmitButton");
                 if (submit) {
                     submit.innerHTML =
                         '<i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG';
+                }
+                const clear = document.getElementById("archiveClearButton");
+                if (clear) {
+                    clear.innerHTML = '<i class="fa-solid fa-rotate-left"></i> BERSIHKAN';
                 }
                 renderFixtureEditor(archiveFixtures);
             }
@@ -3839,13 +3849,28 @@
 
                 const note = document.getElementById("archiveEditingNote");
                 if (note) {
-                    note.textContent = `Sedang mengedit: ${row.event_name || "event"}`;
+                    note.textContent =
+                        "MODE EDIT: " +
+                        (row.event_name || "event") +
+                        ". Ubah skor, pencetak gol, assist, atau kartu, lalu tekan SIMPAN HASIL. " +
+                        "Tekan BATALKAN EDIT untuk kembali ke arsip baru.";
                     note.hidden = false;
+                }
+                const cardTitle = document.getElementById("archiveCardTitle");
+                if (cardTitle) {
+                    cardTitle.innerHTML =
+                        '<i class="fa-solid fa-pen-to-square"></i> Edit Hasil: ' +
+                        window.KOP.escapeHtml(row.event_name || "Event");
                 }
                 const submit = document.getElementById("archiveSubmitButton");
                 if (submit) {
                     submit.innerHTML =
                         '<i class="fa-solid fa-floppy-disk"></i> SIMPAN HASIL';
+                }
+                const clear = document.getElementById("archiveClearButton");
+                if (clear) {
+                    clear.innerHTML =
+                        '<i class="fa-solid fa-xmark"></i> BATALKAN EDIT';
                 }
                 const matchName = document.getElementById("archiveMatchName");
                 if (matchName) {
@@ -3871,7 +3896,6 @@
             function renderArchiveList(rows) {
                 const body = document.getElementById("archiveTableBody");
                 if (!body) return;
-                ensureArchiveActionHandler(body);
                 archiveRowsById.clear();
                 if (!rows.length) {
                     body.innerHTML =
@@ -3926,21 +3950,33 @@
                     const group = document.createElement("div");
                     group.className = "action-cell";
                     const edit = document.createElement("button");
-                    edit.className = "btn-table btn-status-edit";
+                    edit.className = "btn-table btn-status-edit btn-invite-list";
                     edit.type = "button";
-                    edit.title = "Isi / perbarui hasil pertandingan";
+                    edit.title = "Edit skor, pencetak gol, assist, dan kartu";
                     edit.dataset.archiveAction = "edit";
                     edit.dataset.archiveId = row.id;
-                    edit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+                    edit.innerHTML =
+                        '<i class="fa-solid fa-pen-to-square"></i> EDIT HASIL';
+                    // Inline onclick, sama seperti revokeInvite / doLogout. Listener per-element
+                    // mudah hilang saat tabel dirender ulang, dan hasilnya tombol
+                    // terlihat tapi tidak bereaksi.
+                    edit.setAttribute(
+                        "onclick",
+                        `editArchivedEvent(${JSON.stringify(String(row.id))})`,
+                    );
                     group.appendChild(edit);
 
                     const remove = document.createElement("button");
-                    remove.className = "btn-table btn-delete";
+                    remove.className = "btn-table btn-delete btn-invite-list";
                     remove.type = "button";
                     remove.title = "Hapus event dari riwayat";
                     remove.dataset.archiveAction = "delete";
                     remove.dataset.archiveId = row.id;
-                    remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                    remove.innerHTML = '<i class="fa-solid fa-trash"></i> HAPUS';
+                    remove.setAttribute(
+                        "onclick",
+                        `deleteArchivedEventById(${JSON.stringify(String(row.id))})`,
+                    );
                     group.appendChild(remove);
 
                     actions.appendChild(group);
@@ -3951,53 +3987,31 @@
                 });
             }
 
-            // One delegated listener for the whole archive table. Attaching listeners
-            // per row is easy to lose when the table re-renders, which made the
-            // buttons look dead.
-            // Walk up from the click target instead of relying on Element.closest().
-// The click can land on an icon node whose closest() is unavailable, and a
-// silent no-op there is exactly what made the edit button look dead.
-            function findArchiveActionButton(node) {
-                let current = node;
-                while (current) {
-                    if (current.dataset && current.dataset.archiveAction) return current;
-                    current = current.parentElement || current.parentNode || null;
+            // Dipanggil dari onclick inline di tabel riwayat, pola yang sama dengan
+            // revokeInvite / doLogout: tidak bisa hilang saat tabel di-render ulang.
+            function editArchivedEvent(id) {
+                const entry = archiveRowsById.get(id);
+                if (!entry) {
+                    window.KOP_showError?.(
+                        "Data event " + id + " tidak ada di cache. Muat ulang halaman.",
+                    );
+                    return;
                 }
-                return null;
+                openArchiveEditor(entry.row, entry.fixtures);
             }
 
-            function ensureArchiveActionHandler(body) {
-                if (body.dataset.archiveHandler === "1") return;
-                body.dataset.archiveHandler = "1";
-                body.addEventListener("click", (event) => {
-                    const button = findArchiveActionButton(event.target);
-                    if (!button || !body.contains(button)) return;
-                    const entry = archiveRowsById.get(button.dataset.archiveId);
-                    if (!entry) {
-                        window.KOP_showError?.(
-                            "baris arsip " + button.dataset.archiveId + " tidak ada di cache tabel",
-                        );
-                        return;
-                    }
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    if (button.dataset.archiveAction === "edit") {
-                        try {
-                            openArchiveEditor(entry.row, entry.fixtures);
-                        } catch (err) {
-                            alert(
-                                "Editor hasil tidak bisa dibuka:\n" +
-                                    (err && err.message ? err.message : String(err)),
-                            );
-                        }
-                    } else {
-                        deleteArchivedEvent(entry.row, button);
-                    }
-                });
+            function deleteArchivedEventById(id) {
+                const entry = archiveRowsById.get(id);
+                if (!entry) {
+                    window.KOP_showError?.(
+                        "Data event " + id + " tidak ada di cache. Muat ulang halaman.",
+                    );
+                    return;
+                }
+                deleteArchivedEvent(entry.row);
             }
 
-            async function deleteArchivedEvent(row, button) {
+            async function deleteArchivedEvent(row) {
                 const label = row.event_name || "event ini";
                 if (
                     !confirm(
@@ -4007,7 +4021,6 @@
                 ) {
                     return;
                 }
-                button.disabled = true;
                 const { error } = await _supabase
                     .from("community_event_history")
                     .delete()
@@ -4015,7 +4028,6 @@
                     .eq("community_id", context.community.id);
                 if (error) {
                     alert("Riwayat tidak dapat dihapus: " + describeRpcError(error));
-                    button.disabled = false;
                     return;
                 }
                 if (window._editingArchiveId === row.id) {
@@ -4368,7 +4380,6 @@
             }
 
             async function toggleMemberStatus(row, nextActive, button) {
-                button.disabled = true;
                 const { error } = await _supabase.rpc("set_community_member_status", {
                     p_community: context.community.id,
                     p_user: row.user_id,
@@ -4392,7 +4403,6 @@
                 ) {
                     return;
                 }
-                button.disabled = true;
                 const { error } = await _supabase.rpc("remove_community_member", {
                     p_community: context.community.id,
                     p_user: row.user_id,
