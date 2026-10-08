@@ -248,6 +248,31 @@
                 font-size: 0.74rem;
                 overflow-wrap: anywhere;
             }
+            /* Versi yang sedang berjalan, biar jelas file mana yang aktif. */
+            .build-stamp {
+                margin: 20px auto 6px;
+                text-align: center;
+                font-size: 0.66rem;
+                letter-spacing: 0.1em;
+                color: #94a3b8;
+            }
+            #errorBanner {
+                position: fixed;
+                left: 50%;
+                top: 10px;
+                transform: translateX(-50%);
+                z-index: 1000;
+                max-width: min(92vw, 720px);
+                padding: 10px 14px;
+                border-radius: 10px;
+                background: #7f1d1d;
+                color: #fee2e2;
+                font-size: 0.76rem;
+                line-height: 1.4;
+                overflow-wrap: anywhere;
+                /* Wajib: banner tidak boleh menutupi tombol apa pun. */
+                pointer-events: none;
+            }
             .nav-btn:hover {
                 border-color: #e74c3c;
                 color: #e74c3c;
@@ -1785,7 +1810,28 @@
             }
         </style>
     </head>
-    <body>
+    <body data-build="2026-10-08a">
+        <!-- Error banner: makes any uncaught JS error visible instead of silent.
+             pointer-events:none so it can never block a click. -->
+        <div id="errorBanner" hidden></div>
+        <script>
+            (function () {
+                var banner = document.getElementById("errorBanner");
+                function show(detail) {
+                    if (!banner) return;
+                    banner.textContent = "JS ERROR: " + detail;
+                    banner.hidden = false;
+                }
+                window.addEventListener("error", function (event) {
+                    show((event.message || "unknown") + " @" + (event.lineno || "?"));
+                });
+                window.addEventListener("unhandledrejection", function (event) {
+                    var reason = event.reason || {};
+                    show((reason.message || String(reason)) + " (promise)");
+                });
+                window.KOP_showError = show;
+            })();
+        </script>
         <div class="navbar">
             <div class="navbar-top">
                 <span class="nav-title"
@@ -2280,6 +2326,8 @@
             <p class="account-note">Owner/Admin komunitas <b id="accountCommunityName">-</b></p>
         </div>
 
+        <p class="build-stamp" id="buildStamp"></p>
+
         <div
             class="modal-overlay"
             id="paymentProofStatusModal"
@@ -2333,6 +2381,16 @@
             const _supabase = window.KOP.supabase;
             let context;
             let currentMatch;
+
+            // Tampilkan versi file yang sedang berjalan di paling bawah halaman.
+            (function showBuildStamp() {
+                const stamp = document.getElementById("buildStamp");
+                if (stamp) {
+                    stamp.textContent = `BUILD ${document.body.dataset.build || "?"} · ${
+                        location.pathname.split("/").pop() || "admin.html"
+                    }`;
+                }
+            })();
 
             const POS_ORDER = ["GK","CB","LB","RB","LWB","RWB","DMF","CMF","AMF","LMF","RMF","LWF","RWF","SS","CF"];
             const TEAM_NAMES = [
@@ -3794,6 +3852,20 @@
                     matchName.textContent = `Mengisi hasil: ${row.event_name || "event"}`;
                 }
                 matchName?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+                // Never leave the admin staring at an empty editor with no
+                // explanation: report what the archived row actually contains.
+                if (!archiveFixtures.length) {
+                    alert(
+                        "Tidak ada pertandingan yang bisa dibuat dari event ini.\n\n" +
+                            `Tim pada arsip: ${
+                                Object.keys(archiveEditTeams).join(", ") || "(kosong)"
+                            }\n` +
+                            `Jadwal tersimpan: ${(fixtures || []).length} pertandingan\n\n` +
+                            "Kalau ini keliru, hapus event dari riwayat, lalu Undi Tim " +
+                            "dan arsipkan ulang.",
+                    );
+                }
             }
 
             function renderArchiveList(rows) {
@@ -3882,14 +3954,31 @@
             // One delegated listener for the whole archive table. Attaching listeners
             // per row is easy to lose when the table re-renders, which made the
             // buttons look dead.
+            // Walk up from the click target instead of relying on Element.closest().
+// The click can land on an icon node whose closest() is unavailable, and a
+// silent no-op there is exactly what made the edit button look dead.
+            function findArchiveActionButton(node) {
+                let current = node;
+                while (current) {
+                    if (current.dataset && current.dataset.archiveAction) return current;
+                    current = current.parentElement || current.parentNode || null;
+                }
+                return null;
+            }
+
             function ensureArchiveActionHandler(body) {
                 if (body.dataset.archiveHandler === "1") return;
                 body.dataset.archiveHandler = "1";
                 body.addEventListener("click", (event) => {
-                    const button = event.target.closest("[data-archive-action]");
+                    const button = findArchiveActionButton(event.target);
                     if (!button || !body.contains(button)) return;
                     const entry = archiveRowsById.get(button.dataset.archiveId);
-                    if (!entry) return;
+                    if (!entry) {
+                        window.KOP_showError?.(
+                            "baris arsip " + button.dataset.archiveId + " tidak ada di cache tabel",
+                        );
+                        return;
+                    }
                     event.preventDefault();
                     event.stopPropagation();
 
