@@ -3139,6 +3139,10 @@
             // Current round-robin schedule: [{ round, home, away }]
             let archiveFixtures = [];
             let archiveRowCounter = 0;
+            // Row data for the delegated archive-table actions (edit / delete).
+            const archiveRowsById = new Map();
+            // Team split snapshot of the archived event currently being edited.
+            let archiveEditTeams = null;
 
             function teamDisplay(team) {
                 return `Tim ${ARCHIVE_TEAM_LABELS[team] || team}`;
@@ -3148,6 +3152,23 @@
                 return Object.keys(archivePlayersByTeam)
                     .filter((team) => team !== "Tanpa Tim")
                     .filter((team) => archivePlayersByTeam[team].length);
+            }
+
+            // The result editor keeps its own team split: the snapshot of the archived
+            // event being edited. Sharing archivePlayersByTeam with the live roster
+            // made every reload (switch tab, shuffle, refresh) wipe the editor,
+            // because archiving already deleted the community's player rows.
+            function editorPlayersByTeam() {
+                return window._editingArchiveId && archiveEditTeams
+                    ? archiveEditTeams
+                    : archivePlayersByTeam;
+            }
+
+            function editorActiveTeams() {
+                const source = editorPlayersByTeam();
+                return Object.keys(source)
+                    .filter((team) => team !== "Tanpa Tim")
+                    .filter((team) => source[team] && source[team].length);
             }
 
             // Client-side round robin so the admin sees the schedule instantly.
@@ -3279,7 +3300,8 @@
 
             /* ---------- Editor per pertandingan ---------- */
             function buildPlayerOptions(select, allowedTeams) {
-                const teams = allowedTeams || archiveActiveTeams();
+                const source = editorPlayersByTeam();
+                const teams = allowedTeams || editorActiveTeams();
                 if (!teams.length) {
                     const empty = document.createElement("option");
                     empty.value = "";
@@ -3290,7 +3312,7 @@
                 teams.forEach((team) => {
                     const group = document.createElement("optgroup");
                     group.label = teamDisplay(team);
-                    (archivePlayersByTeam[team] || []).forEach((player) => {
+                    (source[team] || []).forEach((player) => {
                         const option = document.createElement("option");
                         option.value = `${team}||${player}`;
                         option.textContent = player;
@@ -3514,6 +3536,20 @@
             }
 
             function resetArchiveForm() {
+                // BERSIHKAN also leaves edit mode, otherwise the next archive would
+                // overwrite a past event instead of creating a new one.
+                window._editingArchiveId = null;
+                archiveEditTeams = null;
+                const note = document.getElementById("archiveEditingNote");
+                if (note) {
+                    note.textContent = "";
+                    note.hidden = true;
+                }
+                const submit = document.getElementById("archiveSubmitButton");
+                if (submit) {
+                    submit.innerHTML =
+                        '<i class="fa-solid fa-box-archive"></i> ARSIPKAN SEKARANG';
+                }
                 renderFixtureEditor(archiveFixtures);
             }
 
@@ -3640,9 +3676,13 @@
                         return;
                     }
                     window._editingArchiveId = null;
+                    archiveEditTeams = null;
                     const note = document.getElementById("archiveEditingNote");
                     if (note) note.hidden = true;
                     alert("Hasil pertandingan berhasil disimpan.");
+                    // Back to the live roster and the current match schedule, so the
+                    // editor no longer shows the archived snapshot.
+                    await loadArchivePlayers();
                     resetArchiveForm();
                     await loadArchiveList();
                     return;
@@ -3713,9 +3753,54 @@
                 renderArchiveList(data || []);
             }
 
+            // Open the result editor for an already archived event.
+            function openArchiveEditor(row, fixtures) {
+                // The flag goes first so any load already in flight cannot finish by
+                // resetting the editing state below.
+                window._editingArchiveId = row.id;
+                switchTab("archive");
+
+                // Archiving deletes the community's player rows, so the live player
+                // list is empty. The archived event carries its own team split
+                // snapshot, which is what the editor must use.
+                archiveEditTeams = {};
+                const snapshot =
+                    row.team_players && typeof row.team_players === "object"
+                        ? row.team_players
+                        : {};
+                Object.entries(snapshot).forEach(([team, players]) => {
+                    if (Array.isArray(players) && players.length) {
+                        archiveEditTeams[team] = players.slice();
+                    }
+                });
+
+                archiveFixtures = (fixtures || []).length
+                    ? fixtures
+                    : buildRoundRobin(editorActiveTeams());
+                renderFixtureEditor(archiveFixtures);
+
+                const note = document.getElementById("archiveEditingNote");
+                if (note) {
+                    note.textContent = `Sedang mengedit: ${row.event_name || "event"}`;
+                    note.hidden = false;
+                }
+                const submit = document.getElementById("archiveSubmitButton");
+                if (submit) {
+                    submit.innerHTML =
+                        '<i class="fa-solid fa-floppy-disk"></i> SIMPAN HASIL';
+                }
+                const matchName = document.getElementById("archiveMatchName");
+                if (matchName) {
+                    matchName.textContent = `Mengisi hasil: ${row.event_name || "event"}`;
+                }
+                matchName?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+
             function renderArchiveList(rows) {
                 const body = document.getElementById("archiveTableBody");
                 if (!body) return;
+                ensureArchiveActionHandler(body);
+                archiveRowsById.clear();
                 if (!rows.length) {
                     body.innerHTML =
                         '<tr><td colspan="5" class="empty-state">Belum ada pertandingan yang diarsipkan.</td></tr>';
@@ -3772,58 +3857,54 @@
                     edit.className = "btn-table btn-status-edit";
                     edit.type = "button";
                     edit.title = "Isi / perbarui hasil pertandingan";
+                    edit.dataset.archiveAction = "edit";
+                    edit.dataset.archiveId = row.id;
                     edit.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
-                    edit.addEventListener("click", () => {
-                        switchTab("archive");
-
-                        // Archiving deletes the community's player rows, so the live
-                        // player list is empty. The archived event carries its own
-                        // team split snapshot, which is what the editor must use.
-                        archivePlayersByTeam = {};
-                        const snapshot =
-                            row.team_players && typeof row.team_players === "object"
-                                ? row.team_players
-                                : {};
-                        Object.entries(snapshot).forEach(([team, players]) => {
-                            if (Array.isArray(players) && players.length) {
-                                archivePlayersByTeam[team] = players;
-                            }
-                        });
-
-                        archiveFixtures = fixtures.length
-                            ? fixtures
-                            : buildRoundRobin(archiveActiveTeams());
-                        renderFixtureEditor(archiveFixtures);
-
-                        window._editingArchiveId = row.id;
-                        const note = document.getElementById("archiveEditingNote");
-                        if (note) {
-                            note.textContent = `Sedang mengedit: ${row.event_name}`;
-                            note.hidden = false;
-                        }
-                        const submit = document.getElementById("archiveSubmitButton");
-                        if (submit) submit.innerHTML =
-                            '<i class="fa-solid fa-floppy-disk"></i> SIMPAN HASIL';
-                        document
-                            .getElementById("archiveMatchName")
-                            .scrollIntoView({ behavior: "smooth", block: "start" });
-                    });
                     group.appendChild(edit);
 
                     const remove = document.createElement("button");
                     remove.className = "btn-table btn-delete";
                     remove.type = "button";
                     remove.title = "Hapus event dari riwayat";
+                    remove.dataset.archiveAction = "delete";
+                    remove.dataset.archiveId = row.id;
                     remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                    remove.addEventListener("click", () =>
-                        deleteArchivedEvent(row, remove),
-                    );
                     group.appendChild(remove);
 
                     actions.appendChild(group);
 
                     tr.append(eventCell, dateCell, scoreCell, playerCell, actions);
+                    archiveRowsById.set(row.id, { row, fixtures, edit, remove });
                     body.appendChild(tr);
+                });
+            }
+
+            // One delegated listener for the whole archive table. Attaching listeners
+            // per row is easy to lose when the table re-renders, which made the
+            // buttons look dead.
+            function ensureArchiveActionHandler(body) {
+                if (body.dataset.archiveHandler === "1") return;
+                body.dataset.archiveHandler = "1";
+                body.addEventListener("click", (event) => {
+                    const button = event.target.closest("[data-archive-action]");
+                    if (!button || !body.contains(button)) return;
+                    const entry = archiveRowsById.get(button.dataset.archiveId);
+                    if (!entry) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (button.dataset.archiveAction === "edit") {
+                        try {
+                            openArchiveEditor(entry.row, entry.fixtures);
+                        } catch (err) {
+                            alert(
+                                "Editor hasil tidak bisa dibuka:\n" +
+                                    (err && err.message ? err.message : String(err)),
+                            );
+                        }
+                    } else {
+                        deleteArchivedEvent(entry.row, button);
+                    }
                 });
             }
 
