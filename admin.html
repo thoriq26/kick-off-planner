@@ -1028,7 +1028,8 @@
             }
             .stat-row {
                 display: grid;
-                grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr) minmax(0, 0.6fr) auto;
+                /* TIM (filter) | PEMAIN | MENIT/JENIS | HAPUS */
+                grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr) minmax(0, 0.6fr) auto;
                 gap: 8px;
                 align-items: center;
                 padding: 9px 10px;
@@ -1810,7 +1811,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-08b">
+    <body data-build="2026-10-08d">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -2179,7 +2180,9 @@
                         </p>
                         <p class="member-hint" style="margin-bottom:16px;">
                             Skor diisi per pertandingan, bukan per tim — jadi untuk 3 tim ada 3 blok
-                            (Merah vs Biru, Biru vs Hijau, Merah vs Hijau).
+                            (Merah vs Biru, Biru vs Hijau, Merah vs Hijau).<br />
+                            Isi skor dulu, lalu pilih <b>TIM</b> sebagai filter — hanya tim dengan
+                            skor lebih dari 0 yang bisa dipilih sebagai <b>pencetak gol</b>.
                         </p>
                         <div id="fixtureEditor"></div>
 
@@ -3369,50 +3372,131 @@
             }
 
             /* ---------- Editor per pertandingan ---------- */
-            function buildPlayerOptions(select, allowedTeams) {
-                const source = editorPlayersByTeam();
-                const teams = allowedTeams || editorActiveTeams();
+
+            // Skor terkini satu pertandingan, dibaca langsung dari input supaya
+            // mengubah skor langsung mengubah pilihan tim yang tersedia.
+            function fixtureScores(index) {
+                const fixture = archiveFixtures[index] || {};
+                const host = document.getElementById("fixtureEditor");
+                const home = host?.querySelector(
+                    `[data-field="score_home"][data-fixture-index="${index}"]`,
+                );
+                const away = host?.querySelector(
+                    `[data-field="score_away"][data-fixture-index="${index}"]`,
+                );
+                return {
+                    home: fixture.home,
+                    away: fixture.away,
+                    homeScore: Math.max(0, Number(home?.value ?? fixture.score_home) || 0),
+                    awayScore: Math.max(0, Number(away?.value ?? fixture.score_away) || 0),
+                };
+            }
+
+            // Tim yang boleh dipilih untuk satu jenis entri. Tim dengan skor 0 tidak
+            // mungkin punya pencetak gol, jadi untuk PENCETEC GOL tim itu
+            // disembunyikan. Assist dan kartu tetap untuk kedua tim.
+            function allowedTeamsForKind(index, kind) {
+                const scores = fixtureScores(index);
+                if (kind !== "goal") {
+                    return [scores.home, scores.away].filter(Boolean);
+                }
+                return [
+                    { team: scores.home, score: scores.homeScore },
+                    { team: scores.away, score: scores.awayScore },
+                ]
+                    .filter((entry) => entry.team && entry.score > 0)
+                    .map((entry) => entry.team);
+            }
+
+            function fillTeamOptions(select, teams, kind) {
+                select.replaceChildren();
+                teams.forEach((team) => {
+                    const option = document.createElement("option");
+                    option.value = team;
+                    option.textContent = teamDisplay(team);
+                    select.appendChild(option);
+                });
                 if (!teams.length) {
                     const empty = document.createElement("option");
                     empty.value = "";
-                    empty.textContent = "Belum ada pemain";
+                    empty.textContent =
+                        kind === "goal" ? "Isi skor tim dulu" : "Belum ada tim";
                     select.appendChild(empty);
-                    return;
                 }
-                teams.forEach((team) => {
-                    const group = document.createElement("optgroup");
-                    group.label = teamDisplay(team);
-                    (source[team] || []).forEach((player) => {
-                        const option = document.createElement("option");
-                        option.value = `${team}||${player}`;
-                        option.textContent = player;
-                        group.appendChild(option);
-                    });
-                    select.appendChild(group);
+                select.disabled = !teams.length;
+            }
+
+            function fillPlayerOptions(select, team) {
+                const names = (team && editorPlayersByTeam()[team]) || [];
+                select.replaceChildren();
+                names.forEach((name) => {
+                    const option = document.createElement("option");
+                    option.value = `${team}||${name}`;
+                    option.textContent = name;
+                    select.appendChild(option);
                 });
+                if (!names.length) {
+                    const empty = document.createElement("option");
+                    empty.value = "";
+                    empty.textContent = team
+                        ? "Belum ada pemain di tim ini"
+                        : "Pilih tim dulu";
+                    select.appendChild(empty);
+                }
+            }
+
+            // Dropdown tim adalah filter sungguhan: memilih tim hanya menampilkan
+            // pemain tim itu, dan memilih pemain menggeser dropdown tim ke tim
+            // pemain tersebut. Sebelumnya tim hanya disimpan tapi tidak pernah
+            // dibaca saat menyimpan hasil, jadi kelihatan "tidak bisa dipencet".
+            function syncStatRow(row) {
+                const index = Number(row.dataset.fixtureIndex);
+                const kind = row.dataset.kind;
+                const teamSelect = row.querySelector('[data-field="team"]');
+                const playerSelect = row.querySelector('[data-field="player"]');
+                if (!teamSelect || !playerSelect) return;
+
+                const teams = allowedTeamsForKind(index, kind);
+                const previousTeam = teamSelect.value;
+                const previousPlayer = playerSelect.value;
+
+                fillTeamOptions(teamSelect, teams, kind);
+                const team = teams.includes(previousTeam) ? previousTeam : teams[0] || "";
+                teamSelect.value = team;
+                fillPlayerOptions(playerSelect, team);
+
+                if (previousPlayer) {
+                    const stillThere = Array.from(playerSelect.options).some(
+                        (option) => option.value === previousPlayer,
+                    );
+                    if (stillThere) playerSelect.value = previousPlayer;
+                }
+            }
+
+            function refreshFixtureStatRows(index) {
+                document
+                    .querySelectorAll(`.stat-row[data-fixture-index="${index}"]`)
+                    .forEach((row) => syncStatRow(row));
             }
 
             function addFixtureRow(fixtureIndex, kind) {
                 const list = document.getElementById(`fixture-${fixtureIndex}-${kind}`);
                 if (!list) return;
-                const fixture = archiveFixtures[fixtureIndex];
-                const teams = [fixture.home, fixture.away];
 
                 const row = document.createElement("div");
                 row.className = "stat-row";
                 row.dataset.kind = kind;
-
-                const playerSelect = document.createElement("select");
-                playerSelect.dataset.field = "player";
-                buildPlayerOptions(playerSelect, teams);
+                row.dataset.fixtureIndex = String(fixtureIndex);
 
                 const teamSelect = document.createElement("select");
                 teamSelect.dataset.field = "team";
-                teams.forEach((team) => {
-                    const option = document.createElement("option");
-                    option.value = team;
-                    option.textContent = teamDisplay(team);
-                    teamSelect.appendChild(option);
+                teamSelect.title = "Filter tim";
+
+                const playerSelect = document.createElement("select");
+                playerSelect.dataset.field = "player";
+
+                teamSelect.addEventListener("change", () => {
+                    fillPlayerOptions(playerSelect, teamSelect.value);
                 });
                 playerSelect.addEventListener("change", () => {
                     const [team] = playerSelect.value.split("||");
@@ -3429,6 +3513,7 @@
                 const remove = document.createElement("button");
                 remove.type = "button";
                 remove.className = "stat-remove";
+                remove.title = "Hapus baris ini";
                 remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
                 remove.addEventListener("click", () => {
                     row.remove();
@@ -3453,13 +3538,14 @@
                         el.textContent = `Kartu ${option.label}`;
                         typeSelect.appendChild(el);
                     });
-                    row.append(playerSelect, teamSelect, typeSelect, remove);
+                    row.append(teamSelect, playerSelect, typeSelect, remove);
                 } else {
-                    row.append(playerSelect, teamSelect, minuteInput, remove);
+                    row.append(teamSelect, playerSelect, minuteInput, remove);
                 }
 
                 list.querySelector('[data-empty-for="' + list.id + '"]')?.remove();
                 list.appendChild(row);
+                syncStatRow(row);
             }
 
             function renderFixtureEditor(fixtures) {
@@ -3535,6 +3621,11 @@
                     awayInput.value = fixture.score_away ?? 0;
                     awayBox.append(awayLabel, awayInput);
 
+                    // Mengubah skor harus langsung mengubah pilihan tim: tim dengan
+                    // skor 0 tidak bisa dipilih sebagai pencetak gol.
+                    homeInput.addEventListener("input", () => refreshFixtureStatRows(index));
+                    awayInput.addEventListener("input", () => refreshFixtureStatRows(index));
+
                     scoreRow.append(homeBox, dash, awayBox);
                     body.appendChild(scoreRow);
 
@@ -3592,12 +3683,22 @@
                 if (!list) return;
                 const row = list.querySelector(".stat-row:last-of-type");
                 if (!row) return;
+                syncStatRow(row);
+
+                // Pilih timnya dulu, baru cari pemain di dalam tim tersebut.
+                const teamSelect = row.querySelector('[data-field="team"]');
                 const playerSelect = row.querySelector('[data-field="player"]');
+                const teamAllowed = Array.from(teamSelect.options).some(
+                    (option) => option.value === entry.team,
+                );
+                if (teamAllowed) {
+                    teamSelect.value = entry.team;
+                    fillPlayerOptions(playerSelect, entry.team);
+                }
                 const target = Array.from(playerSelect.options).find(
                     (option) => option.value === `${entry.team}||${entry.player}`,
                 );
                 if (target) playerSelect.value = target.value;
-                row.querySelector('[data-field="team"]').value = entry.team;
                 row.querySelector('[data-field="minute"]').value = entry.minute ?? 0;
                 if (kind === "card") {
                     row.querySelector('[data-field="type"]').value =
@@ -3638,9 +3739,13 @@
                     if (!list) return [];
                     return Array.from(list.querySelectorAll(".stat-row"))
                         .map((row) => {
-                            const [team, player] = (
+                            const [playerTeam, player] = (
                                 row.querySelector('[data-field="player"]')?.value || ""
                             ).split("||");
+                            // The team filter is what the admin picked, so honour it and
+                            // only fall back to the player's own team.
+                            const picked = row.querySelector('[data-field="team"]')?.value || "";
+                            const team = picked || playerTeam;
                             if (!player) return null;
                             const entry = {
                                 team,
