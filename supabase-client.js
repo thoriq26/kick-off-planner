@@ -18,7 +18,7 @@
             [/invalid login credentials/i, "Email atau password salah."],
             [/already.*registered/i, "Email sudah terdaftar. Silakan login dengan akun tersebut."],
             [/rate limit/i, "Terlalu banyak permintaan berturut-turut. Tunggu sekitar satu menit lalu coba lagi."],
-            [/once every 60 seconds/i, "Demi keamanan, permintaan ini hanya bisa dilakukan sekali setiap 60 detik. Coba lagi sebentar."],
+            [/for security purposes|request this after/i, "Demi keamanan, tunggu sekejap (kurang dari satu menit) sebelum meminta email lagi."],
             [/password should be at least/i, "Password terlalu pendek. Gunakan minimal 6 karakter."],
             [/should be different from the old/i, "Password baru harus berbeda dari password lama."],
             [/invalid format|validate email address/i, "Format email tidak valid. Periksa kembali alamat email Anda."],

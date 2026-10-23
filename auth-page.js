@@ -205,9 +205,37 @@
         showMessage("");
     });
 
-    resendButton.addEventListener("click", async () => {
-        if (!resendEmail) return;
+    let resendCooldownTimer = null;
+    function setResendCooldown(seconds) {
+        if (resendCooldownTimer) {
+            clearInterval(resendCooldownTimer);
+            resendCooldownTimer = null;
+        }
+        if (!seconds || seconds < 1) {
+            resendButton.disabled = false;
+            resendButton.textContent = "KIRIM ULANG EMAIL VERIFIKASI";
+            return;
+        }
         resendButton.disabled = true;
+        let remaining = seconds;
+        const tick = () => {
+            if (remaining <= 0) {
+                clearInterval(resendCooldownTimer);
+                resendCooldownTimer = null;
+                resendButton.disabled = false;
+                resendButton.textContent = "KIRIM ULANG EMAIL VERIFIKASI";
+                return;
+            }
+            resendButton.textContent = `TUNGGU ${remaining} DETIK...`;
+            remaining -= 1;
+        };
+        tick();
+        resendCooldownTimer = setInterval(tick, 1000);
+    }
+
+    resendButton.addEventListener("click", async () => {
+        if (!resendEmail || resendCooldownTimer) return;
+        setResendCooldown(60);
         try {
             const { error } = await sb.auth.resend({
                 type: "signup",
@@ -217,14 +245,18 @@
                 },
             });
             if (error) {
+                // The rate limit message carries the exact remaining cooldown
+                // ("...after 53 seconds") — mirror it on the button.
+                const secondsLeft = /request this after (\d+) second/i.exec(error.message || "");
+                if (secondsLeft) setResendCooldown(Number(secondsLeft[1]));
                 showMessage(window.KOP.translateError(error.message), "error");
             } else {
                 showMessage("Tautan konfirmasi akun baru telah dikirim. Silakan cek inbox dan spam.", "success");
             }
         } catch (requestError) {
+            setResendCooldown(0);
             showMessage(window.KOP.translateError(requestError.message), "error");
         }
-        resendButton.disabled = false;
     });
 
     setMode("login");
