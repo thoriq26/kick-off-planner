@@ -10,6 +10,36 @@
     const inviteCodeFromUrl = new URLSearchParams(window.location.search).get("code");
     if (inviteCodeFromUrl) inviteInput.value = inviteCodeFromUrl;
     let context;
+    let autoJoining = false;
+
+    // A pending invite code is remembered across sessions so a brand-new user
+    // who verifies their email later still ends up inside the community
+    // without having to re-enter the code.
+    const PENDING_INVITE_KEY = "kop_pending_invite";
+
+    function savePendingInvite(code) {
+        if (!code) return;
+        localStorage.setItem(
+            PENDING_INVITE_KEY,
+            JSON.stringify({ token: code, savedAt: Date.now() }),
+        );
+    }
+
+    function loadPendingInvite() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(PENDING_INVITE_KEY) || "null");
+            if (!raw || !raw.token) return null;
+            // Ignore stale invites older than 30 days.
+            if (Date.now() - (raw.savedAt || 0) > 30 * 24 * 60 * 60 * 1000) {
+                localStorage.removeItem(PENDING_INVITE_KEY);
+                return null;
+            }
+            return raw.token;
+        } catch {
+            localStorage.removeItem(PENDING_INVITE_KEY);
+            return null;
+        }
+    }
 
     function showMessage(text, type = "") {
         message.textContent = text;
@@ -43,7 +73,57 @@
     function redirectAfterOnboarding(fallback) {
         const pending = sessionStorage.getItem("kop_after_onboarding");
         sessionStorage.removeItem("kop_after_onboarding");
-        window.location.href = pending || fallback;
+        const target = pending && !pending.includes("onboarding.html") ? pending : fallback;
+        window.location.href = target || fallback;
+    }
+
+    async function acceptInvite(token) {
+        const { data, error } = await sb.rpc("accept_community_invite", {
+            p_token: token,
+        });
+        if (error) throw error;
+        const membership = Array.isArray(data) ? data[0] : data;
+        if (!membership) throw new Error("Undangan tidak mengembalikan komunitas.");
+        return {
+            communityId: membership.joined_community_id || membership.community_id,
+            role: membership.joined_role || membership.role,
+        };
+    }
+
+    // New-user flow: an invitation link (?code=...) is remembered in
+    // localStorage, and after the account is verified this page joins the
+    // user automatically. Auto-join only runs when the visitor explicitly
+    // came with a code, or has no community yet (fresh verification return).
+    async function autoJoinPendingInvite() {
+        if (autoJoining) return;
+        const urlCode = inviteCodeFromUrl ? extractInviteToken(inviteCodeFromUrl) : null;
+        const pendingCode = loadPendingInvite();
+        if (urlCode) savePendingInvite(urlCode);
+
+        const alreadyMember = (context.communities || []).length > 0;
+        if (!urlCode && (alreadyMember || !pendingCode)) return;
+
+        const token = urlCode || pendingCode;
+        if (!token) return;
+        autoJoining = true;
+        showMessage("Menghubungkan ke komunitas, mohon tunggu...", "");
+        joinForm.querySelector('button[type="submit"]').disabled = true;
+        try {
+            const { communityId, role } = await acceptInvite(token);
+            localStorage.removeItem(PENDING_INVITE_KEY);
+            await window.KOP.auth.setSelectedCommunity(communityId);
+            showMessage("Berhasil gabung ke komunitas! Mengalihkan...", "success");
+            setTimeout(() => redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html"), 600);
+        } catch (error) {
+            autoJoining = false;
+            joinForm.querySelector('button[type="submit"]').disabled = false;
+            const detail = error && error.message ? error.message : "";
+            if (/expired|revoked|already used/i.test(detail)) {
+                // A stale remembered code should not nag forever.
+                if (!urlCode) localStorage.removeItem(PENDING_INVITE_KEY);
+            }
+            showMessage(formatInviteError(detail), "error");
+        }
     }
 
     function formatInviteError(message) {
@@ -157,6 +237,7 @@
             }
             const communityId = membership.joined_community_id || membership.community_id;
             const role = membership.joined_role || membership.role;
+            localStorage.removeItem(PENDING_INVITE_KEY);
             await window.KOP.auth.setSelectedCommunity(communityId);
             redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html");
         } catch (error) {
@@ -177,5 +258,6 @@
         if (!result) return;
         context = result;
         renderMemberships();
+        autoJoinPendingInvite();
     }).catch((error) => showMessage(window.KOP.translateError(error && error.message), "error"));
 })();

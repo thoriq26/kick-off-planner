@@ -282,10 +282,39 @@
                 Blue: "Biru",
                 Green: "Hijau",
                 Purple: "Ungu",
+                Orange: "Oranye",
+                Pink: "Pink",
+                Teal: "Toska",
+                Navy: "Navy",
             };
+
+            // Custom names set by the admin (community_team_names, migration
+            // 20260924080000). Without the migration the default labels apply.
+            const communityTeamAliases = {};
+            function teamLabel(team) {
+                const custom = communityTeamAliases[team];
+                if (custom) return custom;
+                return `Tim ${TEAM_LABELS[team] || team}`;
+            }
+            async function loadTeamAliases() {
+                try {
+                    const { data, error } = await _supabase
+                        .from("community_team_names")
+                        .select("team, label")
+                        .eq("community_id", context.community.id);
+                    if (!error && data) {
+                        data.forEach((row) => {
+                            communityTeamAliases[row.team] = row.label;
+                        });
+                    }
+                } catch {
+                    // Default labels stay in use if the rename table is not present.
+                }
+            }
 
             // --- TEAM DRAFT DISPLAY LOGIC (READ-ONLY) ---
             async function loadData() {
+                await loadTeamAliases();
                 const { data: players, error } = await _supabase
                     .from("community_players")
                     .select("*")
@@ -329,7 +358,7 @@
                     if (teamPlayers.length > 0) {
                         html += `
                             <div class="team-card">
-                                <div class="team-header header-${color.toLowerCase()}">Tim ${TEAM_LABELS[color] || color}</div>
+                                <div class="team-header header-${color.toLowerCase()}">${window.KOP.escapeHtml(teamLabel(color))}</div>
                                 <div class="player-list">
                                     ${teamPlayers
                                         .map(

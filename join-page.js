@@ -1,8 +1,22 @@
 (() => {
+    const PENDING_INVITE_KEY = "kop_pending_invite";
     const fragmentToken = new URLSearchParams(window.location.hash.slice(1)).get("token");
     const queryToken = new URLSearchParams(window.location.search).get("token");
-    const token = fragmentToken || queryToken || sessionStorage.getItem("kop_pending_invite");
-    if (token) sessionStorage.setItem("kop_pending_invite", token);
+    const sessionToken = sessionStorage.getItem(PENDING_INVITE_KEY);
+    const token = fragmentToken || queryToken || sessionToken;
+    if (token) {
+        sessionStorage.setItem(PENDING_INVITE_KEY, token);
+        // Remember in localStorage as well so the invite survives closing the
+        // tab and the onboarding page can auto-join after email verification.
+        try {
+            localStorage.setItem(
+                PENDING_INVITE_KEY,
+                JSON.stringify({ token, savedAt: Date.now() }),
+            );
+        } catch {
+            // Private browsing may block localStorage; sessionStorage fallback stays.
+        }
+    }
     const message = document.getElementById("joinMessage");
 
     function formatInviteError(value) {

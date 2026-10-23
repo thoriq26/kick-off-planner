@@ -229,4 +229,16 @@
 
     setMode("login");
     if (params.get("mode") === "reset") forgotButton.click();
+
+    // Email verification links return here with the session in the URL hash.
+    // Without this the user is dropped back on the login form with no message
+    // and no idea how to continue. Send them on to their planned destination.
+    (async function redirectVerifiedSession() {
+        if (!window.location.hash.includes("access_token")) return;
+        await sb.auth.getSession().then(({ data }) => {
+            if (!data?.session) return;
+            showMessage("Email berhasil diverifikasi! Mengalihkan...", "success");
+            setTimeout(redirectAfterAuth, 500);
+        });
+    })();
 })();

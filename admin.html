@@ -1238,6 +1238,25 @@
                 text-transform: uppercase;
                 letter-spacing: 1px;
                 font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+            .btn-team-rename {
+                background: rgba(255, 255, 255, 0.18);
+                border: 1px solid rgba(255, 255, 255, 0.45);
+                border-radius: 7px;
+                color: white;
+                cursor: pointer;
+                font-size: 0.62rem;
+                font-weight: 800;
+                letter-spacing: 0.06em;
+                padding: 3px 8px;
+                text-transform: uppercase;
+            }
+            .btn-team-rename:hover {
+                background: rgba(255, 255, 255, 0.32);
             }
             .header-red {
                 background: #c0392b;
@@ -1811,7 +1830,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-08f">
+    <body data-build="2026-10-09a">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -2407,7 +2426,116 @@
                 Blue: "Biru",
                 Green: "Hijau",
                 Purple: "Ungu",
+                Orange: "Oranye",
+                Pink: "Pink",
+                Teal: "Toska",
+                Navy: "Navy",
             };
+
+            /* Custom team names (rename) live in the community_team_names table
+               (migration 20260924080000). Without the migration the app simply
+               falls back to the default labels above. */
+            let communityTeamAliases = {};
+
+            async function loadTeamAliases() {
+                try {
+                    const { data, error } = await _supabase
+                        .from("community_team_names")
+                        .select("team, label")
+                        .eq("community_id", context.community.id);
+                    if (error) {
+                        if (!/does not exist|schema cache|not found/i.test(error.message || "")) {
+                            console.warn("loadTeamAliases:", error.message);
+                        }
+                        return;
+                    }
+                    communityTeamAliases = {};
+                    (data || []).forEach((row) => {
+                        communityTeamAliases[row.team] = row.label;
+                    });
+                } catch (loadError) {
+                    console.warn("loadTeamAliases:", loadError?.message);
+                }
+            }
+
+            function teamLabel(team) {
+                const custom = communityTeamAliases[team];
+                if (custom) return custom;
+                return `Tim ${TEAM_LABELS[team] || team}`;
+            }
+
+            function renderAllTeamViews() {
+                // Re-render every surface that shows team names.
+                if (typeof loadDraft === "function") loadDraft();
+                renderFixtureTable();
+                renderFixtureEditor();
+            }
+
+            function openRenameTeam(team, button) {
+                button && (button.disabled = false);
+                const modal = document.createElement("div");
+                modal.className = "modal show";
+                modal.style.cssText =
+                    "position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;";
+                const current = communityTeamAliases[team] || "";
+                modal.innerHTML = `
+                    <div class="modal-box" style="max-width:420px;width:100%;">
+                        <h3 style="margin-top:0;"><i class="fa-solid fa-pen-to-square"></i> Ubah Nama Tim</h3>
+                        <p style="color:#64748b;font-size:.85rem;margin-top:0;">Nama khusus untuk tim ini. Kosongkan untuk kembali ke nama bawaan (<b>${window.KOP.escapeHtml(teamLabel(team))}</b>).</p>
+                        <label style="font-weight:700;font-size:.8rem;">NAMA TIM</label>
+                        <input id="renameTeamInput" type="text" maxlength="24" value="${window.KOP.escapeHtml(current)}"
+                            placeholder="Contoh: FC Garuda" style="width:100%;padding:10px;margin:6px 0 14px;" />
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="btn-action btn-save" id="renameTeamSave" style="flex:1;"><i class="fa-solid fa-check"></i> SIMPAN</button>
+                            <button type="button" class="btn-action btn-cancel" id="renameTeamCancel" style="flex:1;">BATAL</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+                const input = modal.querySelector("#renameTeamInput");
+                input.focus();
+                input.select();
+
+                modal.querySelector("#renameTeamCancel").onclick = () => modal.remove();
+                modal.onclick = (event) => {
+                    if (event.target === modal) modal.remove();
+                };
+                modal.querySelector("#renameTeamSave").onclick = async () => {
+                    const saveButton = modal.querySelector("#renameTeamSave");
+                    const value = input.value.trim().slice(0, 24);
+                    saveButton.disabled = true;
+                    saveButton.textContent = "MENYIMPAN...";
+                    try {
+                        if (communityTeamAliases[team] && !value) {
+                            const { error: deleteError } = await _supabase
+                                .from("community_team_names")
+                                .delete()
+                                .eq("community_id", context.community.id)
+                                .eq("team", team);
+                            if (deleteError) throw deleteError;
+                            delete communityTeamAliases[team];
+                        } else if (value) {
+                            const { error: upsertError } = await _supabase
+                                .from("community_team_names")
+                                .upsert(
+                                    { community_id: context.community.id, team, label: value },
+                                    { onConflict: "community_id,team" },
+                                );
+                            if (upsertError) throw upsertError;
+                            communityTeamAliases[team] = value;
+                        }
+                        modal.remove();
+                        renderAllTeamViews();
+                    } catch (saveError) {
+                        saveButton.disabled = false;
+                        saveButton.innerHTML = '<i class="fa-solid fa-check"></i> SIMPAN';
+                        if (/does not exist|schema cache|not found/i.test(saveError?.message || "")) {
+                            alert("Fitur ubah nama tim butuh migration terbaru. Jalankan 20260924080000_team_aliases.sql di Supabase SQL Editor, lalu muat ulang halaman.");
+                        } else {
+                            alert("Gagal menyimpan nama tim: " + window.KOP.translateError(saveError?.message));
+                        }
+                    }
+                };
+            }
             const PROOF_STATUS_META = {
                 submitted: { label: "Menunggu", className: "proof-status-pending" },
                 verified: { label: "Terverifikasi", className: "proof-status-verified" },
@@ -2452,7 +2580,7 @@
                 initFlatpickr();
                 loadMembers();
                 muatPemain();
-                loadDraft();
+                loadTeamAliases().then(() => loadDraft());
                 loadMatchInfo();
                 loadInvites();
                 loadMembersTable();
@@ -2688,7 +2816,12 @@
                     if (teamPlayers.length > 0) {
                         html += `
                             <div class="team-card">
-                                <div class="team-header header-${color.toLowerCase()}">Tim ${TEAM_LABELS[color] || color}</div>
+                                <div class="team-header header-${color.toLowerCase()}">
+                                    <span>${window.KOP.escapeHtml(teamLabel(color))}</span>
+                                    <button class="btn-team-rename" type="button"
+                                        title="Ubah nama tim"
+                                        onclick="openRenameTeam('${color}', this)"><i class="fa-solid fa-pen"></i> NAMA</button>
+                                </div>
                                 <div>
                                     ${teamPlayers.map((p) => `
                                         <div class="player-item">
@@ -3208,6 +3341,8 @@
             let archiveEditTeams = null;
 
             function teamDisplay(team) {
+                const custom = communityTeamAliases[team];
+                if (custom) return custom;
                 return `Tim ${ARCHIVE_TEAM_LABELS[team] || team}`;
             }
 
@@ -3877,10 +4012,10 @@
                 return fixtures
                     .map(
                         (fixture) =>
-                            `${ARCHIVE_TEAM_LABELS[fixture.home] || fixture.home} ${
+                            `${communityTeamAliases[fixture.home] || ARCHIVE_TEAM_LABELS[fixture.home] || fixture.home} ${
                                 fixture.score_home
                             } - ${fixture.score_away} ${
-                                ARCHIVE_TEAM_LABELS[fixture.away] || fixture.away
+                                communityTeamAliases[fixture.away] || ARCHIVE_TEAM_LABELS[fixture.away] || fixture.away
                             }`,
                     )
                     .join(" | ");
@@ -4114,10 +4249,10 @@
                         filled.forEach((fixture) => {
                             const line = document.createElement("span");
                             line.className = "score-badge";
-                            line.textContent = `${ARCHIVE_TEAM_LABELS[fixture.home] || fixture.home} ${
+                            line.textContent = `${communityTeamAliases[fixture.home] || ARCHIVE_TEAM_LABELS[fixture.home] || fixture.home} ${
                                 fixture.score_home
                             } - ${fixture.score_away} ${
-                                ARCHIVE_TEAM_LABELS[fixture.away] || fixture.away
+                                communityTeamAliases[fixture.away] || ARCHIVE_TEAM_LABELS[fixture.away] || fixture.away
                             }`;
                             wrap.appendChild(line);
                         });
@@ -4346,7 +4481,7 @@
                 const inviteUrl = `${window.location.origin}/onboarding.html?code=${encodeURIComponent(code)}`;
                 const shareMessage =
                     `Halo! Saya mengundang kamu untuk bergabung di ${context.community.name}. ` +
-                    "Silakan buka tautan berikut, masuk atau buat akun, lalu isi kode undangan.";
+                    "Buka tautan berikut lalu daftar akun (atau masuk) — kamu akan otomatis digabung ke komunitas setelah emailmu terverifikasi.";
                 const shareText = `${shareMessage}\n\nBuka: ${inviteUrl}`;
                 const result = document.getElementById("inviteResult");
                 result.style.display = "block";
