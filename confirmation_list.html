@@ -470,7 +470,7 @@
                         alert("Pendaftaran berhasil!");
                         muatPemain();
                     } else {
-                        alert("Pendaftaran gagal: " + error.message);
+                        alert("Pendaftaran gagal: " + window.KOP.translateError(error.message));
                     }
                 });
 

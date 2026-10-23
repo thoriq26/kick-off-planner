@@ -37,7 +37,7 @@
         if (typeof detail === "string" && /fetch|network|failed to fetch|load failed/i.test(detail)) {
             return "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu coba lagi.";
         }
-        return detail || "Terjadi kesalahan yang tidak terduga. Coba muat ulang halaman lalu ulangi.";
+        return window.KOP.translateError(detail || "Terjadi kesalahan yang tidak terduga. Coba muat ulang halaman lalu ulangi.");
     }
 
     function redirectAfterOnboarding(fallback) {
@@ -59,7 +59,7 @@
         if (/token is invalid/i.test(message || "")) {
             return "Kode undangan tidak valid. Periksa kembali kodenya (slug komunitas bukan kode undangan).";
         }
-        return message;
+        return window.KOP.translateError(message);
     }
 
     function extractInviteToken(value) {
@@ -126,7 +126,7 @@
                 p_slug: slug,
             });
             if (error) {
-                showMessage(error.message, "error");
+                showMessage(window.KOP.translateError(error.message), "error");
                 return;
             }
             await window.KOP.auth.setSelectedCommunity(data);
@@ -177,5 +177,5 @@
         if (!result) return;
         context = result;
         renderMemberships();
-    }).catch((error) => showMessage(error.message, "error"));
+    }).catch((error) => showMessage(window.KOP.translateError(error && error.message), "error"));
 })();

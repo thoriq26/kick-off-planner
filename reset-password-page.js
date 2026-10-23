@@ -24,7 +24,7 @@
     async function checkSession() {
         const { data, error } = await sb.auth.getSession();
         if (error) {
-            showMessage(error.message, "error");
+            showMessage(window.KOP.translateError(error.message), "error");
             return;
         }
         recoveryReady = Boolean(data.session);
@@ -50,9 +50,14 @@
             showMessage("Konfirmasi password tidak sama.", "error");
             return;
         }
-        const { error } = await sb.auth.updateUser({ password: password.value });
-        if (error) {
-            showMessage(error.message, "error");
+        try {
+            const { error } = await sb.auth.updateUser({ password: password.value });
+            if (error) {
+                showMessage(window.KOP.translateError(error.message), "error");
+                return;
+            }
+        } catch (requestError) {
+            showMessage(window.KOP.translateError(requestError.message), "error");
             return;
         }
         showMessage("Password berhasil diperbarui. Anda akan diarahkan ke login.", "success");

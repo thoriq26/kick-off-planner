@@ -18,7 +18,7 @@
         if (/token is invalid/i.test(value || "")) {
             return "Kode undangan tidak valid. Periksa kembali kodenya (slug komunitas bukan kode undangan).";
         }
-        return value;
+        return window.KOP.translateError(value);
     }
 
     if (!token) {
@@ -51,10 +51,10 @@
             if (/fetch|network|failed to fetch|load failed/i.test(String(error && error.message))) {
                 message.textContent = "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu muat ulang halaman ini.";
             } else {
-                message.textContent = error.message;
+                message.textContent = window.KOP.translateError(error && error.message);
             }
         }
     }).catch((error) => {
-        message.textContent = error.message;
+        message.textContent = window.KOP.translateError(error && error.message);
     });
 })();

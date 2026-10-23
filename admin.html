@@ -1811,7 +1811,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-08e">
+    <body data-build="2026-10-08f">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -2596,7 +2596,7 @@
                     document.getElementById("playerForm").reset();
                     muatPemain();
                 } else {
-                    alert("Gagal menambah pemain: " + error.message);
+                    alert("Gagal menambah pemain: " + window.KOP.translateError(error.message));
                 }
             });
 
@@ -2614,7 +2614,7 @@
                     cancelEdit();
                     muatPemain();
                 } else {
-                    alert("Gagal menyimpan perubahan: " + error.message);
+                    alert("Gagal menyimpan perubahan: " + window.KOP.translateError(error.message));
                 }
             });
 
@@ -3007,7 +3007,7 @@
                         .from("payment-proofs")
                         .createSignedUrl(storagePath, 300);
                     if (error) {
-                        failWithLink("Bukti tidak dapat dibuka: " + error.message);
+                        failWithLink("Bukti tidak dapat dibuka: " + window.KOP.translateError(error.message));
                         return;
                     }
                     signedUrl = data?.signedUrl || null;
@@ -3086,7 +3086,7 @@
                     .maybeSingle();
 
                 if (error) {
-                    alert("Status bukti tidak dapat diperbarui: " + error.message);
+                    alert("Status bukti tidak dapat diperbarui: " + window.KOP.translateError(error.message));
                     await loadPaymentProofs();
                     return;
                 }
@@ -3167,7 +3167,7 @@
                     alert("Info pertandingan berhasil dipublikasikan!");
                     loadMatchInfo();
                 } else {
-                    alert("Gagal publish: " + error.message);
+                    alert("Gagal publish: " + window.KOP.translateError(error.message));
                 }
             }
 
@@ -3180,7 +3180,7 @@
                     alert("Info pertandingan sudah direset.");
                     loadMatchInfo();
                 } else {
-                    alert("Gagal reset: " + error.message);
+                    alert("Gagal reset: " + window.KOP.translateError(error.message));
                 }
             }
 
@@ -3926,7 +3926,7 @@
                         p_result: { fixtures },
                     });
                     if (error) {
-                        alert("Gagal menyimpan hasil: " + error.message);
+                        alert("Gagal menyimpan hasil: " + window.KOP.translateError(error.message));
                         return;
                     }
                     window._editingArchiveId = null;
@@ -4000,7 +4000,7 @@
                         return;
                     }
                     body.innerHTML = `<tr><td colspan="5" class="empty-state">Gagal memuat riwayat: ${window.KOP.escapeHtml(
-                        error.message,
+                        window.KOP.translateError(error.message),
                     )}</td></tr>`;
                     return;
                 }
@@ -4312,7 +4312,7 @@
                     const missingFunction = /does not exist|not found|schema cache/i.test(error.message || "");
                     list.innerHTML = missingFunction
                         ? '<div class="empty-state">Fitur ini butuh migration terbaru. Jalankan <b>20260924030000_invite_usage_audit.sql</b> di Supabase SQL Editor.</div>'
-                        : `<div class="empty-state">Gagal memuat daftar: ${window.KOP.escapeHtml(error.message)}</div>`;
+                        : `<div class="empty-state">Gagal memuat daftar: ${window.KOP.escapeHtml(window.KOP.translateError(error.message))}</div>`;
                     return;
                 }
                 renderInviteUsers(data || []);
@@ -4338,7 +4338,7 @@
                     p_max_uses: maxUses,
                 });
                 if (error) {
-                    alert("Gagal membuat undangan: " + error.message);
+                    alert("Gagal membuat undangan: " + window.KOP.translateError(error.message));
                     return;
                 }
                 const invite = data?.[0];
@@ -4558,7 +4558,7 @@
                         return;
                     }
                     body.innerHTML = `<tr><td colspan="5" class="empty-state">Gagal memuat anggota: ${window.KOP.escapeHtml(
-                        error.message,
+                        window.KOP.translateError(error.message),
                     )}</td></tr>`;
                     return;
                 }
@@ -4572,7 +4572,7 @@
                     p_active: nextActive,
                 });
                 if (error) {
-                    alert("Status anggota tidak dapat diubah: " + error.message);
+                    alert("Status anggota tidak dapat diubah: " + window.KOP.translateError(error.message));
                     button.disabled = false;
                     return;
                 }
@@ -4594,7 +4594,7 @@
                     p_user: row.user_id,
                 });
                 if (error) {
-                    alert("Anggota tidak dapat dihapus: " + error.message);
+                    alert("Anggota tidak dapat dihapus: " + window.KOP.translateError(error.message));
                     button.disabled = false;
                     return;
                 }
@@ -4607,7 +4607,7 @@
                     p_invite: id,
                 });
                 if (error) {
-                    alert("Gagal mencabut undangan: " + error.message);
+                    alert("Gagal mencabut undangan: " + window.KOP.translateError(error.message));
                     return;
                 }
                 loadInvites();

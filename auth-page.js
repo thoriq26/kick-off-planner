@@ -181,7 +181,7 @@
             if (/email.*not confirmed|not confirmed/i.test(error.message || "")) {
                 showResend(email.value);
             }
-            showMessage(error.message || "Terjadi kesalahan. Silakan coba lagi.", "error");
+            showMessage(window.KOP.translateError(error.message || "Terjadi kesalahan. Silakan coba lagi."), "error");
             submitButton.disabled = false;
         }
     });
@@ -208,19 +208,23 @@
     resendButton.addEventListener("click", async () => {
         if (!resendEmail) return;
         resendButton.disabled = true;
-        const { error } = await sb.auth.resend({
-            type: "signup",
-            email: resendEmail,
-            options: {
-                emailRedirectTo: `${window.location.origin}/auth.html?next=${encodeURIComponent(next)}`,
-            },
-        });
-        resendButton.disabled = false;
-        if (error) {
-            showMessage(error.message, "error");
-        } else {
-            showMessage("Tautan konfirmasi akun baru telah dikirim. Silakan cek inbox dan spam.", "success");
+        try {
+            const { error } = await sb.auth.resend({
+                type: "signup",
+                email: resendEmail,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth.html?next=${encodeURIComponent(next)}`,
+                },
+            });
+            if (error) {
+                showMessage(window.KOP.translateError(error.message), "error");
+            } else {
+                showMessage("Tautan konfirmasi akun baru telah dikirim. Silakan cek inbox dan spam.", "success");
+            }
+        } catch (requestError) {
+            showMessage(window.KOP.translateError(requestError.message), "error");
         }
+        resendButton.disabled = false;
     });
 
     setMode("login");
