@@ -2859,27 +2859,43 @@
                     return;
                 }
 
-                // Grouping by position does not work as a shuffle when most
-                // players hold a distinct position: the per-group shuffle has
-                // nothing to swap, so re-shuffling produced the identical
-                // assignment every time. Shuffle the whole pool instead
-                // (Fisher–Yates), then deal it out evenly round-robin style.
-                const pool = [...players];
-                for (let i = pool.length - 1; i > 0; i -= 1) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [pool[i], pool[j]] = [pool[j], pool[i]];
-                }
+                // Deal each position round-robin so every team gets its share
+                // first (3 GKs, 2 teams => GK for team A, then B, then the
+                // leftover alternates). The random starting team plus a shuffle
+                // inside bigger position groups is what makes every re-shuffle
+                // actually move players between teams — the old version always
+                // dealt from team 1, so distinct positions never changed side.
+                const grouped = {};
+                players.forEach((player) => {
+                    (grouped[player.position] = grouped[player.position] || []).push(player);
+                });
+                // Unknown/custom positions still get dealt, after the known ones.
+                const knownPositions = new Set(POS_ORDER);
+                const positionOrder = [
+                    ...POS_ORDER,
+                    ...Object.keys(grouped).filter((pos) => !knownPositions.has(pos)),
+                ];
 
                 const updates = [];
-                pool.forEach((player, index) => {
-                    const teamName = TEAM_NAMES[index % numTeams];
-                    updates.push(
-                        _supabase
-                            .from("community_players")
-                            .update({ team: teamName })
-                            .eq("id", player.id)
-                            .eq("community_id", context.community.id)
-                    );
+                let dealCursor = Math.floor(Math.random() * numTeams);
+                positionOrder.forEach((position) => {
+                    const list = grouped[position];
+                    if (!list) return;
+                    for (let i = list.length - 1; i > 0; i -= 1) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [list[i], list[j]] = [list[j], list[i]];
+                    }
+                    list.forEach((player) => {
+                        const teamName = TEAM_NAMES[dealCursor % numTeams];
+                        updates.push(
+                            _supabase
+                                .from("community_players")
+                                .update({ team: teamName })
+                                .eq("id", player.id)
+                                .eq("community_id", context.community.id)
+                        );
+                        dealCursor += 1;
+                    });
                 });
 
                 await Promise.all(updates);
