@@ -14,24 +14,27 @@
     function translateError(value) {
         const text = String(value ?? "");
         const map = [
-            [/not confirmed|email.*confirm/i, "Email Anda belum dikonfirmasi. Buka email verifikasi dari KickOff Planner dan klik tautannya sebelum login."],
-            [/invalid login credentials/i, "Email atau password salah."],
-            [/already.*registered/i, "Email sudah terdaftar. Silakan login dengan akun tersebut."],
-            [/rate limit/i, "Terlalu banyak permintaan berturut-turut. Tunggu sekitar satu menit lalu coba lagi."],
-            [/for security purposes|request this after/i, "Demi keamanan, tunggu sekejap (kurang dari satu menit) sebelum meminta email lagi."],
-            [/password should be at least/i, "Password terlalu pendek. Gunakan minimal 6 karakter."],
+            [/not confirmed|email.*confirm/i, "Email Anda belum dikonfirmasi. Buka email verifikasi dari KickOff Planner lalu klik tautannya, baru login kembali."],
+            [/invalid login credentials/i, "Email atau password salah. Coba lagi, atau pakai lupa password."],
+            [/already.*registered/i, "Email ini sudah terdaftar. Silakan login, atau pakai lupa password jika lupa."],
+            [/rate limit/i, "Terlalu banyak permintaan dalam waktu singkat. Tunggu satu menit lagi, lalu coba lagi."],
+            [/for security purposes, you can only request this after (\d+)/i, (m) => `Email baru bisa dikirim lagi setelah ${m[1]} detik. Tunggu sebentar, lalu klik kirim ulang.`],
+            [/password should be at least/i, "Password terlalu pendek — gunakan minimal 6 karakter."],
             [/should be different from the old/i, "Password baru harus berbeda dari password lama."],
-            [/invalid format|validate email address/i, "Format email tidak valid. Periksa kembali alamat email Anda."],
-            [/email address.*invalid|invalid email/i, "Format email tidak valid. Periksa kembali alamat email Anda."],
-            [/user not found|user from sub claim/i, "Akun tidak ditemukan. Silakan daftar terlebih dahulu."],
-            [/session missing|session_not_found/i, "Sesi login berakhir. Silakan login kembali."],
-            [/token.*expired|refresh_token.*not found|invalid claim/i, "Sesi atau tautan sudah kedaluwarsa. Minta tautan baru atau login kembali."],
-            [/signups not allowed/i, "Pendaftaran akun baru sedang dinonaktifkan. Hubungi admin aplikasi."],
-            [/fetch|network|failed to fetch|load failed/i, "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu coba lagi."],
-            [/database|server error|internal error|5[0-9]{2}/i, "Server sedang bermasalah atau sedang dijeda. Coba lagi beberapa saat, atau hubungi admin aplikasi."],
+            [/invalid format|validate email address/i, "Format email tidak valid. Cek lagi penulisan alamat emailnya."],
+            [/email address.*invalid|invalid email/i, "Format email tidak valid. Cek lagi penulisan alamat emailnya."],
+            [/user not found|user from sub claim/i, "Akun tidak ditemukan. Daftar dulu jika belum punya akun."],
+            [/session missing|session_not_found/i, "Sesi login sudah berakhir. Silakan login lagi."],
+            [/token.*expired|refresh_token.*not found|invalid claim/i, "Tautan atau sesi sudah kedaluwarsa. Minta tautan baru, atau login lagi."],
+            [/signups not allowed/i, "Pendaftaran akun baru sedang dimatikan. Hubungi admin aplikasi."],
+            [/fetch|network|failed to fetch|load failed/i, "Tidak dapat menghubungi server. Periksa koneksi internet Anda, lalu coba lagi."],
+            [/database|server error|internal error|5[0-9]{2}/i, "Server sedang bermasalah. Coba lagi beberapa saat, atau hubungi admin aplikasi."],
         ];
         for (const [pattern, message] of map) {
-            if (pattern.test(text)) return message;
+            if (pattern.test(text)) {
+                const match = text.match(pattern);
+                return typeof message === "function" ? message(match) : message;
+            }
         }
         return text || "Terjadi kesalahan. Silakan coba lagi.";
     }

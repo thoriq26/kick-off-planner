@@ -65,9 +65,9 @@
     function describeFailure(error) {
         const detail = error && (error.message || error.detail) ? error.message || error.detail : "";
         if (typeof detail === "string" && /fetch|network|failed to fetch|load failed/i.test(detail)) {
-            return "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu coba lagi.";
+            return "Tidak dapat menghubungi server. Periksa koneksi internet Anda, lalu coba lagi.";
         }
-        return window.KOP.translateError(detail || "Terjadi kesalahan yang tidak terduga. Coba muat ulang halaman lalu ulangi.");
+        return window.KOP.translateError(detail || "Terjadi kesalahan tak terduga. Muat ulang halaman lalu coba lagi.");
     }
 
     function redirectAfterOnboarding(fallback) {
@@ -112,7 +112,7 @@
             const { communityId, role } = await acceptInvite(token);
             localStorage.removeItem(PENDING_INVITE_KEY);
             await window.KOP.auth.setSelectedCommunity(communityId);
-            showMessage("Berhasil gabung ke komunitas! Mengalihkan...", "success");
+            showMessage("Berhasil bergabung dengan komunitas! Mengalihkan...", "success");
             setTimeout(() => redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html"), 600);
         } catch (error) {
             autoJoining = false;
@@ -137,7 +137,7 @@
             return "Sesi login Anda berakhir. Muat ulang halaman ini lalu login kembali.";
         }
         if (/token is invalid/i.test(message || "")) {
-            return "Kode undangan tidak valid. Periksa kembali kodenya (slug komunitas bukan kode undangan).";
+            return "Kode undangan tidak dikenal. Cek lagi kodenya — slug komunitas bukan kode undangan.";
         }
         return window.KOP.translateError(message);
     }

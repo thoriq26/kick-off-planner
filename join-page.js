@@ -30,7 +30,7 @@
             return "Sesi login Anda berakhir. Muat ulang halaman ini lalu login kembali.";
         }
         if (/token is invalid/i.test(value || "")) {
-            return "Kode undangan tidak valid. Periksa kembali kodenya (slug komunitas bukan kode undangan).";
+            return "Kode undangan tidak dikenal. Cek lagi kodenya — slug komunitas bukan kode undangan.";
         }
         return window.KOP.translateError(value);
     }
@@ -63,7 +63,7 @@
             window.location.href = target || (role === "member" ? "index.html" : "admin.html");
         } catch (error) {
             if (/fetch|network|failed to fetch|load failed/i.test(String(error && error.message))) {
-                message.textContent = "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu muat ulang halaman ini.";
+                message.textContent = "Tidak dapat menghubungi server. Periksa koneksi internet Anda, lalu muat ulang halaman ini.";
             } else {
                 message.textContent = window.KOP.translateError(error && error.message);
             }
