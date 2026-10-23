@@ -14,6 +14,30 @@
     function showMessage(text, type = "") {
         message.textContent = text;
         message.className = `form-message ${type}`;
+        if (text) message.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // Give every submit immediate visual feedback so slow or hanging requests
+    // never look like "the button did nothing".
+    function setBusy(form, busy, label) {
+        const button = form.querySelector('button[type="submit"]');
+        if (!button) return;
+        button.disabled = busy;
+        if (busy) {
+            button.dataset.originalText = button.textContent;
+            button.textContent = label || "MEMPROSES...";
+        } else if (button.dataset.originalText) {
+            button.textContent = button.dataset.originalText;
+            delete button.dataset.originalText;
+        }
+    }
+
+    function describeFailure(error) {
+        const detail = error && (error.message || error.detail) ? error.message || error.detail : "";
+        if (typeof detail === "string" && /fetch|network|failed to fetch|load failed/i.test(detail)) {
+            return "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu coba lagi.";
+        }
+        return detail || "Terjadi kesalahan yang tidak terduga. Coba muat ulang halaman lalu ulangi.";
     }
 
     function redirectAfterOnboarding(fallback) {
@@ -25,6 +49,15 @@
     function formatInviteError(message) {
         if (/expired|revoked|already used/i.test(message || "")) {
             return "Undangan tidak valid, sudah kedaluwarsa, dicabut, atau sudah dipakai.";
+        }
+        if (/must be verified|not verified|email address/i.test(message || "")) {
+            return "Email Anda belum terverifikasi. Buka email verifikasi dari Supabase terlebih dahulu, lalu coba lagi.";
+        }
+        if (/authentication required/i.test(message || "")) {
+            return "Sesi login Anda berakhir. Muat ulang halaman ini lalu login kembali.";
+        }
+        if (/token is invalid/i.test(message || "")) {
+            return "Kode undangan tidak valid. Periksa kembali kodenya (slug komunitas bukan kode undangan).";
         }
         return message;
     }
@@ -86,34 +119,51 @@
             showMessage("Slug harus memiliki minimal 2 karakter.", "error");
             return;
         }
-        const { data, error } = await sb.rpc("create_community", {
-            p_name: name,
-            p_slug: slug,
-        });
-        if (error) {
-            showMessage(error.message, "error");
-            return;
+        setBusy(createForm, true, "MEMBUAT KOMUNITAS...");
+        try {
+            const { data, error } = await sb.rpc("create_community", {
+                p_name: name,
+                p_slug: slug,
+            });
+            if (error) {
+                showMessage(error.message, "error");
+                return;
+            }
+            await window.KOP.auth.setSelectedCommunity(data);
+            redirectAfterOnboarding("admin.html");
+        } catch (error) {
+            showMessage(describeFailure(error), "error");
+        } finally {
+            setBusy(createForm, false);
         }
-        await window.KOP.auth.setSelectedCommunity(data);
-        redirectAfterOnboarding("admin.html");
     });
 
     joinForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         showMessage("");
-        const { data, error } = await sb.rpc("accept_community_invite", {
-            p_token: extractInviteToken(inviteInput.value),
-        });
-        if (error) {
-            showMessage(formatInviteError(error.message), "error");
-            return;
+        setBusy(joinForm, true, "MENGHUBUNGKAN...");
+        try {
+            const { data, error } = await sb.rpc("accept_community_invite", {
+                p_token: extractInviteToken(inviteInput.value),
+            });
+            if (error) {
+                showMessage(formatInviteError(error.message), "error");
+                return;
+            }
+            const membership = Array.isArray(data) ? data[0] : data;
+            if (!membership) {
+                showMessage("Undangan tidak mengembalikan komunitas.", "error");
+                return;
+            }
+            const communityId = membership.joined_community_id || membership.community_id;
+            const role = membership.joined_role || membership.role;
+            await window.KOP.auth.setSelectedCommunity(communityId);
+            redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html");
+        } catch (error) {
+            showMessage(describeFailure(error), "error");
+        } finally {
+            setBusy(joinForm, false);
         }
-        const membership = Array.isArray(data) ? data[0] : data;
-        if (!membership) throw new Error("Undangan tidak mengembalikan komunitas.");
-        const communityId = membership.joined_community_id || membership.community_id;
-        const role = membership.joined_role || membership.role;
-        await window.KOP.auth.setSelectedCommunity(communityId);
-        redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html");
     });
 
     nameInput.addEventListener("input", () => {

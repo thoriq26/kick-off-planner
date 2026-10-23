@@ -9,6 +9,15 @@
         if (/expired|revoked|already used/i.test(value || "")) {
             return "Undangan tidak valid, sudah kedaluwarsa, dicabut, atau sudah dipakai.";
         }
+        if (/must be verified|not verified|email address/i.test(value || "")) {
+            return "Email Anda belum terverifikasi. Buka email verifikasi dari Supabase terlebih dahulu, lalu coba lagi.";
+        }
+        if (/authentication required/i.test(value || "")) {
+            return "Sesi login Anda berakhir. Muat ulang halaman ini lalu login kembali.";
+        }
+        if (/token is invalid/i.test(value || "")) {
+            return "Kode undangan tidak valid. Periksa kembali kodenya (slug komunitas bukan kode undangan).";
+        }
         return value;
     }
 
@@ -19,22 +28,32 @@
 
     window.KOP.auth.getContext({ requireCommunity: false }).then(async (context) => {
         if (!context) return;
-        const { data, error } = await window.KOP.supabase.rpc("accept_community_invite", {
-            p_token: token,
-        });
-        if (error) {
-            message.textContent = formatInviteError(error.message);
-            return;
+        message.textContent = "Menghubungkan ke komunitas...";
+        try {
+            const { data, error } = await window.KOP.supabase.rpc("accept_community_invite", {
+                p_token: token,
+            });
+            if (error) {
+                message.textContent = formatInviteError(error.message);
+                return;
+            }
+            const membership = Array.isArray(data) ? data[0] : data;
+            if (!membership) throw new Error("Undangan tidak mengembalikan komunitas.");
+            const communityId = membership.joined_community_id || membership.community_id;
+            const role = membership.joined_role || membership.role;
+            await window.KOP.auth.setSelectedCommunity(communityId);
+            sessionStorage.removeItem("kop_pending_invite");
+            const pending = sessionStorage.getItem("kop_after_onboarding");
+            sessionStorage.removeItem("kop_after_onboarding");
+            const target = pending && !pending.includes("onboarding.html") ? pending : "";
+            window.location.href = target || (role === "member" ? "index.html" : "admin.html");
+        } catch (error) {
+            if (/fetch|network|failed to fetch|load failed/i.test(String(error && error.message))) {
+                message.textContent = "Tidak bisa menghubungi server. Periksa koneksi internet Anda lalu muat ulang halaman ini.";
+            } else {
+                message.textContent = error.message;
+            }
         }
-        const membership = Array.isArray(data) ? data[0] : data;
-        if (!membership) throw new Error("Undangan tidak mengembalikan komunitas.");
-        const communityId = membership.joined_community_id || membership.community_id;
-        const role = membership.joined_role || membership.role;
-        await window.KOP.auth.setSelectedCommunity(communityId);
-        sessionStorage.removeItem("kop_pending_invite");
-        const pending = sessionStorage.getItem("kop_after_onboarding");
-        sessionStorage.removeItem("kop_after_onboarding");
-        window.location.href = pending || (role === "member" ? "index.html" : "admin.html");
     }).catch((error) => {
         message.textContent = error.message;
     });
