@@ -2058,6 +2058,7 @@
                                     <tr>
                                         <th>ROUND</th>
                                         <th>PERTANDINGAN</th>
+                                        <th>AKSI</th>
                                         <th>KETERANGAN</th>
                                     </tr>
                                 </thead>
@@ -3341,17 +3342,17 @@
 
                 if (teams.length < 2) {
                     body.innerHTML =
-                        '<tr><td colspan="3" class="empty-state">Belum ada minimal 2 tim hasil undian.</td></tr>';
+                        '<tr><td colspan="4" class="empty-state">Belum ada minimal 2 tim hasil undian.</td></tr>';
                     return;
                 }
                 if (!archiveFixtures.length) {
                     body.innerHTML =
-                        '<tr><td colspan="3" class="empty-state">Jadwal belum dibuat.</td></tr>';
+                        '<tr><td colspan="4" class="empty-state">Jadwal belum dibuat.</td></tr>';
                     return;
                 }
 
                 body.replaceChildren();
-                archiveFixtures.forEach((fixture) => {
+                archiveFixtures.forEach((fixture, index) => {
                     const tr = document.createElement("tr");
                     const round = document.createElement("td");
                     round.textContent = fixture.round;
@@ -3361,14 +3362,83 @@
                     )}</span> <span style="color:#94a3b8">vs</span> <span style="font-weight:800">${window.KOP.escapeHtml(
                         teamDisplay(fixture.away),
                     )}</span>`;
+                    const actions = document.createElement("td");
+                    const editBtn = document.createElement("button");
+                    editBtn.type = "button";
+                    editBtn.className = "btn-table btn-status-edit btn-invite-list";
+                    editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> EDIT';
+                    editBtn.addEventListener("click", () => openFixtureEdit(index));
+                    actions.appendChild(editBtn);
                     const note = document.createElement("td");
                     const span = document.createElement("span");
                     span.className = "no-result";
                     span.textContent = "Skor diisi di tab Arsipkan";
                     note.appendChild(span);
-                    tr.append(round, matchup, note);
+                    tr.append(round, matchup, actions, note);
                     body.appendChild(tr);
                 });
+            }
+
+            function openFixtureEdit(index) {
+                const fixture = archiveFixtures[index];
+                if (!fixture) return;
+                const teams = archiveActiveTeams();
+                if (teams.length < 2) return;
+
+                const modal = document.createElement("div");
+                modal.className = "modal-overlay show";
+                modal.innerHTML = `
+                    <div class="modal-box" style="max-width:420px;">
+                        <h3><i class="fa-solid fa-pen-to-square"></i> Edit Pertandingan (Ronde ${fixture.round || index + 1})</h3>
+                        <p class="member-hint">Pilih tim kandang dan tim tandang dari tim yang tersedia.</p>
+                        <div class="input-group" style="grid-template-columns:1fr;">
+                            <div>
+                                <label>KANDANG (HOME)</label>
+                                <select id="fixHome"></select>
+                            </div>
+                            <div>
+                                <label>TANDANG (AWAY)</label>
+                                <select id="fixAway"></select>
+                            </div>
+                        </div>
+                        <div class="status-modal-actions">
+                            <button type="button" class="btn-action btn-save" id="fixSave"><i class="fa-solid fa-check"></i> SIMPAN</button>
+                            <button type="button" class="btn-action btn-cancel" id="fixCancel">BATAL</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const homeSel = modal.querySelector("#fixHome");
+                const awaySel = modal.querySelector("#fixAway");
+                teams.forEach((t) => {
+                    const o1 = document.createElement("option");
+                    o1.value = t;
+                    o1.textContent = teamDisplay(t);
+                    const o2 = document.createElement("option");
+                    o2.value = t;
+                    o2.textContent = teamDisplay(t);
+                    homeSel.appendChild(o1);
+                    awaySel.appendChild(o2);
+                });
+                homeSel.value = fixture.home;
+                awaySel.value = fixture.away;
+
+                modal.querySelector("#fixCancel").onclick = () => modal.remove();
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.remove();
+                };
+                modal.querySelector("#fixSave").onclick = () => {
+                    if (homeSel.value === awaySel.value) {
+                        alert("Tim kandang dan tandang tidak boleh sama.");
+                        return;
+                    }
+                    archiveFixtures[index].home = homeSel.value;
+                    archiveFixtures[index].away = awaySel.value;
+                    renderFixtureTable();
+                    renderFixtureEditor();
+                    modal.remove();
+                };
             }
 
             /* ---------- Editor per pertandingan ---------- */
