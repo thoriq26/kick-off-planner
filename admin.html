@@ -1830,7 +1830,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-09a">
+    <body data-build="2026-10-09b">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -2017,7 +2017,7 @@
                             <li>Klik <b>ULANGI PEMBAGIAN</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
                             <li>Hasil undian ini akan tampil kepada member komunitas di halaman Team Draft.</li>
                             <li>Setelah undi, cek <b>Jadwal Pertandingan</b>. Untuk 3 tim satu siklus penuh hanya 3 pertandingan (A vs B, B vs C, A vs C).</li>
-                            <li>Atur <b>Jumlah ronde</b> di Pengaturan Jadwal bila hanya ingin:main sebagian ronde.</li>
+                            <li>Atur <b>Jumlah ronde</b> di Pengaturan Jadwal — bisa sampai 3 siklus untuk pola perempat final/semifinal/final, atau sebagian ronde saja.</li>
                             <li>Skor tiap pertandingan diisi di tab <b>Arsipkan</b>.</li>
                         </ol>
                     </div>
@@ -2049,6 +2049,8 @@
                         <p class="member-hint">
                             Tentukan berapa ronde yang dimainkan. Untuk 3 tim, satu siklus penuh
                             adalah 3 pertandingan (A vs B, B vs C, A vs C) — bukan 6.
+                            Ronde di atas siklus penuh akan mengulang pasangan (cocok dijadikan
+                            pola perempat final → semifinal → final), home/away otomatis dibalik.
                         </p>
                         <div class="draft-controls" style="margin-bottom:0;">
                             <span class="label-text">Jumlah ronde:</span>
@@ -2069,7 +2071,8 @@
                         <p class="member-hint">
                             Jadwal round-robin dibuat otomatis: setiap tim bertemu setiap tim lain sekali
                             dalam satu siklus. Untuk 3 tim cukup 3 pertandingan (A vs B, B vs C, A vs C).
-                            Jumlah ronde diatur di <b>Pengaturan Jadwal</b>. Skor diisi di tab <b>Arsipkan</b>.
+                            Tambah ronde di <b>Pengaturan Jadwal</b> untuk mengulang siklus (misal sisi/final) —
+                            pasangan tertentu juga bisa diatur lewat tombol <b>EDIT</b>. Skor diisi di tab <b>Arsipkan</b>.
                         </p>
                         <div class="table-container">
                             <table>
@@ -2856,29 +2859,27 @@
                     return;
                 }
 
-                const grouped = {};
-                players.forEach((p) => {
-                    if (!grouped[p.position]) grouped[p.position] = [];
-                    grouped[p.position].push(p);
-                });
+                // Grouping by position does not work as a shuffle when most
+                // players hold a distinct position: the per-group shuffle has
+                // nothing to swap, so re-shuffling produced the identical
+                // assignment every time. Shuffle the whole pool instead
+                // (Fisher–Yates), then deal it out evenly round-robin style.
+                const pool = [...players];
+                for (let i = pool.length - 1; i > 0; i -= 1) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pool[i], pool[j]] = [pool[j], pool[i]];
+                }
 
-                let currentIdx = 0;
-                let updates = [];
-
-                POS_ORDER.forEach((pos) => {
-                    if (grouped[pos]) {
-                        const shuffledPos = grouped[pos].sort(() => Math.random() - 0.5);
-                        shuffledPos.forEach((p) => {
-                            updates.push(
-                                _supabase
-                                    .from("community_players")
-                                    .update({ team: TEAM_NAMES[currentIdx] })
-                                    .eq("id", p.id)
-                                    .eq("community_id", context.community.id)
-                            );
-                            currentIdx = (currentIdx + 1) % numTeams;
-                        });
-                    }
+                const updates = [];
+                pool.forEach((player, index) => {
+                    const teamName = TEAM_NAMES[index % numTeams];
+                    updates.push(
+                        _supabase
+                            .from("community_players")
+                            .update({ team: teamName })
+                            .eq("id", player.id)
+                            .eq("community_id", context.community.id)
+                    );
                 });
 
                 await Promise.all(updates);
@@ -3347,9 +3348,14 @@
             }
 
             function archiveActiveTeams() {
+                // Alphabetical: the server-side schedule generator orders teams
+                // the same way (array_agg ... order by t), so both sides build
+                // identical rotation schedules — required now that scores are
+                // merged per (round, pairing).
                 return Object.keys(archivePlayersByTeam)
                     .filter((team) => team !== "Tanpa Tim")
-                    .filter((team) => archivePlayersByTeam[team].length);
+                    .filter((team) => archivePlayersByTeam[team].length)
+                    .sort();
             }
 
             // The result editor keeps its own team split: the snapshot of the archived
@@ -3366,7 +3372,8 @@
                 const source = editorPlayersByTeam();
                 return Object.keys(source)
                     .filter((team) => team !== "Tanpa Tim")
-                    .filter((team) => source[team] && source[team].length);
+                    .filter((team) => source[team] && source[team].length)
+                    .sort();
             }
 
             // Client-side round robin so the admin sees the schedule instantly.
@@ -3380,9 +3387,10 @@
                 if (pool.length % 2 === 1) pool.push("__BYE__");
                 const fieldSize = pool.length;
                 const fullRounds = fieldSize - 1;
-                const roundsToRun = maxRounds
-                    ? Math.min(Math.max(1, maxRounds), fullRounds)
-                    : fullRounds;
+                // Rounds beyond the full cycle deliberately repeat the schedule
+                // (double round robin / playoff-style runs). The parity swap
+                // flips home/away on the mirrored rounds.
+                const roundsToRun = maxRounds ? Math.max(1, maxRounds) : fullRounds;
                 let rotating = [...pool];
                 const schedule = [];
 
@@ -3413,17 +3421,29 @@
                 return fieldSize - 1;
             }
 
+            // Admins may run extra cycles (playoff-style repeats), so the real
+            // selectable ceiling is 3 full cycles.
+            const ROUND_CYCLE_LIMIT = 3;
+
+            function maxSelectableRounds(activeTeams) {
+                const cycle = maxRoundsForTeamCount(
+                    (activeTeams || archiveActiveTeams()).length,
+                );
+                return cycle > 0 ? cycle * ROUND_CYCLE_LIMIT : 0;
+            }
+
             function selectedRounds() {
-                const max = maxRoundsForTeamCount(archiveActiveTeams().length);
+                const max = maxSelectableRounds(archiveActiveTeams());
                 const raw = Number(document.getElementById("numRounds")?.value || 0);
-                if (!raw || raw <= 0) return max;
+                if (!raw || raw <= 0) return maxRoundsForTeamCount(archiveActiveTeams().length);
                 return Math.min(Math.max(1, raw), max);
             }
 
             function refreshRoundOptions(teams) {
                 const select = document.getElementById("numRounds");
                 if (!select) return;
-                const max = maxRoundsForTeamCount((teams || archiveActiveTeams()).length);
+                const cycle = maxRoundsForTeamCount((teams || archiveActiveTeams()).length);
+                const max = cycle > 0 ? cycle * ROUND_CYCLE_LIMIT : 0;
                 if (max < 1) {
                     select.replaceChildren();
                     const none = document.createElement("option");
@@ -3439,12 +3459,19 @@
                 for (let rounds = 1; rounds <= max; rounds += 1) {
                     const option = document.createElement("option");
                     option.value = String(rounds);
-                    option.textContent =
-                        rounds === max ? `${rounds} ronde (penuh)` : `${rounds} ronde`;
+                    if (rounds === cycle) {
+                        option.textContent = `${rounds} ronde (siklus penuh)`;
+                    } else if (rounds === cycle * 2) {
+                        option.textContent = `${rounds} ronde (2 siklus)`;
+                    } else if (rounds === max) {
+                        option.textContent = `${rounds} ronde (${ROUND_CYCLE_LIMIT} siklus — maksimal)`;
+                    } else {
+                        option.textContent = `${rounds} ronde`;
+                    }
                     select.appendChild(option);
                 }
                 select.value = String(
-                    previous >= 1 && previous <= max ? previous : max,
+                    previous >= 1 && previous <= max ? previous : cycle,
                 );
             }
 
@@ -3987,6 +4014,10 @@
                 return {
                     home: fixture.home,
                     away: fixture.away,
+                    // The server merges results per (round, pairing), so the
+                    // round key must travel with every submitted fixture —
+                    // repeated pairs across cycles each keep their own score.
+                    round: fixture.round,
                     score_home: Math.max(
                         0,
                         Math.min(Number(scoreHome?.value) || 0, 99),
