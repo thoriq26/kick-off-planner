@@ -34,6 +34,13 @@ begin
         return 'active';
     end if;
 
+    -- Serialize quota checks per community. Two simultaneous registrations
+    -- must not both read the same free slot and exceed the quota.
+    perform pg_advisory_xact_lock(
+        hashtext('kop_player_quota'),
+        hashtext(p_community::text)
+    );
+
     select player_quota into quota
     from public.community_matches
     where community_id = p_community;
@@ -94,7 +101,7 @@ begin
 
     if not public.is_community_admin(old.community_id, auth.uid()) then
         if new.team is distinct from old.team then
-            raise exception 'Only community admins can change team assignments';
+            raise exception 'Only community admins can change team assignments. SQL Editor/service role writes must set request.jwt.claim.sub or use the admin UI';
         end if;
         if new.status is distinct from old.status then
             -- Member hanya boleh naik dari daftar tunggu bila kuota memang tersedia.
@@ -143,6 +150,13 @@ begin
             return null;
         end if;
     end if;
+
+    -- Same key as community_player_registration_status(): promotions and new
+    -- registrations for one community are serialized.
+    perform pg_advisory_xact_lock(
+        hashtext('kop_player_quota'),
+        hashtext(old.community_id::text)
+    );
 
     select player_quota into quota
     from public.community_matches
@@ -201,6 +215,10 @@ begin
     if not public.is_community_admin(player_row.community_id, auth.uid()) then
         raise exception 'Only community admins can promote players';
     end if;
+    perform pg_advisory_xact_lock(
+        hashtext('kop_player_quota'),
+        hashtext(player_row.community_id::text)
+    );
     update public.community_players set status = 'active' where id = p_player;
     perform public.log_community_activity(
         player_row.community_id,
