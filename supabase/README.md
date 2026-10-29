@@ -57,16 +57,17 @@ query once in the listed order. Do not continuously rerun completed migrations.
 10. Run [`migrations/20260924070000_more_teams.sql`](migrations/20260924070000_more_teams.sql) to lift the four-team limit. It widens the `community_players_team_check` constraint to `Orange`, `Pink`, `Teal`, and `Navy`, and refreshes `fixture_team_totals` and `normalize_match_result` so all eight teams are accepted.
 11. Run [`migrations/20260924080000_team_aliases.sql`](migrations/20260924080000_team_aliases.sql) to add per-community custom team names. Without it the draft keeps using the default team labels.
 12. Run [`migrations/20260924090000_multicycle_rounds.sql`](migrations/20260924090000_multicycle_rounds.sql) so archived fixtures keep a distinct result for repeated pairings across multiple round-robin cycles.
-13. Run [`migrations/20261028000000_archive_safety.sql`](migrations/20261028000000_archive_safety.sql) to add `community_roster_snapshots` (7-day undo for roster reset/archive), `community_activity_log`, the admin-only `restore_community_roster`/`reset_community_players`/`list_community_activity` RPCs, and server-side logging triggers for members, invites, payment proofs, and archived results. The browser can read logs/snapshots only as an owner/admin and cannot insert log rows directly.
-14. Run [`migrations/20261029000000_quota_waitlist.sql`](migrations/20261029000000_quota_waitlist.sql) to add `community_matches.player_quota` and `community_players.status` (`active`/`waitlisted`). Registration is enforced in the database, new registrations go to the waitlist when the quota is full, and the oldest waitlisted player is promoted automatically when a slot opens. Spectators never count toward the quota.
-15. Run [`migrations/20261030000000_player_levels.sql`](migrations/20261030000000_player_levels.sql) to add admin-only `community_player_levels` (1–5). Levels power the optional weighted team balancing; regular members cannot read the table.
-16. Run [`migrations/20261031000000_player_stats.sql`](migrations/20261031000000_player_stats.sql) to add the `community_player_stats` aggregate RPC used by the admin Statistics tab. It checks community membership and aggregates archived fixtures in the database.
-17. In **Authentication → URL Configuration**, set the site URL to the production origin.
-12. Add the production auth redirect URLs:
+13. Run [`migrations/20261027000000_member_hardening.sql`](migrations/20261027000000_member_hardening.sql) to revoke direct `UPDATE`/`DELETE` on `community_members`, so membership changes only go through the RPCs and only the owner can change an admin/owner while admins may manage plain members.
+14. Run [`migrations/20261028000000_archive_safety.sql`](migrations/20261028000000_archive_safety.sql) to add `community_roster_snapshots` (7-day undo for roster reset/archive), `community_activity_log`, the admin-only `restore_community_roster`/`reset_community_players`/`list_community_activity` RPCs, and server-side logging triggers for members, invites, payment proofs, and archived results. The browser can read logs/snapshots only as an owner/admin and cannot insert log rows directly.
+15. Run [`migrations/20261029000000_quota_waitlist.sql`](migrations/20261029000000_quota_waitlist.sql) to add `community_matches.player_quota` and `community_players.status` (`active`/`waitlisted`). Registration is enforced in the database, new registrations go to the waitlist when the quota is full, and the oldest waitlisted player is promoted automatically when a slot opens. Spectators never count toward the quota, and a per-community advisory lock serializes simultaneous registrations.
+16. Run [`migrations/20261030000000_player_levels.sql`](migrations/20261030000000_player_levels.sql) to add admin-only `community_player_levels` (1–5). Levels power the optional weighted team balancing; regular members cannot read the table.
+17. Run [`migrations/20261031000000_player_stats.sql`](migrations/20261031000000_player_stats.sql) to add the `community_player_stats` aggregate RPC used by the admin Statistics tab. It checks community membership and aggregates archived fixtures in the database.
+18. In **Authentication → URL Configuration**, set the site URL to the production origin.
+19. Add the production auth redirect URLs:
    - `https://YOUR-DOMAIN/auth.html`
    - `https://YOUR-DOMAIN/reset-password.html`
    - `https://YOUR-DOMAIN/join.html` (for older direct invite links)
-13. Keep email confirmation enabled for production. Configure SMTP before relying
+20. Keep email confirmation enabled for production. Configure SMTP before relying
     on password reset for real users.
 
 The migration creates new `community_*` tables and does not drop the old public
@@ -80,6 +81,19 @@ browser uploads a JPG/PNG/WEBP/PDF (maximum 5 MB); owners/admins open it through
 short-lived signed URLs from the Admin Panel. Direct email delivery is not
 used because it would expose owner email/API credentials; email notifications
 would require a server-side Edge Function/provider later.
+
+### Manual team changes from the SQL Editor
+
+Team assignment is guarded by `protect_community_player_write()`. A write made
+from the SQL Editor or a service-role script has no `auth.uid()`, so the trigger
+rejects it with "Only community admins can change team assignments. SQL
+Editor/service role writes must set request.jwt.claim.sub or use the admin UI."
+Use the admin UI (authenticated owner/admin) whenever possible. If a manual fix
+is unavoidable, run the update in one transaction and set the claim first:
+`begin; select set_config('request.jwt.claim.sub', '<admin-user-uuid>', true);
+update public.community_players set team = 'Red' where id = '<player-uuid>';
+commit;` The UUID must belong to an active owner/admin of that community. Never
+disable the trigger to work around the error.
 
 ## Verification email template
 
