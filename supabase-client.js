@@ -14,6 +14,9 @@
     function translateError(value) {
         const text = String(value ?? "");
         const map = [
+            [/only the owner can change an admin or owner/i, "Hanya owner yang bisa mengubah atau menghapus admin dan owner."],
+            [/must keep at least one (active )?owner/i, "Komunitas harus punya minimal satu owner aktif."],
+            [/cannot (remove|change) (yourself|your own status)/i, "Anda tidak bisa mengubah atau menghapus akun Anda sendiri."],
             [/not confirmed|email.*confirm/i, "Email Anda belum dikonfirmasi. Buka email verifikasi dari KickOff Planner lalu klik tautannya, baru login kembali."],
             [/invalid login credentials/i, "Email atau password salah. Coba lagi, atau pakai lupa password."],
             [/already.*registered/i, "Email ini sudah terdaftar. Silakan login, atau pakai lupa password jika lupa."],

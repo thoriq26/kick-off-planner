@@ -1830,7 +1830,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-29b">
+    <body data-build="2026-10-29c">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -5339,12 +5339,13 @@
                     const actions = document.createElement("td");
                     const group = document.createElement("div");
                     group.className = "action-cell";
+                    const canManage = context.role === "owner" || role === "member";
 
-                    if (isSelf) {
+                    if (isSelf || !canManage) {
                         const note = document.createElement("span");
                         note.style.fontSize = "0.72rem";
                         note.style.color = "#94a3b8";
-                        note.textContent = "Tidak bisa diubah";
+                        note.textContent = isSelf ? "Tidak bisa diubah" : "Hanya owner";
                         group.appendChild(note);
                     } else {
                         const toggle = document.createElement("button");
