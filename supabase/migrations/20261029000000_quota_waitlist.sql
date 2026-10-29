@@ -74,6 +74,17 @@ begin
             new.community_id,
             new.position
         );
+        -- Upsert pendaftaran ulang: pemain yang sudah memegang slot aktif
+        -- tidak boleh turun ke daftar tunggu hanya karena kuota sedang penuh.
+        if new.status = 'waitlisted' and exists (
+            select 1
+            from public.community_players p
+            where p.community_id = new.community_id
+              and p.user_id = new.user_id
+              and p.status = 'active'
+        ) then
+            new.status := 'active';
+        end if;
         return new;
     end if;
 
