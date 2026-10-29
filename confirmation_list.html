@@ -409,6 +409,7 @@
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="supabase-client.js"></script>
         <script src="auth-guard.js"></script>
+        <script src="ui-dialog.js"></script>
         <script>
             const _supabase = window.KOP.supabase;
             let context;
@@ -467,10 +468,13 @@
                         p_position: posisi,
                     });
                     if (!error) {
-                        alert("Pendaftaran berhasil!");
+                        window.KOP.ui.toast("Pendaftaran berhasil!", "success");
                         muatPemain();
                     } else {
-                        alert("Pendaftaran gagal: " + window.KOP.translateError(error.message));
+                        window.KOP.ui.toast(
+                            "Pendaftaran gagal: " + window.KOP.translateError(error.message),
+                            "error",
+                        );
                     }
                 });
 

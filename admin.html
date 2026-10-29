@@ -1830,7 +1830,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-09b">
+    <body data-build="2026-10-29a">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -2403,6 +2403,7 @@
 
         <script src="supabase-client.js"></script>
         <script src="auth-guard.js"></script>
+        <script src="ui-dialog.js"></script>
         <script>
             const _supabase = window.KOP.supabase;
             let context;
@@ -2532,9 +2533,9 @@
                         saveButton.disabled = false;
                         saveButton.innerHTML = '<i class="fa-solid fa-check"></i> SIMPAN';
                         if (/does not exist|schema cache|not found/i.test(saveError?.message || "")) {
-                            alert("Fitur ubah nama tim butuh migration terbaru. Jalankan 20260924080000_team_aliases.sql di Supabase SQL Editor, lalu muat ulang halaman.");
+                            window.KOP.ui.alert("Fitur ubah nama tim butuh migration terbaru. Jalankan 20260924080000_team_aliases.sql di Supabase SQL Editor, lalu muat ulang halaman.");
                         } else {
-                            alert("Gagal menyimpan nama tim: " + window.KOP.translateError(saveError?.message));
+                            window.KOP.ui.alert("Gagal menyimpan nama tim: " + window.KOP.translateError(saveError?.message));
                         }
                     }
                 };
@@ -2549,8 +2550,14 @@
             /* ==================================================
                AUTH / COMMUNITY CONTEXT
                ================================================== */
-            function doLogout() {
-                if (confirm("Keluar dari Admin Panel?")) {
+            async function doLogout() {
+                const keluar = await window.KOP.ui.confirm({
+                    title: "Keluar dari Admin Panel",
+                    message: "Anda akan keluar dari sesi ini. Lanjutkan?",
+                    okLabel: "Keluar",
+                    cancelLabel: "Tetap di sini",
+                });
+                if (keluar) {
                     window.KOP.auth.signOut();
                 }
             }
@@ -2727,7 +2734,7 @@
                     document.getElementById("playerForm").reset();
                     muatPemain();
                 } else {
-                    alert("Gagal menambah pemain: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Gagal menambah pemain: " + window.KOP.translateError(error.message));
                 }
             });
 
@@ -2745,36 +2752,71 @@
                     cancelEdit();
                     muatPemain();
                 } else {
-                    alert("Gagal menyimpan perubahan: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Gagal menyimpan perubahan: " + window.KOP.translateError(error.message));
                 }
             });
 
             async function hapusSatuPemain(id) {
-                if (confirm("Hapus pemain ini?")) {
-                    await _supabase
-                        .from("community_players")
-                        .delete()
-                        .eq("id", id)
-                        .eq("community_id", context.community.id);
-                    muatPemain();
+                const hapus = await window.KOP.ui.confirm({
+                    title: "Hapus pemain",
+                    message: "Hapus pemain ini dari daftar? Tindakan ini tidak bisa dibatalkan.",
+                    okLabel: "Hapus",
+                    danger: true,
+                });
+                if (!hapus) return;
+                const { error } = await _supabase
+                    .from("community_players")
+                    .delete()
+                    .eq("id", id)
+                    .eq("community_id", context.community.id);
+                if (error) {
+                    window.KOP.ui.toast(
+                        "Pemain tidak dapat dihapus: " + window.KOP.translateError(error.message),
+                        "error",
+                    );
+                    return;
                 }
+                muatPemain();
             }
 
             async function resetDatabase() {
-                if (confirm("PERINGATAN: Hapus SEMUA data pemain komunitas ini? Aksi ini tidak bisa dibatalkan.")) {
-                    const { data } = await _supabase
-                        .from("community_players")
-                        .select("id")
-                        .eq("community_id", context.community.id);
-                    if (data?.length > 0) {
-                        await _supabase
-                            .from("community_players")
-                            .delete()
-                            .in("id", data.map((p) => p.id))
-                            .eq("community_id", context.community.id);
-                    }
-                    muatPemain();
+                const reset = await window.KOP.ui.confirm({
+                    title: "Reset semua pemain",
+                    message:
+                        "PERINGATAN: hapus SEMUA data pemain komunitas ini?\n\n" +
+                        "Daftar pemain akan dikosongkan dan tidak bisa dibatalkan.",
+                    okLabel: "Reset semua",
+                    danger: true,
+                });
+                if (!reset) return;
+
+                const { data, error: bacaError } = await _supabase
+                    .from("community_players")
+                    .select("id")
+                    .eq("community_id", context.community.id);
+                if (bacaError) {
+                    window.KOP.ui.toast(
+                        "Pemain tidak dapat dibaca: " + window.KOP.translateError(bacaError.message),
+                        "error",
+                    );
+                    return;
                 }
+                if (data?.length > 0) {
+                    const { error } = await _supabase
+                        .from("community_players")
+                        .delete()
+                        .in("id", data.map((p) => p.id))
+                        .eq("community_id", context.community.id);
+                    if (error) {
+                        window.KOP.ui.toast(
+                            "Pemain tidak dapat direset: " + window.KOP.translateError(error.message),
+                            "error",
+                        );
+                        return;
+                    }
+                }
+                muatPemain();
+                window.KOP.ui.toast("Daftar pemain sudah direset.", "success");
             }
 
             /* ==================================================
@@ -2838,12 +2880,23 @@
                 grid.innerHTML = html;
             }
 
-            function confirmShuffle() {
-                if (confirm("Undi pembagian tim sekarang?")) shuffleTeams();
+            async function confirmShuffle() {
+                const undi = await window.KOP.ui.confirm({
+                    title: "Acak pembagian tim",
+                    message: "Undi pembagian tim sekarang? Hasil undian sebelumnya akan diganti.",
+                    okLabel: "Acak tim",
+                });
+                if (undi) shuffleTeams();
             }
 
-            function confirmResetDraft() {
-                if (confirm("Reset pembagian tim? Semua pemain akan kembali tanpa tim.")) resetTeams();
+            async function confirmResetDraft() {
+                const reset = await window.KOP.ui.confirm({
+                    title: "Ulangi pembagian tim",
+                    message: "Reset pembagian tim? Semua pemain akan kembali tanpa tim.",
+                    okLabel: "Reset pembagian",
+                    danger: true,
+                });
+                if (reset) resetTeams();
             }
 
             async function shuffleTeams() {
@@ -2855,7 +2908,7 @@
                     .neq("position", "SPECTATOR (FAN)");
 
                 if (!players || players.length === 0) {
-                    alert("Belum ada pemain untuk diundi.");
+                    window.KOP.ui.alert("Belum ada pemain untuk diundi.");
                     return;
                 }
 
@@ -3110,7 +3163,7 @@
 
             async function openPaymentProof(storagePath) {
                 if (!storagePath) {
-                    alert("Bukti tidak dapat dibuka: path file kosong.");
+                    window.KOP.ui.alert("Bukti tidak dapat dibuka: path file kosong.");
                     return;
                 }
 
@@ -3134,7 +3187,7 @@
                 };
 
                 const failWithLink = (message, url) => {
-                    alert(
+                    window.KOP.ui.alert(
                         `${message}\n\nURL bukti (salin ke browser bila tab tidak terbuka):\n${
                             url || "tidak tersedia"
                         }`,
@@ -3236,12 +3289,12 @@
                     .maybeSingle();
 
                 if (error) {
-                    alert("Status bukti tidak dapat diperbarui: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Status bukti tidak dapat diperbarui: " + window.KOP.translateError(error.message));
                     await loadPaymentProofs();
                     return;
                 }
                 if (!updated) {
-                    alert("Status bukti sudah berubah di tab lain. Daftar akan dimuat ulang.");
+                    window.KOP.ui.alert("Status bukti sudah berubah di tab lain. Daftar akan dimuat ulang.");
                     await loadPaymentProofs();
                     return;
                 }
@@ -3289,7 +3342,7 @@
                 const iframeMatch = maps.match(/<iframe[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
                 if (/<iframe/i.test(maps)) {
                     if (!iframeMatch) {
-                        alert("Kode iframe Google Maps tidak valid. Paste seluruh kode iframe.");
+                        window.KOP.ui.alert("Kode iframe Google Maps tidak valid. Paste seluruh kode iframe.");
                         return;
                     }
                     maps = iframeMatch[1].replace(/&amp;/g, "&");
@@ -3298,7 +3351,7 @@
                     !window.KOP.isSafeMapUrl(maps)
                     || (!maps.includes("google.com/maps/embed") && !maps.includes("googleusercontent"))
                 )) {
-                    alert("Untuk map, paste kode iframe Google Maps Embed. Link share biasa tidak akan ditampilkan.");
+                    window.KOP.ui.alert("Untuk map, paste kode iframe Google Maps Embed. Link share biasa tidak akan ditampilkan.");
                     return;
                 }
 
@@ -3314,23 +3367,34 @@
                 });
 
                 if (!error) {
-                    alert("Info pertandingan berhasil dipublikasikan!");
+                    window.KOP.ui.alert("Info pertandingan berhasil dipublikasikan!");
                     loadMatchInfo();
                 } else {
-                    alert("Gagal publish: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Gagal publish: " + window.KOP.translateError(error.message));
                 }
             }
 
             async function resetMatchOnly() {
-                if (!confirm("Reset semua info pertandingan komunitas ini? Aksi ini tidak bisa dibatalkan.")) return;
+                const reset = await window.KOP.ui.confirm({
+                    title: "Reset info pertandingan",
+                    message:
+                        "Reset semua info pertandingan komunitas ini? Bukti transfer event lama tetap tersimpan di riwayat, " +
+                        "tetapi info match saat ini akan dikosongkan.",
+                    okLabel: "Reset match",
+                    danger: true,
+                });
+                if (!reset) return;
                 const { error } = await _supabase.rpc("reset_community_match", {
                     p_community: context.community.id,
                 });
                 if (!error) {
-                    alert("Info pertandingan sudah direset.");
+                    window.KOP.ui.toast("Info pertandingan sudah direset.", "success");
                     loadMatchInfo();
                 } else {
-                    alert("Gagal reset: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.toast(
+                        "Gagal reset: " + window.KOP.translateError(error.message),
+                        "error",
+                    );
                 }
             }
 
@@ -3608,7 +3672,7 @@
                 };
                 modal.querySelector("#fixSave").onclick = () => {
                     if (homeSel.value === awaySel.value) {
-                        alert("Tim kandang dan tandang tidak boleh sama.");
+                        window.KOP.ui.alert("Tim kandang dan tandang tidak boleh sama.");
                         return;
                     }
                     archiveFixtures[index].home = homeSel.value;
@@ -4097,25 +4161,84 @@
                 return parts.length ? parts.join(" ") : JSON.stringify(error);
             }
 
+            function archiveSummaryMessage(fixtures) {
+                const players = Object.values(archivePlayersByTeam).reduce(
+                    (total, list) => total + list.length,
+                    0,
+                );
+                const goals = fixtures.reduce((total, f) => total + (f.goals?.length || 0), 0);
+                const assists = fixtures.reduce((total, f) => total + (f.assists?.length || 0), 0);
+                const cards = fixtures.reduce((total, f) => total + (f.cards?.length || 0), 0);
+                const belumDiisi = fixtures.filter(
+                    (f) => Number(f.score_home) === 0 && Number(f.score_away) === 0,
+                );
+
+                const lines = [
+                    `Event: ${currentMatch.event_name}`,
+                    `Tanggal: ${currentMatch.waktu || "belum diisi"}`,
+                    `Pemain terdaftar: ${players}`,
+                    "",
+                ];
+                if (fixtures.length) {
+                    lines.push("Skor pertandingan:");
+                    fixtures.forEach((fixture) => {
+                        const home =
+                            communityTeamAliases[fixture.home] ||
+                            ARCHIVE_TEAM_LABELS[fixture.home] ||
+                            fixture.home;
+                        const away =
+                            communityTeamAliases[fixture.away] ||
+                            ARCHIVE_TEAM_LABELS[fixture.away] ||
+                            fixture.away;
+                        lines.push(`- Ronde ${fixture.round}: ${home} ${fixture.score_home} - ${fixture.score_away} ${away}`);
+                    });
+                } else {
+                    lines.push("Belum ada jadwal pertandingan.");
+                }
+                lines.push("");
+                lines.push(`Total gol: ${goals} · assist: ${assists} · kartu: ${cards}`);
+                if (belumDiisi.length) {
+                    lines.push("");
+                    lines.push(
+                        `PERINGATAN: ${belumDiisi.length} pertandingan masih berskor 0-0. ` +
+                            "Pastikan skornya benar-benar sudah diisi.",
+                    );
+                }
+                lines.push("");
+                lines.push(
+                    "Daftar pemain komunitas akan dikosongkan dan match direset. " +
+                        "Daftar pemain masih bisa dipulihkan selama 7 hari lewat tombol Pulihkan.",
+                );
+                return lines.join("\n");
+            }
+
             async function submitArchive() {
                 const fixtures = collectArchiveFixtures();
                 const editingId = window._editingArchiveId;
 
                 if (editingId) {
-                    if (!confirm("Simpan perubahan hasil pertandingan ini?")) return;
+                    const simpan = await window.KOP.ui.confirm({
+                        title: "Simpan perubahan hasil",
+                        message: "Simpan perubahan skor, pencetak gol, assist, dan kartu untuk event ini?",
+                        okLabel: "Simpan hasil",
+                    });
+                    if (!simpan) return;
                     const { error } = await _supabase.rpc("update_event_history_result", {
                         p_history: editingId,
                         p_result: { fixtures },
                     });
                     if (error) {
-                        alert("Gagal menyimpan hasil: " + window.KOP.translateError(error.message));
+                        window.KOP.ui.toast(
+                            "Gagal menyimpan hasil: " + window.KOP.translateError(error.message),
+                            "error",
+                        );
                         return;
                     }
                     window._editingArchiveId = null;
                     archiveEditTeams = null;
                     const note = document.getElementById("archiveEditingNote");
                     if (note) note.hidden = true;
-                    alert("Hasil pertandingan berhasil disimpan.");
+                    window.KOP.ui.toast("Hasil pertandingan berhasil disimpan.", "success");
                     // Back to the live roster and the current match schedule, so the
                     // editor no longer shows the archived snapshot.
                     await loadArchivePlayers();
@@ -4125,32 +4248,37 @@
                 }
 
                 if (!currentMatch || currentMatch.event_name === "TBA") {
-                    alert(
-                        "Belum ada pertandingan yang dipublikasikan. PUBLIKASIKAN dulu di tab Info Match Day.",
+                    window.KOP.ui.toast(
+                        "Belum ada pertandingan yang dipublikasikan. Publikasikan dulu di tab Info Match Day.",
+                        "error",
                     );
                     return;
                 }
-                if (
-                    !confirm(
-                        `Arsipkan "${currentMatch.event_name}"?\n\n${
-                            fixtures.length
-                                ? "Hasil:\n" + fixtureSummary(fixtures) + "\n\n"
-                                : ""
-                        }Daftar pemain komunitas akan dikosongkan dan match di-reset. Tindakan ini tidak bisa dibatalkan.`,
-                    )
-                ) {
-                    return;
-                }
+                const arsip = await window.KOP.ui.confirm({
+                    title: "Arsipkan pertandingan",
+                    message: archiveSummaryMessage(fixtures),
+                    okLabel: "Arsipkan sekarang",
+                    danger: true,
+                });
+                if (!arsip) return;
 
                 const { error } = await _supabase.rpc("archive_community_match", {
                     p_community: context.community.id,
                     p_result: { fixtures, rounds: selectedRounds() },
                 });
                 if (error) {
-                    alert("Gagal mengarsipkan: " + describeRpcError(error));
+                    window.KOP.ui.toast("Gagal mengarsipkan: " + describeRpcError(error), "error");
                     return;
                 }
-                alert("Pertandingan berhasil diarsipkan!");
+                window.KOP.ui.toast(
+                    "Pertandingan berhasil diarsipkan. Daftar pemain bisa dipulihkan selama 7 hari.",
+                    "success",
+                    {
+                        duration: 12000,
+                        actionLabel: "Pulihkan",
+                        onAction: () => pulihkanSnapshotTerbaru(),
+                    },
+                );
                 const submitLabel = document.getElementById("archiveSubmitButton");
                 if (submitLabel) {
                     submitLabel.innerHTML =
@@ -4249,7 +4377,7 @@
                 // Never leave the admin staring at an empty editor with no
                 // explanation: report what the archived row actually contains.
                 if (!archiveFixtures.length) {
-                    alert(
+                    window.KOP.ui.alert(
                         "Tidak ada pertandingan yang bisa dibuat dari event ini.\n\n" +
                             `Tim pada arsip: ${
                                 Object.keys(archiveEditTeams).join(", ") || "(kosong)"
@@ -4381,21 +4509,22 @@
 
             async function deleteArchivedEvent(row) {
                 const label = row.event_name || "event ini";
-                if (
-                    !confirm(
+                const hapus = await window.KOP.ui.confirm({
+                    title: "Hapus riwayat event",
+                    message:
                         `Hapus "${label}" dari riwayat?\n\n` +
-                            "Riwayat, jadwal, dan hasil akan hilang permanen.",
-                    )
-                ) {
-                    return;
-                }
+                        "Riwayat, jadwal, dan hasil akan hilang permanen.",
+                    okLabel: "Hapus permanen",
+                    danger: true,
+                });
+                if (!hapus) return;
                 const { error } = await _supabase
                     .from("community_event_history")
                     .delete()
                     .eq("id", row.id)
                     .eq("community_id", context.community.id);
                 if (error) {
-                    alert("Riwayat tidak dapat dihapus: " + describeRpcError(error));
+                    window.KOP.ui.alert("Riwayat tidak dapat dihapus: " + describeRpcError(error));
                     return;
                 }
                 if (window._editingArchiveId === row.id) {
@@ -4520,7 +4649,7 @@
                     p_max_uses: maxUses,
                 });
                 if (error) {
-                    alert("Gagal membuat undangan: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Gagal membuat undangan: " + window.KOP.translateError(error.message));
                     return;
                 }
                 const invite = data?.[0];
@@ -4601,17 +4730,17 @@
                             });
                         } catch (error) {
                             if (error?.name !== "AbortError") {
-                                alert("Tidak dapat membuka menu berbagi.");
+                                window.KOP.ui.alert("Tidak dapat membuka menu berbagi.");
                             }
                         }
                         return;
                     }
                     const copied = await copyToClipboard(shareText);
-                    alert(copied ? "Pesan undangan disalin." : "Tidak dapat menyalin pesan.");
+                    window.KOP.ui.alert(copied ? "Pesan undangan disalin." : "Tidak dapat menyalin pesan.");
                 });
                 addShareButton("COPY PESAN", "fa-solid fa-copy", "share-copy", async () => {
                     const copied = await copyToClipboard(shareText);
-                    alert(copied ? "Pesan undangan disalin." : "Tidak dapat menyalin pesan.");
+                    window.KOP.ui.alert(copied ? "Pesan undangan disalin." : "Tidak dapat menyalin pesan.");
                 });
 
                 const siteLabel = document.createElement("p");
@@ -4754,7 +4883,7 @@
                     p_active: nextActive,
                 });
                 if (error) {
-                    alert("Status anggota tidak dapat diubah: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Status anggota tidak dapat diubah: " + window.KOP.translateError(error.message));
                     button.disabled = false;
                     return;
                 }
@@ -4763,20 +4892,22 @@
 
             async function removeMember(row, button) {
                 const name = row.full_name || row.email || "anggota ini";
-                if (
-                    !confirm(
-                        `Hapus ${name} dari komunitas?\n\nYang dihapus: akses komunitas dan data pemainnya.\n` +
-                            "Yang TIDAK dihapus: akun login dan email. Orang ini masih bisa masuk dengan akun lamanya.",
-                    )
-                ) {
-                    return;
-                }
+                const hapus = await window.KOP.ui.confirm({
+                    title: "Hapus anggota",
+                    message:
+                        `Hapus ${name} dari komunitas?\n\n` +
+                        "Yang dihapus: akses komunitas dan data pemainnya.\n" +
+                        "Yang TIDAK dihapus: akun login dan email. Orang ini masih bisa masuk dengan akun lamanya.",
+                    okLabel: "Hapus anggota",
+                    danger: true,
+                });
+                if (!hapus) return;
                 const { error } = await _supabase.rpc("remove_community_member", {
                     p_community: context.community.id,
                     p_user: row.user_id,
                 });
                 if (error) {
-                    alert("Anggota tidak dapat dihapus: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Anggota tidak dapat dihapus: " + window.KOP.translateError(error.message));
                     button.disabled = false;
                     return;
                 }
@@ -4784,12 +4915,18 @@
             }
 
             async function revokeInvite(id) {
-                if (!confirm("Cabut undangan ini?")) return;
+                const cabut = await window.KOP.ui.confirm({
+                    title: "Cabut undangan",
+                    message: "Cabut undangan ini? Kode tidak bisa dipakai lagi setelah dicabut.",
+                    okLabel: "Cabut undangan",
+                    danger: true,
+                });
+                if (!cabut) return;
                 const { error } = await _supabase.rpc("revoke_community_invite", {
                     p_invite: id,
                 });
                 if (error) {
-                    alert("Gagal mencabut undangan: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.alert("Gagal mencabut undangan: " + window.KOP.translateError(error.message));
                     return;
                 }
                 loadInvites();
