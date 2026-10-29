@@ -16,6 +16,15 @@ begin;
 
 do $$
 begin
+    if to_regclass('public.community_activity_log') is not null then
+        execute 'delete from public.community_activity_log';
+    end if;
+    if to_regclass('public.community_roster_snapshots') is not null then
+        execute 'delete from public.community_roster_snapshots';
+    end if;
+    if to_regclass('public.community_player_levels') is not null then
+        execute 'delete from public.community_player_levels';
+    end if;
     if to_regclass('public.community_payment_proofs') is not null then
         execute 'delete from public.community_payment_proofs';
     end if;
@@ -69,3 +78,6 @@ commit;
 --   community_invites       0
 --   community_invite_uses   0
 --   community_payment_proofs 0
+--   community_roster_snapshots 0
+--   community_activity_log  0
+--   community_player_levels 0

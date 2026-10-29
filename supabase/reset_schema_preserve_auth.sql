@@ -1,9 +1,9 @@
 -- Destructive reset for the KickOff Planner application schema.
 -- This removes community/application data and recreates an empty schema on the
 -- next migration run, but intentionally DOES NOT delete auth.users accounts.
--- Review before running. Run once in Supabase SQL Editor, then run migrations
--- 20260924000000, 20260924010000, 20260924020000, 20260924025000,
--- 20260924030000, 20260924040000, 20260924050000, and 20260924060000 in order.
+-- Review before running. Run once in Supabase SQL Editor, then run every
+-- migration in supabase/migrations in filename order (starting with
+-- 20260924000000) to recreate the schema.
 --
 -- Supabase intentionally blocks direct DELETE from storage.objects. Delete the
 -- payment-proof bucket through Dashboard > Storage (or the Storage API) before
@@ -36,6 +36,18 @@ drop function if exists public.update_event_history_result(uuid, jsonb) cascade;
 drop function if exists public.normalize_match_result(jsonb) cascade;
 drop function if exists public.archive_community_match(uuid, jsonb) cascade;
 drop function if exists public.archive_community_match(uuid) cascade;
+drop function if exists public.restore_community_roster(uuid) cascade;
+drop function if exists public.reset_community_players(uuid) cascade;
+drop function if exists public.list_community_activity(uuid, integer) cascade;
+drop function if exists public.log_community_activity(uuid, text, text, jsonb) cascade;
+drop function if exists public.log_member_activity() cascade;
+drop function if exists public.log_invite_activity() cascade;
+drop function if exists public.log_payment_proof_activity() cascade;
+drop function if exists public.log_history_activity() cascade;
+drop function if exists public.community_player_registration_status(uuid, text) cascade;
+drop function if exists public.promote_waitlisted_player() cascade;
+drop function if exists public.promote_community_player(uuid) cascade;
+drop function if exists public.community_player_stats(uuid, timestamptz, timestamptz) cascade;
 drop function if exists public.list_community_members(uuid) cascade;
 drop function if exists public.set_community_member_status(uuid, uuid, boolean) cascade;
 drop function if exists public.remove_community_member(uuid, uuid) cascade;
@@ -53,6 +65,9 @@ drop function if exists public.is_community_member(uuid, uuid) cascade;
 drop function if exists public.handle_new_user() cascade;
 
 -- Remove the new application tables.
+drop table if exists public.community_activity_log cascade;
+drop table if exists public.community_roster_snapshots cascade;
+drop table if exists public.community_player_levels cascade;
 drop table if exists public.community_payment_proofs cascade;
 drop table if exists public.community_event_history cascade;
 drop table if exists public.community_matches cascade;

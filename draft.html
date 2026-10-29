@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
     <head>
         <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
@@ -7,7 +7,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
         />
-        <title>Team Draft - KickOff Planner</title>
+        <title>Pembagian Tim - KickOff Planner</title>
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -297,6 +297,9 @@
                 if (custom) return custom;
                 return `Tim ${TEAM_LABELS[team] || team}`;
             }
+            function positionLabel(position) {
+                return position === "SPECTATOR (FAN)" ? "PENONTON" : position;
+            }
             async function loadTeamAliases() {
                 try {
                     const { data, error } = await _supabase
@@ -320,7 +323,8 @@
                     .from("community_players")
                     .select("*")
                     .eq("community_id", context.community.id)
-                    .neq("position", "SPECTATOR (FAN)");
+                    .neq("position", "SPECTATOR (FAN)")
+                    .neq("status", "waitlisted");
 
                 if (error) return;
 
@@ -366,7 +370,7 @@
                                             (p) => `
                                         <div class="player-item">
                                             <span style="font-weight:600">${window.KOP.escapeHtml(p.name)}</span>
-                                            <span class="pos-badge">${window.KOP.escapeHtml(p.position)}</span>
+                                            <span class="pos-badge">${window.KOP.escapeHtml(positionLabel(p.position))}</span>
                                         </div>
                                     `,
                                         )

@@ -18,7 +18,8 @@ also be removed.
 If the schema is already migrated and you only want to remove the data created
 by testers, run [`reset_test_data.sql`](reset_test_data.sql) once in the SQL
 Editor. It removes communities, memberships, players, matches, history,
-invitations, and payment-proof metadata while preserving:
+invitations, payment-proof metadata, roster snapshots, activity logs, and
+player levels while preserving:
 
 - `auth.users` login accounts
 - `public.profiles`
@@ -54,7 +55,13 @@ query once in the listed order. Do not continuously rerun completed migrations.
 8. Run [`migrations/20260924050000_match_results.sql`](migrations/20260924050000_match_results.sql) to add archived match results: score, scorers, assists, cards, and the team split snapshot. It backs the admin **Arsipkan** tab and the per-team breakdown in `history.html`.
 9. Run [`migrations/20260924060000_match_fixtures.sql`](migrations/20260924060000_match_fixtures.sql) to store results per matchup instead of per team. It adds the `fixtures` column plus `generate_round_robin`, `normalize_fixture_result`, `merge_match_fixtures`, and `fixture_team_totals`, and replaces `archive_community_match`/`update_event_history_result` so the schedule is generated server-side from the real team split. The browser cannot invent matchups, and events archived before this migration get a schedule generated on first edit.
 10. Run [`migrations/20260924070000_more_teams.sql`](migrations/20260924070000_more_teams.sql) to lift the four-team limit. It widens the `community_players_team_check` constraint to `Orange`, `Pink`, `Teal`, and `Navy`, and refreshes `fixture_team_totals` and `normalize_match_result` so all eight teams are accepted.
-11. In **Authentication → URL Configuration**, set the site URL to the production origin.
+11. Run [`migrations/20260924080000_team_aliases.sql`](migrations/20260924080000_team_aliases.sql) to add per-community custom team names. Without it the draft keeps using the default team labels.
+12. Run [`migrations/20260924090000_multicycle_rounds.sql`](migrations/20260924090000_multicycle_rounds.sql) so archived fixtures keep a distinct result for repeated pairings across multiple round-robin cycles.
+13. Run [`migrations/20261028000000_archive_safety.sql`](migrations/20261028000000_archive_safety.sql) to add `community_roster_snapshots` (7-day undo for roster reset/archive), `community_activity_log`, the admin-only `restore_community_roster`/`reset_community_players`/`list_community_activity` RPCs, and server-side logging triggers for members, invites, payment proofs, and archived results. The browser can read logs/snapshots only as an owner/admin and cannot insert log rows directly.
+14. Run [`migrations/20261029000000_quota_waitlist.sql`](migrations/20261029000000_quota_waitlist.sql) to add `community_matches.player_quota` and `community_players.status` (`active`/`waitlisted`). Registration is enforced in the database, new registrations go to the waitlist when the quota is full, and the oldest waitlisted player is promoted automatically when a slot opens. Spectators never count toward the quota.
+15. Run [`migrations/20261030000000_player_levels.sql`](migrations/20261030000000_player_levels.sql) to add admin-only `community_player_levels` (1–5). Levels power the optional weighted team balancing; regular members cannot read the table.
+16. Run [`migrations/20261031000000_player_stats.sql`](migrations/20261031000000_player_stats.sql) to add the `community_player_stats` aggregate RPC used by the admin Statistics tab. It checks community membership and aggregates archived fixtures in the database.
+17. In **Authentication → URL Configuration**, set the site URL to the production origin.
 12. Add the production auth redirect URLs:
    - `https://YOUR-DOMAIN/auth.html`
    - `https://YOUR-DOMAIN/reset-password.html`

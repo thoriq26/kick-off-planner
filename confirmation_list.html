@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
     <head>
         <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
@@ -343,7 +343,7 @@
             <h2><i class="fa-solid fa-user-pen"></i> Formulir Pendaftaran</h2>
             <form id="playerForm">
                 <div class="input-group">
-                    <label>NAMA PEMAIN</label>
+                    <label for="nama">NAMA PEMAIN</label>
                     <input
                         type="text"
                         id="nama"
@@ -352,7 +352,7 @@
                     />
                 </div>
                 <div class="input-group">
-                    <label>POSISI</label>
+                    <label for="posisi">POSISI</label>
                     <select id="posisi">
                         <option value="GK">GK</option>
                         <option value="CB">CB</option>
@@ -392,6 +392,7 @@
                     >0</span
                 >
             </div>
+            <p id="quotaInfo" style="margin:0 0 10px;font-size:0.82rem;font-weight:600;color:#475569;"></p>
             <div class="table-container">
                 <table>
                     <thead>
@@ -399,6 +400,7 @@
                             <th style="width: 60px; text-align: center">NO</th>
                             <th>NAMA</th>
                             <th>POS</th>
+                            <th style="width: 96px">AKSI</th>
                         </tr>
                     </thead>
                     <tbody id="playerTableBody"></tbody>
@@ -414,8 +416,45 @@
             const _supabase = window.KOP.supabase;
             let context;
 
+            function positionLabel(position) {
+                return position === "SPECTATOR (FAN)" ? "PENONTON" : position;
+            }
+
             const tableBody = document.getElementById("playerTableBody");
             const playerCount = document.getElementById("count");
+            let matchQuota = null;
+            let lastPlayersData = [];
+
+            async function loadEventQuota() {
+                const { data } = await _supabase
+                    .from("community_matches")
+                    .select("player_quota")
+                    .eq("community_id", context.community.id)
+                    .maybeSingle();
+                matchQuota = data?.player_quota ?? null;
+            }
+
+            function renderQuotaInfo(players) {
+                const host = document.getElementById("quotaInfo");
+                if (!host) return;
+                const activeCount = players.filter(
+                    (p) => p.position !== "SPECTATOR (FAN)" && p.status !== "waitlisted",
+                ).length;
+                const waitlisted = players.filter((p) => p.status === "waitlisted").length;
+                if (!matchQuota || matchQuota <= 0) {
+                    host.textContent = waitlisted
+                        ? `${activeCount} pemain aktif · ${waitlisted} di daftar tunggu.`
+                        : `${activeCount} pemain aktif terdaftar.`;
+                    return;
+                }
+                const remaining = Math.max(0, matchQuota - activeCount);
+                let text = remaining
+                    ? `Sisa kuota: ${remaining} dari ${matchQuota} pemain.`
+                    : `Kuota penuh (${matchQuota} pemain) — pendaftar baru masuk daftar tunggu.`;
+                if (waitlisted) text += ` ${waitlisted} orang di daftar tunggu.`;
+                host.textContent = text;
+                host.style.color = remaining ? "#1e8449" : "#b45309";
+            }
 
             async function muatPemain() {
                 const { data, error } = await _supabase
@@ -424,13 +463,15 @@
                     .eq("community_id", context.community.id)
                     .order("created_at", { ascending: true });
                 if (error) return;
+                lastPlayersData = data || [];
 
                 tableBody.innerHTML = "";
                 playerCount.innerText = data.length;
+                renderQuotaInfo(lastPlayersData);
 
                 if (!data.length) {
                     tableBody.innerHTML =
-                        '<tr><td colspan="3" class="empty-state">Belum ada peserta terdaftar.</td></tr>';
+                        '<tr><td colspan="4" class="empty-state">Belum ada peserta terdaftar.</td></tr>';
                     return;
                 }
 
@@ -438,8 +479,23 @@
                     tableBody.innerHTML += `
                     <tr>
                         <td style="text-align: center;">${index + 1}</td>
-                        <td style="font-weight: 600;">${window.KOP.escapeHtml(p.name)}</td>
-                        <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${window.KOP.escapeHtml(p.position)}</span></td>
+                        <td style="font-weight: 600;">
+                            ${window.KOP.escapeHtml(p.name)}
+                            ${
+                                p.status === "waitlisted"
+                                    ? '<span style="display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:0.66rem;font-weight:800;">DAFTAR TUNGGU</span>'
+                                    : ""
+                            }
+                        </td>
+                        <td><span style="color: #27ae60; font-weight: 800; font-size: 0.9rem;">${window.KOP.escapeHtml(positionLabel(p.position))}</span></td>
+                        <td>${
+                            p.user_id === context.user.id
+                                ? `<button type="button" class="btn-cancel-signup" onclick="batalkanPendaftaran('${p.id}')"
+                                        title="Batalkan pendaftaran" aria-label="Batalkan pendaftaran saya">
+                                        <i class="fa-solid fa-user-minus" aria-hidden="true"></i> Batal
+                                   </button>`
+                                : ""
+                        }</td>
                     </tr>`;
                 });
             }
@@ -452,6 +508,34 @@
                     .eq("id", context.user.id)
                     .maybeSingle();
                 input.value = profile?.full_name || context.user.email?.split("@")[0] || "";
+            }
+
+            async function batalkanPendaftaran(id) {
+                const batal = await window.KOP.ui.confirm({
+                    title: "Batalkan pendaftaran",
+                    message:
+                        "Batalkan pendaftaran Anda pada event ini?\n\n" +
+                        "Anda bisa mendaftar lagi selama kuota masih tersedia.",
+                    okLabel: "Batalkan",
+                    danger: true,
+                });
+                if (!batal) return;
+                const { error } = await _supabase
+                    .from("community_players")
+                    .delete()
+                    .eq("id", id)
+                    .eq("user_id", context.user.id)
+                    .eq("community_id", context.community.id);
+                if (error) {
+                    window.KOP.ui.toast(
+                        "Pendaftaran tidak dapat dibatalkan: " +
+                            window.KOP.translateError(error.message),
+                        "error",
+                    );
+                    return;
+                }
+                window.KOP.ui.toast("Pendaftaran berhasil dibatalkan.", "success");
+                muatPemain();
             }
 
             document
@@ -468,8 +552,19 @@
                         p_position: posisi,
                     });
                     if (!error) {
-                        window.KOP.ui.toast("Pendaftaran berhasil!", "success");
-                        muatPemain();
+                        await muatPemain();
+                        const own = lastPlayersData.find(
+                            (player) => player.user_id === context.user.id,
+                        );
+                        if (own?.status === "waitlisted") {
+                            window.KOP.ui.toast(
+                                "Kuota penuh — Anda masuk daftar tunggu dan akan naik otomatis bila ada yang batal.",
+                                "info",
+                                { duration: 8000 },
+                            );
+                        } else {
+                            window.KOP.ui.toast("Pendaftaran berhasil!", "success");
+                        }
                     } else {
                         window.KOP.ui.toast(
                             "Pendaftaran gagal: " + window.KOP.translateError(error.message),
@@ -481,8 +576,8 @@
             window.onload = async () => {
                 context = await window.KOP.auth.getContext({ requireCommunity: true });
                 if (context) {
-                    await isiNamaPemain();
-                    muatPemain();
+                    await Promise.all([isiNamaPemain(), loadEventQuota()]);
+                    await muatPemain();
                 }
             };
         </script>

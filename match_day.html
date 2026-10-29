@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
     <head>
         <link rel="icon" type="image/png" href="aaa.png" />
         <meta charset="UTF-8" />
@@ -913,6 +913,24 @@
                     </div>`;
             }
 
+            function renderMapLink(url) {
+                const mapContainer = document.getElementById("mapContainer");
+                const link = window.KOP.escapeHtml(url);
+                mapContainer.innerHTML = `
+                    <div class="map-placeholder">
+                        <div class="map-placeholder-content">
+                            <div class="map-placeholder-badge"><i class="fa-solid fa-location-dot"></i> LOKASI LAPANGAN</div>
+                            <div class="map-placeholder-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                            <div class="map-placeholder-title">Peta Lokasi</div>
+                            <p class="map-placeholder-subtitle">Buka lokasi lapangan langsung di aplikasi Google Maps.</p>
+                            <a href="${link}" target="_blank" rel="noopener noreferrer"
+                                style="display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:#27ae60;color:#fff;text-decoration:none;font-weight:700;font-size:.85rem;padding:11px 18px;border-radius:10px;">
+                                <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Buka di Google Maps
+                            </a>
+                        </div>
+                    </div>`;
+            }
+
             async function loadInfo() {
                 const { data } = await _supabase
                     .from("community_matches")
@@ -995,17 +1013,21 @@
                             "Jadwal menyusul";
                     }
 
-                    // Map Logic: only a Google Embed iframe is rendered.
+                    // Hanya URL embed yang dirender sebagai iframe. Link Google Maps
+                    // biasa ditampilkan sebagai tombol agar tetap aman dan bisa dibuka.
                     const mapContainer = document.getElementById("mapContainer");
+                    const safeMapUrl =
+                        data.maps_url && window.KOP.isSafeMapUrl(data.maps_url)
+                            ? data.maps_url
+                            : "";
                     const isEmbedMap =
-                        data.maps_url
-                        && window.KOP.isSafeMapUrl(data.maps_url)
-                        && (
-                            data.maps_url.includes("google.com/maps/embed")
-                            || data.maps_url.includes("googleusercontent")
-                        );
+                        safeMapUrl &&
+                        (safeMapUrl.includes("google.com/maps/embed") ||
+                            safeMapUrl.includes("googleusercontent"));
                     if (isEmbedMap) {
-                        mapContainer.innerHTML = `<iframe src="${window.KOP.escapeHtml(data.maps_url)}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+                        mapContainer.innerHTML = `<iframe src="${window.KOP.escapeHtml(safeMapUrl)}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+                    } else if (safeMapUrl) {
+                        renderMapLink(safeMapUrl);
                     } else {
                         renderMapPlaceholder();
                     }

@@ -1830,7 +1830,7 @@
             }
         </style>
     </head>
-    <body data-build="2026-10-29a">
+    <body data-build="2026-10-29b">
         <!-- Error banner: makes any uncaught JS error visible instead of silent.
              pointer-events:none so it can never block a click. -->
         <div id="errorBanner" hidden></div>
@@ -1881,7 +1881,13 @@
                     <i class="fa-solid fa-calendar-day"></i> Info Match Day
                 </button>
                 <button class="tab-btn" data-tab="archive" onclick="switchTab('archive')">
-                    <i class="fa-solid fa-box-archive"></i> Arsipkan
+                    <i class="fa-solid fa-box-archive"></i> Hasil &amp; Arsip
+                </button>
+                <button class="tab-btn" data-tab="activity" onclick="switchTab('activity')">
+                    <i class="fa-solid fa-clipboard-list"></i> Log Aktivitas
+                </button>
+                <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">
+                    <i class="fa-solid fa-chart-simple"></i> Statistik
                 </button>
                 <button class="tab-btn" data-tab="invites" onclick="switchTab('invites')">
                     <i class="fa-solid fa-link"></i> Undangan
@@ -1912,13 +1918,13 @@
                         <form id="playerForm">
                             <div class="input-group">
                                 <div>
-                                    <label>ANGGOTA</label>
+                                    <label for="playerMember">ANGGOTA</label>
                                     <select id="playerMember" required>
                                         <option value="">Memuat anggota...</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label>POSISI</label>
+                                    <label for="posisi">POSISI</label>
                                     <select id="posisi">
                                         <option value="GK">GK</option>
                                         <option value="CB">CB</option>
@@ -1930,7 +1936,18 @@
                                         <option value="LWF">LWF</option>
                                         <option value="RWF">RWF</option>
                                         <option value="CF">CF</option>
-                                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                                        <option value="SPECTATOR (FAN)">PENONTON</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="playerLevel">LEVEL (OPSIONAL)</label>
+                                    <select id="playerLevel">
+                                        <option value="">Tanpa level</option>
+                                        <option value="1">1 — Pemula</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3 — Menengah</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5 — Mahir</option>
                                     </select>
                                 </div>
                             </div>
@@ -1951,11 +1968,11 @@
                             <input type="hidden" id="editId" />
                             <div class="input-group">
                                 <div>
-                                    <label>NAMA</label>
+                                    <label for="editNama">NAMA</label>
                                     <input type="text" id="editNama" required />
                                 </div>
                                 <div>
-                                    <label>POSISI</label>
+                                    <label for="editPosisi">POSISI</label>
                                     <select id="editPosisi">
                                         <option value="GK">GK</option>
                                         <option value="CB">CB</option>
@@ -1967,7 +1984,18 @@
                                         <option value="LWF">LWF</option>
                                         <option value="RWF">RWF</option>
                                         <option value="CF">CF</option>
-                                        <option value="SPECTATOR (FAN)">SPECTATOR (FAN)</option>
+                                        <option value="SPECTATOR (FAN)">PENONTON</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="editLevel">LEVEL (OPSIONAL)</label>
+                                    <select id="editLevel">
+                                        <option value="">Tanpa level</option>
+                                        <option value="1">1 — Pemula</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3 — Menengah</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5 — Mahir</option>
                                     </select>
                                 </div>
                             </div>
@@ -1983,9 +2011,20 @@
                     </div>
 
                     <div class="card">
-                        <div class="table-header">
+                        <div class="table-header" style="flex-wrap:wrap;gap:10px;">
                             <span><i class="fa-solid fa-list"></i> Daftar Pemain Terdaftar</span>
-                            <span class="count-badge" id="count">0</span>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;font-weight:700;color:#475569;">
+                                    <input type="checkbox" id="unpaidFilter" onchange="setUnpaidFilter(this.checked)" />
+                                    BELUM LUNAS
+                                </label>
+                                <button type="button" class="btn-action btn-cancel"
+                                    style="flex:none;padding:7px 12px;font-size:0.72rem;"
+                                    onclick="salinDaftarBelumBayar()">
+                                    <i class="fa-brands fa-whatsapp"></i> SALIN BELUM BAYAR
+                                </button>
+                                <span class="count-badge" id="count">0</span>
+                            </div>
                         </div>
                         <div class="table-container">
                             <table>
@@ -1994,11 +2033,36 @@
                                         <th style="width: 50px; text-align: center">NO</th>
                                         <th>NAMA</th>
                                         <th>POS</th>
+                                        <th>LEVEL</th>
                                         <th>TIM</th>
+                                        <th>BAYAR</th>
                                         <th style="width: 90px">AKSI</th>
                                     </tr>
                                 </thead>
                                 <tbody id="playerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fa-solid fa-clock-rotate-left"></i> Pemulihan Daftar Pemain</h2>
+                        <p class="member-hint">
+                            Setiap reset atau arsip menyimpan salinan daftar pemain selama 7 hari.
+                            Pilih salah satu snapshot untuk mengembalikan pemain yang masih menjadi
+                            anggota aktif. Pemain yang sudah terdaftar ulang otomatis dilewati.
+                        </p>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>WAKTU</th>
+                                        <th>ALASAN</th>
+                                        <th>PEMAIN</th>
+                                        <th>BERLAKU SAMPAI</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="snapshotTableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -2013,12 +2077,12 @@
                         <ol>
                             <li>Pastikan data pemain di tab "Data Pemain" sudah lengkap.</li>
                             <li>Pilih jumlah tim (2/3/4) lalu klik <b>ACAK TIM</b> — pemain akan diacak merata berdasarkan posisi.</li>
-                            <li>Pemain berstatus <b>SPECTATOR (FAN)</b> otomatis tidak diikutkan undian.</li>
+                            <li>Pemain berstatus <b>PENONTON</b> otomatis tidak diikutkan undian.</li>
                             <li>Klik <b>ULANGI PEMBAGIAN</b> untuk membatalkan pembagian tim dan mengundi ulang dari awal.</li>
                             <li>Hasil undian ini akan tampil kepada member komunitas di halaman Team Draft.</li>
                             <li>Setelah undi, cek <b>Jadwal Pertandingan</b>. Untuk 3 tim satu siklus penuh hanya 3 pertandingan (A vs B, B vs C, A vs C).</li>
                             <li>Atur <b>Jumlah ronde</b> di Pengaturan Jadwal — bisa sampai 3 siklus untuk pola perempat final/semifinal/final, atau sebagian ronde saja.</li>
-                            <li>Skor tiap pertandingan diisi di tab <b>Arsipkan</b>.</li>
+                            <li>Skor tiap pertandingan diisi di tab <b>Hasil &amp; Arsip</b>.</li>
                         </ol>
                     </div>
 
@@ -2041,6 +2105,10 @@
                             <button class="btn-action btn-reset" style="flex: none; padding: 10px 20px;" onclick="confirmResetDraft()">
                                 <i class="fa-solid fa-rotate-right"></i> ULANGI PEMBAGIAN
                             </button>
+                            <label style="display:flex;align-items:center;gap:7px;font-size:0.78rem;font-weight:700;color:#475569;">
+                                <input type="checkbox" id="balanceLevels" onchange="loadDraft()" />
+                                SEIMBANGKAN LEVEL
+                            </label>
                         </div>
                     </div>
 
@@ -2064,6 +2132,14 @@
                     <div class="card">
                         <h2><i class="fa-solid fa-people-group"></i> Hasil Pembagian Tim</h2>
                         <div class="team-grid" id="mainGrid"></div>
+                        <div class="btn-group" style="margin-top:16px;">
+                            <button type="button" class="btn-action btn-save" onclick="salinHasilUndianWA()">
+                                <i class="fa-brands fa-whatsapp"></i> SALIN KE WHATSAPP
+                            </button>
+                            <button type="button" class="btn-action btn-cancel" onclick="unduhHasilUndianCSV()">
+                                <i class="fa-solid fa-file-csv"></i> UNDUH CSV
+                            </button>
+                        </div>
                     </div>
 
                     <div class="card">
@@ -2072,7 +2148,7 @@
                             Jadwal round-robin dibuat otomatis: setiap tim bertemu setiap tim lain sekali
                             dalam satu siklus. Untuk 3 tim cukup 3 pertandingan (A vs B, B vs C, A vs C).
                             Tambah ronde di <b>Pengaturan Jadwal</b> untuk mengulang siklus (misal sisi/final) —
-                            pasangan tertentu juga bisa diatur lewat tombol <b>EDIT</b>. Skor diisi di tab <b>Arsipkan</b>.
+                            pasangan tertentu juga bisa diatur lewat tombol <b>EDIT</b>. Skor diisi di tab <b>Hasil &amp; Arsip</b>.
                         </p>
                         <div class="table-container">
                             <table>
@@ -2098,7 +2174,8 @@
                         </div>
                         <ol>
                             <li>Isi detail pertandingan, jadwal, admission fee, pembayaran, dan lokasi.</li>
-                            <li>Untuk lokasi, gunakan kode embed iframe Google Maps, bukan link share biasa.</li>
+                            <li>Untuk lokasi, tempel <b>link Google Maps biasa</b> (google.com/maps, maps.google.com, maps.app.goo.gl) <b>atau</b> kode embed iframe lama. Link biasa tampil sebagai tombol "Buka di Google Maps"; hanya URL embed yang dirender sebagai peta.</li>
+                            <li>Isi <b>Kuota Pemain</b> bila jumlah pemain aktif dibatasi. Pendaftar setelah kuota penuh otomatis masuk daftar tunggu dan naik saat ada yang batal.</li>
                             <li>Klik <b>PUBLIKASIKAN</b> agar anggota dapat melihat dan mengunggah bukti transfer.</li>
                             <li>Gunakan <b>RESET</b> untuk pertandingan baru atau <b>ARSIPKAN</b> untuk menyimpan riwayat.</li>
                         </ol>
@@ -2108,32 +2185,39 @@
                         <h2><i class="fa-solid fa-pen-nib"></i> Form Info Pertandingan</h2>
                         <div class="input-group">
                             <div>
-                                <label>NAMA EVENT</label>
+                                <label for="eventInput">NAMA EVENT</label>
                                 <input type="text" id="eventInput" placeholder="Contoh: Weekly Fun Football" />
                             </div>
                             <div>
-                                <label>NAMA LAPANGAN</label>
+                                <label for="namaLapangan">NAMA LAPANGAN</label>
                                 <input type="text" id="namaLapangan" placeholder="Nama stadion/lapangan" />
                             </div>
                             <div>
-                                <label>TANGGAL & JAM</label>
+                                <label for="jadwalMain">TANGGAL & JAM</label>
                                 <input type="text" id="jadwalMain" placeholder="Pilih tanggal & jam" readonly />
                             </div>
                             <div>
-                                <label>WARNA JERSEY</label>
+                                <label for="jerseyInfo">WARNA JERSEY</label>
                                 <input type="text" id="jerseyInfo" placeholder="Contoh: Bebas / Semua Warna" />
                             </div>
                             <div>
-                                <label>BIAYA MASUK (ANGKA SAJA)</label>
+                                <label for="htmInfo">BIAYA MASUK (ANGKA SAJA)</label>
                                 <input type="text" id="htmInfo" placeholder="Contoh: 25000" />
                             </div>
                             <div>
-                                <label>INFO PEMBAYARAN</label>
+                                <label for="playerQuota">KUOTA PEMAIN (OPSIONAL)</label>
+                                <input type="number" id="playerQuota" min="0" max="500" placeholder="Kosongkan = tanpa kuota" />
+                            </div>
+                            <div>
+                                <label for="rekeningInfo">INFO PEMBAYARAN</label>
                                 <input type="text" id="rekeningInfo" placeholder="Bank / E-Wallet" />
                             </div>
                             <div>
-                                <label>LINK / EMBED GOOGLE MAPS</label>
-                                <input type="text" id="linkMaps" placeholder='Tempel kode &lt;iframe src="https://www.google.com/maps/embed?..."&gt;...&lt;/iframe&gt; di sini' />
+                                <label for="linkMaps">LINK / EMBED GOOGLE MAPS</label>
+                                <input type="text" id="linkMaps"
+                                    placeholder="Tempel link Google Maps (maps.app.goo.gl / google.com/maps) atau kode <iframe ...>"
+                                    oninput="previewMapInput()" />
+                                <div id="mapPreview" style="margin-top:10px;" aria-live="polite"></div>
                             </div>
                         </div>
                         <div class="btn-group" style="margin-bottom: 12px;">
@@ -2147,7 +2231,7 @@
                             </button>
                         </div>
                         <p class="member-hint" style="margin-top:12px;">
-                            Untuk mengarsipkan beserta skor, buka tab <b>Arsipkan</b>.
+                            Untuk mengarsipkan beserta skor, buka tab <b>Hasil &amp; Arsip</b>.
                         </p>
                     </div>
 
@@ -2181,7 +2265,7 @@
                 <div class="tab-panel" id="panel-archive">
                     <div class="tutorial-box">
                         <div class="tutorial-title">
-                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Arsipkan
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Hasil &amp; Arsip
                         </div>
                         <ol>
                             <li>Jadwal di tab <b>Undi Tim</b> dibuat otomatis. Untuk 3 tim ada 3 pertandingan: A vs B, B vs C, A vs C.</li>
@@ -2222,8 +2306,18 @@
                                 <i class="fa-solid fa-rotate-left"></i> BERSIHKAN
                             </button>
                         </div>
+                        <div class="btn-group" style="margin-top:10px;">
+                            <button type="button" class="btn-action btn-save" onclick="salinHasilPertandinganWA()">
+                                <i class="fa-brands fa-whatsapp"></i> SALIN HASIL
+                            </button>
+                            <button type="button" class="btn-action btn-cancel" onclick="unduhHasilPertandinganCSV()">
+                                <i class="fa-solid fa-file-csv"></i> UNDUH CSV HASIL
+                            </button>
+                        </div>
                         <p class="member-hint" style="margin-top:12px;">
-                            Arsipkan bersifat permanen: data pemain komunitas dihapus dan tidak bisa dibatalkan.
+                            Arsipkan mengosongkan daftar pemain komunitas. Daftar tersebut disimpan
+                            sebagai snapshot dan masih bisa dipulihkan selama 7 hari dari tab
+                            <b>Data Pemain</b> atau tombol <b>Pulihkan</b> pada notifikasi.
                         </p>
                     </div>
 
@@ -2250,6 +2344,92 @@
                     </div>
                 </div>
 
+                <!-- ================= TAB: LOG AKTIVITAS ================= -->
+                <div class="tab-panel" id="panel-activity">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Log Aktivitas
+                        </div>
+                        <ol>
+                            <li>Log ini mencatat aksi admin/owner: publikasi match, reset, arsip, perubahan anggota, undangan, dan verifikasi bukti transfer.</li>
+                            <li>Entri ditulis langsung oleh database, jadi tidak bisa dipalsukan dari browser.</li>
+                            <li>Hanya 50 aktivitas terbaru yang ditampilkan. Log tidak bisa diubah atau dihapus dari halaman ini.</li>
+                        </ol>
+                    </div>
+                    <div class="card">
+                        <div class="table-header">
+                            <span><i class="fa-solid fa-clipboard-list"></i> 50 Aktivitas Terbaru</span>
+                            <button type="button" class="btn-action btn-cancel" style="flex:none;padding:8px 14px;font-size:.78rem;" onclick="muatLogAktivitas()">
+                                <i class="fa-solid fa-rotate"></i> MUAT ULANG
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>WAKTU</th>
+                                        <th>PELAKU</th>
+                                        <th>AKSI</th>
+                                        <th>TARGET</th>
+                                        <th>DETAIL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityLogBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB: STATISTIK ================= -->
+                <div class="tab-panel" id="panel-stats">
+                    <div class="tutorial-box">
+                        <div class="tutorial-title">
+                            <i class="fa-solid fa-circle-info"></i> Cara Pakai - Statistik
+                        </div>
+                        <ol>
+                            <li>Statistik dihitung dari event yang sudah diarsipkan, bukan dari daftar pemain saat ini.</li>
+                            <li>Pilih periode lalu urutkan berdasarkan gol, assist, kartu, atau kehadiran.</li>
+                            <li>Agregasi dilakukan di database; halaman ini tidak mengunduh seluruh riwayat event.</li>
+                        </ol>
+                    </div>
+                    <div class="card">
+                        <div class="table-header" style="flex-wrap:wrap;gap:10px;">
+                            <span><i class="fa-solid fa-chart-simple"></i> Statistik Pemain</span>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <label for="statsPeriod" style="font-size:0.76rem;font-weight:700;color:#475569;">PERIODE</label>
+                                <select id="statsPeriod" onchange="muatStatistik()" style="min-width:150px;">
+                                    <option value="all">Semua waktu</option>
+                                    <option value="30">30 hari terakhir</option>
+                                    <option value="90">90 hari terakhir</option>
+                                    <option value="year">Tahun ini</option>
+                                </select>
+                                <label for="statsSort" style="font-size:0.76rem;font-weight:700;color:#475569;">URUTKAN</label>
+                                <select id="statsSort" onchange="muatStatistik()" style="min-width:150px;">
+                                    <option value="goals">Gol</option>
+                                    <option value="assists">Assist</option>
+                                    <option value="cards">Kartu</option>
+                                    <option value="appearances">Kehadiran</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;text-align:center;">NO</th>
+                                        <th>PEMAIN</th>
+                                        <th style="text-align:center;">HADIR</th>
+                                        <th style="text-align:center;">GOL</th>
+                                        <th style="text-align:center;">ASSIST</th>
+                                        <th style="text-align:center;">KARTU</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ================= TAB 5: UNDANGAN ================= -->
                 <div class="tab-panel" id="panel-invites">
                     <div class="tutorial-box">
@@ -2265,18 +2445,18 @@
                         <h2><i class="fa-solid fa-link"></i> Buat Link Undangan</h2>
                         <div class="input-group">
                             <div>
-                                <label>PERAN ANGGOTA</label>
+                                <label for="inviteRole">PERAN ANGGOTA</label>
                                 <select id="inviteRole">
                                     <option value="member">MEMBER</option>
                                     <option value="admin">ADMIN</option>
                                 </select>
                             </div>
                             <div>
-                                <label>MASA BERLAKU (HARI)</label>
+                                <label for="inviteExpiry">MASA BERLAKU (HARI)</label>
                                 <input id="inviteExpiry" type="number" min="1" max="30" value="7" />
                             </div>
                             <div>
-                                <label>MAKSIMAL PENGGUNAAN</label>
+                                <label for="inviteUses">MAKSIMAL PENGGUNAAN</label>
                                 <input id="inviteUses" type="number" min="1" max="100" value="1" />
                             </div>
                         </div>
@@ -2462,6 +2642,10 @@
                 }
             }
 
+            function positionLabel(position) {
+                return position === "SPECTATOR (FAN)" ? "PENONTON" : position;
+            }
+
             function teamLabel(team) {
                 const custom = communityTeamAliases[team];
                 if (custom) return custom;
@@ -2616,6 +2800,12 @@
                 if (communityName) communityName.textContent = context.community.name;
                 if (tab === "members") loadMembersTable();
                 if (tab === "draft") loadArchivePlayers();
+                if (tab === "players") {
+                    muatPemain();
+                    muatSnapshotPemain();
+                }
+                if (tab === "activity") muatLogAktivitas();
+                if (tab === "stats") muatStatistik();
                 if (tab === "archive") {
                     loadArchivePlayers();
                     loadArchiveList();
@@ -2664,6 +2854,41 @@
                 });
             }
 
+            let playerRowsCache = [];
+            let paymentStatusByUser = new Map();
+            let onlyUnpaidFilter = false;
+
+            function paymentStatusInfo(status) {
+                if (status === "verified") {
+                    return { label: "Terverifikasi", color: "#1e8449", background: "#e8f8ef" };
+                }
+                if (status === "submitted") {
+                    return { label: "Menunggu", color: "#b45309", background: "#fef3c7" };
+                }
+                if (status === "rejected") {
+                    return { label: "Ditolak", color: "#c0392b", background: "#fdecea" };
+                }
+                return { label: "Belum bayar", color: "#475569", background: "#eef2f7" };
+            }
+
+            async function muatStatusPembayaranPemain() {
+                paymentStatusByUser = new Map();
+                if (!currentMatch?.id) return;
+                const { data, error } = await _supabase
+                    .from("community_payment_proofs")
+                    .select("user_id, status, created_at")
+                    .eq("community_id", context.community.id)
+                    .eq("match_version", currentMatch.match_version || 1)
+                    .order("created_at", { ascending: false });
+                if (error) return;
+                (data || []).forEach((proof) => {
+                    // Hanya bukti terbaru per pemain yang dipakai.
+                    if (!paymentStatusByUser.has(proof.user_id)) {
+                        paymentStatusByUser.set(proof.user_id, proof.status);
+                    }
+                });
+            }
+
             async function muatPemain() {
                 const { data, error } = await _supabase
                     .from("community_players")
@@ -2672,30 +2897,62 @@
                     .order("created_at", { ascending: true });
                 if (error) return;
 
-                tableBody.innerHTML = "";
-                playerCount.innerText = data.length;
+                playerRowsCache = data || [];
+                await Promise.all([muatStatusPembayaranPemain(), loadPlayerLevels()]);
+                renderPlayerTable();
+            }
 
-                if (data.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">Belum ada pemain terdaftar.</td></tr>`;
+            function renderPlayerTable() {
+                tableBody.innerHTML = "";
+                playerCount.innerText = playerRowsCache.length;
+
+                const rows = onlyUnpaidFilter
+                    ? playerRowsCache.filter(
+                          (player) => paymentStatusByUser.get(player.user_id) !== "verified",
+                      )
+                    : playerRowsCache;
+
+                if (rows.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">${
+                        onlyUnpaidFilter
+                            ? "Semua pemain sudah terverifikasi."
+                            : "Belum ada pemain terdaftar."
+                    }</td></tr>`;
                     return;
                 }
 
-                data.forEach((p, index) => {
+                rows.forEach((p, index) => {
+                    const payment = paymentStatusInfo(paymentStatusByUser.get(p.user_id));
+                    const waitlisted = p.status === "waitlisted";
                     tableBody.innerHTML += `
                     <tr>
                         <td style="text-align:center;">${index + 1}</td>
-                        <td style="font-weight:600;">${window.KOP.escapeHtml(p.name)}</td>
-                        <td><span style="color:#27ae60; font-weight:800; font-size:0.85rem;">${window.KOP.escapeHtml(p.position)}</span></td>
+                        <td style="font-weight:600;">
+                            ${window.KOP.escapeHtml(p.name)}
+                            ${
+                                waitlisted
+                                    ? '<span style="display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:0.68rem;font-weight:800;">DAFTAR TUNGGU</span>'
+                                    : ""
+                            }
+                        </td>
+                        <td><span style="color:#27ae60; font-weight:800; font-size:0.85rem;">${window.KOP.escapeHtml(positionLabel(p.position))}</span></td>
+                        <td style="font-weight:700;">${playerLevelsByUser.get(p.user_id) ?? "-"}</td>
                         <td>${window.KOP.escapeHtml(p.team || "-")}</td>
+                        <td><span style="display:inline-block;padding:3px 8px;border-radius:999px;font-size:0.68rem;font-weight:800;color:${payment.color};background:${payment.background};">${payment.label}</span></td>
                         <td class="action-cell">
-                            <button class="btn-table btn-edit" data-edit-id="${p.id}" data-edit-name="${window.KOP.escapeHtml(p.name)}" data-edit-position="${window.KOP.escapeHtml(p.position)}"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-table btn-delete" data-delete-id="${p.id}"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-table btn-edit" data-edit-id="${p.id}" data-edit-user="${p.user_id}" data-edit-name="${window.KOP.escapeHtml(p.name)}" data-edit-position="${window.KOP.escapeHtml(p.position)}" title="Edit pemain" aria-label="Edit pemain ${window.KOP.escapeHtml(p.name)}"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-table btn-delete" data-delete-id="${p.id}" title="Hapus pemain" aria-label="Hapus pemain ${window.KOP.escapeHtml(p.name)}"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
                 });
                 tableBody.querySelectorAll("[data-edit-id]").forEach((button) => {
                     button.addEventListener("click", () => {
-                        showEditForm(button.dataset.editId, button.dataset.editName, button.dataset.editPosition);
+                        showEditForm(
+                            button.dataset.editId,
+                            button.dataset.editName,
+                            button.dataset.editPosition,
+                            button.dataset.editUser,
+                        );
                     });
                 });
                 tableBody.querySelectorAll("[data-delete-id]").forEach((button) => {
@@ -2703,12 +2960,67 @@
                 });
             }
 
-            function showEditForm(id, nama, posisi) {
+            function setUnpaidFilter(checked) {
+                onlyUnpaidFilter = Boolean(checked);
+                renderPlayerTable();
+            }
+
+            async function salinDaftarBelumBayar() {
+                const belumLunas = playerRowsCache.filter(
+                    (player) => paymentStatusByUser.get(player.user_id) !== "verified",
+                );
+                if (!belumLunas.length) {
+                    window.KOP.ui.toast("Semua pemain sudah terverifikasi.", "info");
+                    return;
+                }
+                const judul = currentMatch?.event_name && currentMatch.event_name !== "TBA"
+                    ? currentMatch.event_name
+                    : "Event KickOff Planner";
+                const lines = [`Daftar pemain belum lunas — ${judul}`, ""];
+                belumLunas.forEach((player, index) => {
+                    const status = paymentStatusInfo(paymentStatusByUser.get(player.user_id)).label;
+                    lines.push(`${index + 1}. ${player.name} (${status})`);
+                });
+                lines.push("", "Mohon segera transfer dan unggah bukti di halaman Match Day. Terima kasih.");
+                const copied = await copyToClipboard(lines.join("\n"));
+                window.KOP.ui.toast(
+                    copied ? "Daftar pemain belum lunas disalin." : "Tidak dapat menyalin daftar.",
+                    copied ? "success" : "error",
+                );
+            }
+
+            function showEditForm(id, nama, posisi, userId) {
                 editContainer.style.display = "block";
                 document.getElementById("editId").value = id;
                 document.getElementById("editNama").value = nama;
                 document.getElementById("editPosisi").value = posisi;
+                document.getElementById("editLevel").value =
+                    userId && playerLevelsByUser.has(userId)
+                        ? String(playerLevelsByUser.get(userId))
+                        : "";
+                window._editPlayerUserId = userId || "";
                 editContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            async function savePlayerLevel(userId, levelValue) {
+                if (!userId) return null;
+                if (!levelValue) {
+                    return _supabase
+                        .from("community_player_levels")
+                        .delete()
+                        .eq("community_id", context.community.id)
+                        .eq("user_id", userId);
+                }
+                return _supabase.from("community_player_levels").upsert(
+                    {
+                        community_id: context.community.id,
+                        user_id: userId,
+                        level: Number(levelValue),
+                        updated_by: context.user.id,
+                        updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: "community_id,user_id" },
+                );
             }
 
             function cancelEdit() {
@@ -2731,6 +3043,18 @@
                     { onConflict: "community_id,user_id" },
                 );
                 if (!error) {
+                    const levelValue = document.getElementById("playerLevel").value;
+                    if (levelValue) {
+                        const levelResult = await savePlayerLevel(userId, levelValue);
+                        const levelError = levelResult ? levelResult.error : null;
+                        if (levelError) {
+                            window.KOP.ui.toast(
+                                "Pemain tersimpan, tetapi level gagal disimpan: " +
+                                    window.KOP.translateError(levelError.message),
+                                "error",
+                            );
+                        }
+                    }
                     document.getElementById("playerForm").reset();
                     muatPemain();
                 } else {
@@ -2749,6 +3073,19 @@
                     .eq("id", id)
                     .eq("community_id", context.community.id);
                 if (!error) {
+                    const levelValue = document.getElementById("editLevel").value;
+                    const levelResult = await savePlayerLevel(
+                        window._editPlayerUserId,
+                        levelValue,
+                    );
+                    const levelError = levelResult ? levelResult.error : null;
+                    if (levelError) {
+                        window.KOP.ui.toast(
+                            "Perubahan tersimpan, tetapi level gagal disimpan: " +
+                                window.KOP.translateError(levelError.message),
+                            "error",
+                        );
+                    }
                     cancelEdit();
                     muatPemain();
                 } else {
@@ -2784,51 +3121,64 @@
                     title: "Reset semua pemain",
                     message:
                         "PERINGATAN: hapus SEMUA data pemain komunitas ini?\n\n" +
-                        "Daftar pemain akan dikosongkan dan tidak bisa dibatalkan.",
+                        "Daftar pemain akan dikosongkan. Salinan otomatis disimpan dan bisa dipulihkan selama 7 hari.",
                     okLabel: "Reset semua",
                     danger: true,
                 });
                 if (!reset) return;
 
-                const { data, error: bacaError } = await _supabase
-                    .from("community_players")
-                    .select("id")
-                    .eq("community_id", context.community.id);
-                if (bacaError) {
+                const { data, error } = await _supabase.rpc("reset_community_players", {
+                    p_community: context.community.id,
+                });
+                if (error) {
                     window.KOP.ui.toast(
-                        "Pemain tidak dapat dibaca: " + window.KOP.translateError(bacaError.message),
+                        "Pemain tidak dapat direset: " + window.KOP.translateError(error.message),
                         "error",
                     );
                     return;
                 }
-                if (data?.length > 0) {
-                    const { error } = await _supabase
-                        .from("community_players")
-                        .delete()
-                        .in("id", data.map((p) => p.id))
-                        .eq("community_id", context.community.id);
-                    if (error) {
-                        window.KOP.ui.toast(
-                            "Pemain tidak dapat direset: " + window.KOP.translateError(error.message),
-                            "error",
-                        );
-                        return;
-                    }
-                }
                 muatPemain();
-                window.KOP.ui.toast("Daftar pemain sudah direset.", "success");
+                muatSnapshotPemain();
+                const jumlah = Number(data) || 0;
+                window.KOP.ui.toast(
+                    `${jumlah} pemain direset. Daftar pemain masih bisa dipulihkan.`,
+                    "success",
+                    {
+                        duration: 12000,
+                        actionLabel: "Pulihkan",
+                        onAction: () => pulihkanSnapshotTerbaru(),
+                    },
+                );
             }
 
             /* ==================================================
                TAB 2: UNDI TIM
                ================================================== */
+            let draftPlayersCache = [];
+            let playerLevelsByUser = new Map();
+
+            async function loadPlayerLevels() {
+                playerLevelsByUser = new Map();
+                const { data, error } = await _supabase
+                    .from("community_player_levels")
+                    .select("user_id, level")
+                    .eq("community_id", context.community.id);
+                if (error) return;
+                (data || []).forEach((row) => {
+                    playerLevelsByUser.set(row.user_id, Number(row.level));
+                });
+            }
+
             async function loadDraft() {
                 const { data: players, error } = await _supabase
                     .from("community_players")
                     .select("*")
                     .eq("community_id", context.community.id)
-                    .neq("position", "SPECTATOR (FAN)");
+                    .neq("position", "SPECTATOR (FAN)")
+                    .neq("status", "waitlisted");
                 if (error) return;
+                draftPlayersCache = players || [];
+                await loadPlayerLevels();
 
                 const grid = document.getElementById("mainGrid");
                 const alreadyShuffled = players.some((p) => p.team !== null && p.team !== "");
@@ -2859,19 +3209,27 @@
                         .sort((a, b) => POS_ORDER.indexOf(a.position) - POS_ORDER.indexOf(b.position));
 
                     if (teamPlayers.length > 0) {
+                        const levelTotal = teamPlayers.reduce(
+                            (sum, player) => sum + (playerLevelsByUser.get(player.user_id) || 0),
+                            0,
+                        );
                         html += `
                             <div class="team-card">
                                 <div class="team-header header-${color.toLowerCase()}">
                                     <span>${window.KOP.escapeHtml(teamLabel(color))}</span>
-                                    <button class="btn-team-rename" type="button"
-                                        title="Ubah nama tim"
-                                        onclick="openRenameTeam('${color}', this)"><i class="fa-solid fa-pen"></i> NAMA</button>
+                                    <span style="display:inline-flex;align-items:center;gap:8px;">
+                                        ${playerLevelsByUser.size ? `<span style="font-size:0.68rem;font-weight:800;background:rgba(255,255,255,.22);padding:3px 8px;border-radius:999px;">TOTAL LEVEL ${levelTotal}</span>` : ""}
+                                        <button class="btn-team-rename" type="button"
+                                            title="Ubah nama tim"
+                                            aria-label="Ubah nama tim ${window.KOP.escapeHtml(teamLabel(color))}"
+                                            onclick="openRenameTeam('${color}', this)"><i class="fa-solid fa-pen"></i> NAMA</button>
+                                    </span>
                                 </div>
                                 <div>
                                     ${teamPlayers.map((p) => `
                                         <div class="player-item">
                                             <span style="font-weight:600">${window.KOP.escapeHtml(p.name)}</span>
-                                            <span class="pos-badge">${window.KOP.escapeHtml(p.position)}</span>
+                                            <span class="pos-badge">${window.KOP.escapeHtml(positionLabel(p.position))}</span>
                                         </div>`).join("")}
                                 </div>
                             </div>`;
@@ -2899,13 +3257,60 @@
                 if (reset) resetTeams();
             }
 
+            function balanceAssignments(players, teams, assignment) {
+                const levelOf = (player) => playerLevelsByUser.get(player.user_id) || 3;
+                const totals = {};
+                teams.forEach((team) => {
+                    totals[team] = 0;
+                });
+                players.forEach((player) => {
+                    const team = assignment.get(player.id);
+                    if (totals[team] !== undefined) totals[team] += levelOf(player);
+                });
+
+                // Tukar pemain satu posisi antar tim selama selisih total level mengecil.
+                for (let pass = 0; pass < 12; pass += 1) {
+                    let improved = false;
+                    for (let i = 0; i < teams.length; i += 1) {
+                        for (let j = i + 1; j < teams.length; j += 1) {
+                            const teamA = teams[i];
+                            const teamB = teams[j];
+                            const groupA = players.filter((p) => assignment.get(p.id) === teamA);
+                            const groupB = players.filter((p) => assignment.get(p.id) === teamB);
+                            let best = null;
+                            groupA.forEach((playerA) => {
+                                groupB.forEach((playerB) => {
+                                    if (playerA.position !== playerB.position) return;
+                                    const delta = totals[teamA] - totals[teamB];
+                                    const nextDelta =
+                                        delta + 2 * (levelOf(playerB) - levelOf(playerA));
+                                    const gain = Math.abs(delta) - Math.abs(nextDelta);
+                                    if (gain > 0 && (!best || gain > best.gain)) {
+                                        best = { playerA, playerB, gain };
+                                    }
+                                });
+                            });
+                            if (best) {
+                                assignment.set(best.playerA.id, teamB);
+                                assignment.set(best.playerB.id, teamA);
+                                totals[teamA] += levelOf(best.playerB) - levelOf(best.playerA);
+                                totals[teamB] += levelOf(best.playerA) - levelOf(best.playerB);
+                                improved = true;
+                            }
+                        }
+                    }
+                    if (!improved) break;
+                }
+            }
+
             async function shuffleTeams() {
                 const numTeams = parseInt(document.getElementById("numTeams").value);
                 const { data: players } = await _supabase
                     .from("community_players")
                     .select("*")
                     .eq("community_id", context.community.id)
-                    .neq("position", "SPECTATOR (FAN)");
+                    .neq("position", "SPECTATOR (FAN)")
+                    .neq("status", "waitlisted");
 
                 if (!players || players.length === 0) {
                     window.KOP.ui.alert("Belum ada pemain untuk diundi.");
@@ -2929,7 +3334,7 @@
                     ...Object.keys(grouped).filter((pos) => !knownPositions.has(pos)),
                 ];
 
-                const updates = [];
+                const assignment = new Map();
                 let dealCursor = Math.floor(Math.random() * numTeams);
                 positionOrder.forEach((position) => {
                     const list = grouped[position];
@@ -2939,33 +3344,29 @@
                         [list[i], list[j]] = [list[j], list[i]];
                     }
                     list.forEach((player) => {
-                        const teamName = TEAM_NAMES[dealCursor % numTeams];
-                        updates.push(
-                            _supabase
-                                .from("community_players")
-                                .update({ team: teamName })
-                                .eq("id", player.id)
-                                .eq("community_id", context.community.id)
-                        );
+                        assignment.set(player.id, TEAM_NAMES[dealCursor % numTeams]);
                         dealCursor += 1;
                     });
                 });
 
-                await Promise.all(updates);
-                // Clear teams the new shuffle no longer uses. Without this, players
-                // left over from a previous 3-team run keep their old team and
-                // appear as a phantom team in the schedule.
                 const usedTeams = TEAM_NAMES.slice(0, numTeams);
-                const stale = players
-                    .filter((p) => p.team && !usedTeams.includes(p.team))
-                    .map((p) =>
-                        _supabase
-                            .from("community_players")
-                            .update({ team: null })
-                            .eq("id", p.id)
-                            .eq("community_id", context.community.id),
-                    );
-                await Promise.all(stale);
+                const balanceEnabled = Boolean(
+                    document.getElementById("balanceLevels")?.checked,
+                );
+                if (balanceEnabled) {
+                    await loadPlayerLevels();
+                    balanceAssignments(players, usedTeams, assignment);
+                }
+
+                const updates = players.map((player) => {
+                    const teamName = assignment.get(player.id) || null;
+                    return _supabase
+                        .from("community_players")
+                        .update({ team: teamName })
+                        .eq("id", player.id)
+                        .eq("community_id", context.community.id);
+                });
+                await Promise.all(updates);
 
                 // loadDraft also refreshes the round options and fixture table.
                 await loadDraft();
@@ -3015,9 +3416,11 @@
                     "htmInfo",
                     "rekeningInfo",
                     "linkMaps",
+                    "playerQuota",
                 ].forEach((id) => {
                     document.getElementById(id).value = "";
                 });
+                previewMapInput();
             }
 
             async function loadMatchInfo() {
@@ -3044,6 +3447,11 @@
                 document.getElementById("htmInfo").value = adminFormValue(data.htm, ["0"]);
                 document.getElementById("rekeningInfo").value = adminFormValue(data.rekening, ["-"]);
                 document.getElementById("linkMaps").value = adminFormValue(data.maps_url);
+                document.getElementById("playerQuota").value =
+                    data.player_quota === null || data.player_quota === undefined
+                        ? ""
+                        : String(data.player_quota);
+                previewMapInput();
 
                 const badge = document.getElementById("statusBadge");
                 const icon = document.getElementById("statusIcon");
@@ -3118,6 +3526,7 @@
                     view.className = "btn-table btn-edit";
                     view.type = "button";
                     view.title = "Lihat bukti";
+                    view.setAttribute("aria-label", "Lihat bukti transfer");
                     view.innerHTML = '<i class="fa-solid fa-eye"></i>';
                     view.addEventListener("click", () => openPaymentProof(proof.storage_path));
                     actions.appendChild(view);
@@ -3127,6 +3536,7 @@
                         approve.className = "btn-table btn-save";
                         approve.type = "button";
                         approve.title = "Tandai terverifikasi";
+                        approve.setAttribute("aria-label", "Tandai bukti terverifikasi");
                         approve.innerHTML = '<i class="fa-solid fa-check"></i>';
                         approve.addEventListener("click", async () => {
                             approve.disabled = true;
@@ -3137,6 +3547,7 @@
                         reject.className = "btn-table btn-delete";
                         reject.type = "button";
                         reject.title = "Tolak bukti";
+                        reject.setAttribute("aria-label", "Tolak bukti transfer");
                         reject.innerHTML = '<i class="fa-solid fa-xmark"></i>';
                         reject.addEventListener("click", async () => {
                             approve.disabled = true;
@@ -3149,6 +3560,7 @@
                         edit.className = "btn-table btn-status-edit";
                         edit.type = "button";
                         edit.title = "Edit status bukti";
+                        edit.setAttribute("aria-label", "Edit status bukti transfer");
                         edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
                         edit.addEventListener("click", () =>
                             openPaymentProofStatusEditor(proof.id, proof.status),
@@ -3299,6 +3711,7 @@
                     return;
                 }
                 await loadPaymentProofs();
+                await muatPemain();
             }
 
             const paymentProofStatusModal = document.getElementById("paymentProofStatusModal");
@@ -3331,6 +3744,103 @@
                 if (event.target === inviteUsersModal) closeInviteUsersModal();
             });
 
+            function parseMapInput(rawValue) {
+                const raw = String(rawValue ?? "").trim();
+                if (!raw) return { ok: true, url: "", embed: false };
+
+                const iframeMatch = raw.match(/<iframe[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
+                if (/<iframe/i.test(raw)) {
+                    if (!iframeMatch) {
+                        return {
+                            ok: false,
+                            error:
+                                "Kode iframe tidak lengkap. Tempel seluruh kode <iframe ...></iframe> dari Google Maps.",
+                        };
+                    }
+                    const url = iframeMatch[1].replace(/&amp;/g, "&");
+                    if (
+                        !window.KOP.isSafeMapUrl(url) ||
+                        (!url.includes("google.com/maps/embed") && !url.includes("googleusercontent"))
+                    ) {
+                        return {
+                            ok: false,
+                            error:
+                                "Iframe harus memakai URL embed resmi Google Maps (google.com/maps/embed).",
+                        };
+                    }
+                    return { ok: true, url, embed: true };
+                }
+
+                if (!window.KOP.isSafeMapUrl(raw)) {
+                    return {
+                        ok: false,
+                        error:
+                            "Link tidak dikenali. Gunakan https://www.google.com/maps/..., https://maps.google.com/..., atau https://maps.app.goo.gl/... (HTTPS).",
+                    };
+                }
+
+                const embed =
+                    raw.includes("google.com/maps/embed") || raw.includes("googleusercontent");
+                return { ok: true, url: raw, embed };
+            }
+
+            function buildMapPreviewNode(url, embed) {
+                if (!url) return null;
+                if (embed) {
+                    const frame = document.createElement("iframe");
+                    frame.src = url;
+                    frame.width = "100%";
+                    frame.height = "220";
+                    frame.style.border = "0";
+                    frame.style.borderRadius = "10px";
+                    frame.loading = "lazy";
+                    frame.referrerPolicy = "strict-origin-when-cross-origin";
+                    frame.allowFullscreen = true;
+                    frame.title = "Pratinjau lokasi Google Maps";
+                    return frame;
+                }
+                const link = document.createElement("a");
+                link.href = url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.className = "btn-action btn-submit";
+                link.style.cssText = "display:inline-flex;align-items:center;gap:8px;text-decoration:none;";
+                link.innerHTML =
+                    '<i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> BUKA DI GOOGLE MAPS';
+                return link;
+            }
+
+            function previewMapInput() {
+                const host = document.getElementById("mapPreview");
+                if (!host) return;
+                host.replaceChildren();
+                const input = document.getElementById("linkMaps");
+                const result = parseMapInput(input ? input.value : "");
+                if (!result.ok) {
+                    const error = document.createElement("p");
+                    error.style.cssText =
+                        "margin:0;color:#c0392b;font-size:.82rem;font-weight:600;";
+                    error.textContent = result.error;
+                    host.appendChild(error);
+                    return;
+                }
+                const preview = buildMapPreviewNode(result.url, result.embed);
+                if (!preview) {
+                    const hint = document.createElement("p");
+                    hint.style.cssText = "margin:0;color:#64748b;font-size:.82rem;";
+                    hint.textContent = "Pratinjau peta muncul di sini setelah link diisi.";
+                    host.appendChild(hint);
+                    return;
+                }
+                host.appendChild(preview);
+                const hint = document.createElement("p");
+                hint.style.cssText = "margin:6px 0 0;color:#64748b;font-size:.78rem;";
+                hint.textContent = result.embed
+                    ? "URL embed valid — peta akan tampil langsung di halaman Match Day."
+                    : "Link valid — member akan melihat tombol Buka di Google Maps.";
+                host.appendChild(hint);
+            }
+
             async function updateInfo() {
                 const event = document.getElementById("eventInput").value;
                 const nama = document.getElementById("namaLapangan").value;
@@ -3338,22 +3848,17 @@
                 const jersey = document.getElementById("jerseyInfo").value;
                 const htm = document.getElementById("htmInfo").value;
                 const rekening = document.getElementById("rekeningInfo").value;
-                let maps = document.getElementById("linkMaps").value.trim();
-                const iframeMatch = maps.match(/<iframe[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/i);
-                if (/<iframe/i.test(maps)) {
-                    if (!iframeMatch) {
-                        window.KOP.ui.alert("Kode iframe Google Maps tidak valid. Paste seluruh kode iframe.");
-                        return;
-                    }
-                    maps = iframeMatch[1].replace(/&amp;/g, "&");
-                }
-                if (maps && (
-                    !window.KOP.isSafeMapUrl(maps)
-                    || (!maps.includes("google.com/maps/embed") && !maps.includes("googleusercontent"))
-                )) {
-                    window.KOP.ui.alert("Untuk map, paste kode iframe Google Maps Embed. Link share biasa tidak akan ditampilkan.");
+                const quotaRaw = document.getElementById("playerQuota").value.trim();
+                const playerQuota =
+                    quotaRaw === ""
+                        ? null
+                        : Math.max(0, Math.min(Number(quotaRaw) || 0, 500));
+                const parsedMap = parseMapInput(document.getElementById("linkMaps").value);
+                if (!parsedMap.ok) {
+                    window.KOP.ui.toast(parsedMap.error, "error");
                     return;
                 }
+                const maps = parsedMap.url;
 
                 const { error } = await _supabase.rpc("publish_community_match", {
                     p_community: context.community.id,
@@ -3367,10 +3872,25 @@
                 });
 
                 if (!error) {
-                    window.KOP.ui.alert("Info pertandingan berhasil dipublikasikan!");
+                    const { error: quotaError } = await _supabase
+                        .from("community_matches")
+                        .update({ player_quota: playerQuota })
+                        .eq("community_id", context.community.id);
+                    if (quotaError) {
+                        window.KOP.ui.toast(
+                            "Match tersimpan, tetapi kuota gagal disimpan: " +
+                                window.KOP.translateError(quotaError.message),
+                            "error",
+                        );
+                    } else {
+                        window.KOP.ui.toast("Info pertandingan berhasil dipublikasikan!", "success");
+                    }
                     loadMatchInfo();
                 } else {
-                    window.KOP.ui.alert("Gagal publish: " + window.KOP.translateError(error.message));
+                    window.KOP.ui.toast(
+                        "Gagal publish: " + window.KOP.translateError(error.message),
+                        "error",
+                    );
                 }
             }
 
@@ -3614,7 +4134,7 @@
                     const note = document.createElement("td");
                     const span = document.createElement("span");
                     span.className = "no-result";
-                    span.textContent = "Skor diisi di tab Arsipkan";
+                    span.textContent = "Skor diisi di tab Hasil & Arsip";
                     note.appendChild(span);
                     tr.append(round, matchup, actions, note);
                     body.appendChild(tr);
@@ -3826,6 +4346,7 @@
                 remove.type = "button";
                 remove.className = "stat-remove";
                 remove.title = "Hapus baris ini";
+                remove.setAttribute("aria-label", "Hapus baris statistik ini");
                 remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
                 remove.addEventListener("click", () => {
                     row.remove();
@@ -4136,7 +4657,8 @@
                 const { data: players } = await _supabase
                     .from("community_players")
                     .select("name, team")
-                    .eq("community_id", context.community.id);
+                    .eq("community_id", context.community.id)
+                    .neq("status", "waitlisted");
 
                 archivePlayersByTeam = {};
                 (players || []).forEach((player) => {
@@ -4567,7 +5089,7 @@
                                         >
                                             <i class="fa-solid fa-users"></i> LIHAT DAFTAR
                                         </button>
-                                        <button class="btn-table btn-delete" onclick="revokeInvite('${invite.id}')"><i class="fa-solid fa-ban"></i></button>
+                                        <button class="btn-table btn-delete" onclick="revokeInvite('${invite.id}')" title="Cabut undangan" aria-label="Cabut undangan ini"><i class="fa-solid fa-ban"></i></button>
                                     </div>
                                 </td>
                         </tr>`).join("")
@@ -4833,6 +5355,7 @@
                         toggle.title = row.is_active
                             ? "Jadikan nonaktif"
                             : "Jadikan aktif";
+                        toggle.setAttribute("aria-label", toggle.title);
                         toggle.innerHTML = row.is_active
                             ? '<i class="fa-solid fa-user-slash"></i>'
                             : '<i class="fa-solid fa-user-check"></i>';
@@ -4845,6 +5368,7 @@
                         remove.className = "btn-table btn-delete";
                         remove.type = "button";
                         remove.title = "Hapus anggota";
+                        remove.setAttribute("aria-label", "Hapus anggota dari komunitas");
                         remove.innerHTML = '<i class="fa-solid fa-trash"></i>';
                         remove.addEventListener("click", () => removeMember(row, remove));
                         group.appendChild(remove);
@@ -4930,6 +5454,423 @@
                     return;
                 }
                 loadInvites();
+            }
+
+            /* ==================================================
+               SNAPSHOT PEMAIN & LOG AKTIVITAS (FASE 3)
+               ================================================== */
+            const SNAPSHOT_REASON_LABELS = {
+                reset: "Reset pemain",
+                archive: "Arsip pertandingan",
+                restore: "Pemulihan",
+            };
+
+            const ACTIVITY_ACTION_LABELS = {
+                "match.publish": "Publikasikan match",
+                "match.reset": "Reset info match",
+                "match.archive": "Arsipkan pertandingan",
+                "players.reset": "Reset semua pemain",
+                "roster.restore": "Pulihkan daftar pemain",
+                "member.activate": "Aktifkan anggota",
+                "member.deactivate": "Nonaktifkan anggota",
+                "member.remove": "Hapus anggota",
+                "member.role": "Ubah peran anggota",
+                "invite.create": "Buat undangan",
+                "invite.revoke": "Cabut undangan",
+                "payment.submit": "Unggah bukti transfer",
+                "payment.verify": "Verifikasi bukti transfer",
+                "payment.reject": "Tolak bukti transfer",
+                "payment.status": "Ubah status bukti transfer",
+                "payment.delete": "Hapus bukti transfer",
+                "player.cancel": "Batalkan pendaftaran",
+                "history.update": "Edit hasil arsip",
+                "history.delete": "Hapus riwayat event",
+            };
+
+            function formatWaktuLokal(value) {
+                if (!value) return "-";
+                const date = new Date(value);
+                if (Number.isNaN(date.getTime())) return window.KOP.escapeHtml(String(value));
+                return window.KOP.escapeHtml(
+                    date.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+                );
+            }
+
+            function activityDetailText(row) {
+                const detail = row.detail && typeof row.detail === "object" ? row.detail : {};
+                switch (row.action) {
+                    case "players.reset":
+                        return `${Number(detail.players) || 0} pemain dihapus`;
+                    case "roster.restore":
+                        return `${Number(detail.restored) || 0} pemain dipulihkan`;
+                    case "match.archive":
+                        return `${Number(detail.players) || 0} pemain · ${Number(detail.fixtures) || 0} pertandingan`;
+                    case "match.publish":
+                        return [detail.location, detail.date].filter(Boolean).join(" · ") || "-";
+                    case "member.activate":
+                        return "Akun diaktifkan kembali";
+                    case "member.deactivate":
+                        return "Akun dinonaktifkan";
+                    case "member.remove":
+                        return `Peran sebelumnya: ${detail.role || "-"}`;
+                    case "member.role":
+                        return `${detail.from || "-"} → ${detail.to || "-"}`;
+                    case "invite.create":
+                        return `Peran ${detail.role || "-"} · maks ${detail.max_uses ?? "-"} pemakaian`;
+                    case "invite.revoke":
+                        return `Dipakai ${detail.uses ?? 0} kali`;
+                    case "payment.verify":
+                    case "payment.reject":
+                        return detail.note ? String(detail.note) : "-";
+                    case "payment.status":
+                        return `${detail.from || "-"} → ${detail.to || "-"}`;
+                    default: {
+                        const keys = Object.keys(detail);
+                        return keys.length ? JSON.stringify(detail) : "-";
+                    }
+                }
+            }
+
+            async function muatLogAktivitas() {
+                const body = document.getElementById("activityLogBody");
+                if (!body) return;
+                body.innerHTML =
+                    '<tr><td colspan="5" class="empty-state">Memuat log aktivitas...</td></tr>';
+                const { data, error } = await _supabase.rpc("list_community_activity", {
+                    p_community: context.community.id,
+                    p_limit: 50,
+                });
+                if (error) {
+                    body.innerHTML = `<tr><td colspan="5" class="empty-state">Gagal memuat log: ${window.KOP.escapeHtml(
+                        window.KOP.translateError(error.message),
+                    )}</td></tr>`;
+                    return;
+                }
+                const rows = data || [];
+                if (!rows.length) {
+                    body.innerHTML =
+                        '<tr><td colspan="5" class="empty-state">Belum ada aktivitas tercatat.</td></tr>';
+                    return;
+                }
+                body.innerHTML = rows
+                    .map((row) => {
+                        const action = ACTIVITY_ACTION_LABELS[row.action] || row.action;
+                        return `
+                            <tr>
+                                <td style="white-space:nowrap;">${formatWaktuLokal(row.created_at)}</td>
+                                <td>${window.KOP.escapeHtml(row.actor_name || "Sistem")}</td>
+                                <td style="font-weight:600;">${window.KOP.escapeHtml(action)}</td>
+                                <td>${window.KOP.escapeHtml(row.target || "-")}</td>
+                                <td style="font-size:0.82rem;color:#475569;">${window.KOP.escapeHtml(
+                                    activityDetailText(row),
+                                )}</td>
+                            </tr>`;
+                    })
+                    .join("");
+            }
+
+            async function muatSnapshotPemain() {
+                const body = document.getElementById("snapshotTableBody");
+                if (!body) return;
+                const { data, error } = await _supabase
+                    .from("community_roster_snapshots")
+                    .select("id, reason, players, created_at, expires_at")
+                    .eq("community_id", context.community.id)
+                    .gte("expires_at", new Date().toISOString())
+                    .order("created_at", { ascending: false })
+                    .limit(10);
+                if (error) {
+                    body.innerHTML = `<tr><td colspan="5" class="empty-state">Gagal memuat snapshot: ${window.KOP.escapeHtml(
+                        window.KOP.translateError(error.message),
+                    )}</td></tr>`;
+                    return;
+                }
+                const rows = data || [];
+                if (!rows.length) {
+                    body.innerHTML =
+                        '<tr><td colspan="5" class="empty-state">Belum ada snapshot pemain yang masih berlaku.</td></tr>';
+                    return;
+                }
+                body.innerHTML = rows
+                    .map((row) => {
+                        const jumlah = Array.isArray(row.players) ? row.players.length : 0;
+                        return `
+                            <tr>
+                                <td style="white-space:nowrap;">${formatWaktuLokal(row.created_at)}</td>
+                                <td>${window.KOP.escapeHtml(
+                                    SNAPSHOT_REASON_LABELS[row.reason] || row.reason,
+                                )}</td>
+                                <td>${jumlah}</td>
+                                <td style="white-space:nowrap;">${formatWaktuLokal(row.expires_at)}</td>
+                                <td>
+                                    <button type="button" class="btn-action btn-submit"
+                                        style="padding:8px 12px;font-size:0.75rem;"
+                                        onclick="restoreSnapshot('${row.id}')">
+                                        <i class="fa-solid fa-rotate-left"></i> PULIHKAN
+                                    </button>
+                                </td>
+                            </tr>`;
+                    })
+                    .join("");
+            }
+
+            async function restoreSnapshot(id) {
+                const pulihkan = await window.KOP.ui.confirm({
+                    title: "Pulihkan daftar pemain",
+                    message:
+                        "Kembalikan pemain dari snapshot ini?\n\n" +
+                        "Pemain yang sudah terdaftar ulang atau bukan lagi anggota aktif akan dilewati.",
+                    okLabel: "Pulihkan",
+                    cancelLabel: "Batal",
+                });
+                if (!pulihkan) return;
+
+                const { data, error } = await _supabase.rpc("restore_community_roster", {
+                    p_snapshot: id,
+                });
+                if (error) {
+                    window.KOP.ui.toast(
+                        "Daftar pemain tidak dapat dipulihkan: " +
+                            window.KOP.translateError(error.message),
+                        "error",
+                    );
+                    return;
+                }
+                const jumlah = Number(data) || 0;
+                muatPemain();
+                muatSnapshotPemain();
+                if (document.getElementById("panel-draft")?.classList.contains("active")) {
+                    loadDraft();
+                }
+                window.KOP.ui.toast(
+                    jumlah
+                        ? `${jumlah} pemain berhasil dipulihkan.`
+                        : "Tidak ada pemain yang bisa dipulihkan (sudah terdaftar atau bukan anggota aktif).",
+                    jumlah ? "success" : "info",
+                );
+            }
+
+            /* ==================================================
+               EKSPOR WHATSAPP & CSV (FASE 6.6)
+               ================================================== */
+            function shareEventTitle() {
+                return currentMatch && currentMatch.event_name && currentMatch.event_name !== "TBA"
+                    ? currentMatch.event_name
+                    : "Event KickOff Planner";
+            }
+
+            function draftTeamsForExport() {
+                return TEAM_NAMES.map((team) => ({
+                    team,
+                    players: draftPlayersCache
+                        .filter((player) => player.team === team)
+                        .sort(
+                            (a, b) =>
+                                POS_ORDER.indexOf(a.position) - POS_ORDER.indexOf(b.position),
+                        ),
+                })).filter((entry) => entry.players.length);
+            }
+
+            async function salinHasilUndianWA() {
+                const teams = draftTeamsForExport();
+                if (!teams.length) {
+                    window.KOP.ui.toast("Belum ada hasil undian untuk dibagikan.", "error");
+                    return;
+                }
+                const lines = [`*PEMBAGIAN TIM — ${shareEventTitle()}*`, ""];
+                teams.forEach(({ team, players }) => {
+                    lines.push(`*${teamLabel(team)}*`);
+                    players.forEach((player, index) => {
+                        lines.push(`${index + 1}. ${player.name} (${positionLabel(player.position)})`);
+                    });
+                    lines.push("");
+                });
+                const copied = await copyToClipboard(lines.join("\n"));
+                window.KOP.ui.toast(
+                    copied ? "Hasil undian disalin untuk WhatsApp." : "Tidak dapat menyalin hasil undian.",
+                    copied ? "success" : "error",
+                );
+            }
+
+            function csvCell(value) {
+                let text = String(value ?? "");
+                // Cegah formula injection saat CSV dibuka di Excel/Sheets.
+                if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
+                return `"${text.replace(/"/g, '""')}"`;
+            }
+
+            function downloadCsvFile(filename, rows) {
+                const csv =
+                    "\uFEFF" +
+                    rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1500);
+            }
+
+            function unduhHasilUndianCSV() {
+                const teams = draftTeamsForExport();
+                if (!teams.length) {
+                    window.KOP.ui.toast("Belum ada hasil undian untuk diekspor.", "error");
+                    return;
+                }
+                const rows = [["Tim", "No", "Nama", "Posisi"]];
+                teams.forEach(({ team, players }) => {
+                    players.forEach((player, index) => {
+                        rows.push([teamLabel(team), index + 1, player.name, positionLabel(player.position)]);
+                    });
+                });
+                downloadCsvFile(`undian-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+                window.KOP.ui.toast("CSV hasil undian diunduh.", "success");
+            }
+
+            function formatStatEntries(entries) {
+                return (entries || [])
+                    .map((entry) => {
+                        const suffix = entry.minute ? ` ${entry.minute}'` : "";
+                        const card =
+                            entry.type === "red" ? " (merah)" : entry.type === "yellow" ? " (kuning)" : "";
+                        return `${entry.player}${suffix}${card}`;
+                    })
+                    .join(", ");
+            }
+
+            function hasilPertandinganUntukEkspor() {
+                return collectArchiveFixtures();
+            }
+
+            async function salinHasilPertandinganWA() {
+                const fixtures = hasilPertandinganUntukEkspor();
+                if (!fixtures.length) {
+                    window.KOP.ui.toast("Belum ada jadwal pertandingan untuk dibagikan.", "error");
+                    return;
+                }
+                const lines = [`*HASIL PERTANDINGAN — ${shareEventTitle()}*`, ""];
+                fixtures.forEach((fixture) => {
+                    lines.push(
+                        `Ronde ${fixture.round}: ${teamDisplay(fixture.home)} ${fixture.score_home} - ${fixture.score_away} ${teamDisplay(fixture.away)}`,
+                    );
+                    if (fixture.goals?.length) lines.push(`  Gol: ${formatStatEntries(fixture.goals)}`);
+                    if (fixture.assists?.length) lines.push(`  Assist: ${formatStatEntries(fixture.assists)}`);
+                    if (fixture.cards?.length) lines.push(`  Kartu: ${formatStatEntries(fixture.cards)}`);
+                });
+                const copied = await copyToClipboard(lines.join("\n"));
+                window.KOP.ui.toast(
+                    copied ? "Hasil pertandingan disalin untuk WhatsApp." : "Tidak dapat menyalin hasil.",
+                    copied ? "success" : "error",
+                );
+            }
+
+            function unduhHasilPertandinganCSV() {
+                const fixtures = hasilPertandinganUntukEkspor();
+                if (!fixtures.length) {
+                    window.KOP.ui.toast("Belum ada jadwal pertandingan untuk diekspor.", "error");
+                    return;
+                }
+                const rows = [["Ronde", "Kandang", "Away", "Skor Kandang", "Skor Away", "Gol", "Assist", "Kartu"]];
+                fixtures.forEach((fixture) => {
+                    rows.push([
+                        fixture.round,
+                        teamDisplay(fixture.home),
+                        teamDisplay(fixture.away),
+                        fixture.score_home,
+                        fixture.score_away,
+                        formatStatEntries(fixture.goals),
+                        formatStatEntries(fixture.assists),
+                        formatStatEntries(fixture.cards),
+                    ]);
+                });
+                downloadCsvFile(`hasil-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+                window.KOP.ui.toast("CSV hasil pertandingan diunduh.", "success");
+            }
+
+            /* ==================================================
+               STATISTIK LINTAS EVENT (FASE 6.4)
+               ================================================== */
+            async function muatStatistik() {
+                const body = document.getElementById("statsTableBody");
+                if (!body) return;
+                const period = document.getElementById("statsPeriod")?.value || "all";
+                const sortKey = document.getElementById("statsSort")?.value || "goals";
+
+                let from = null;
+                const now = new Date();
+                if (period === "30") {
+                    from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                } else if (period === "90") {
+                    from = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                } else if (period === "year") {
+                    from = new Date(now.getFullYear(), 0, 1);
+                }
+
+                body.innerHTML =
+                    '<tr><td colspan="6" class="empty-state">Memuat statistik...</td></tr>';
+                const { data, error } = await _supabase.rpc("community_player_stats", {
+                    p_community: context.community.id,
+                    p_from: from ? from.toISOString() : null,
+                    p_to: null,
+                });
+                if (error) {
+                    body.innerHTML = `<tr><td colspan="6" class="empty-state">Gagal memuat statistik: ${window.KOP.escapeHtml(
+                        window.KOP.translateError(error.message),
+                    )}</td></tr>`;
+                    return;
+                }
+                const rows = data || [];
+                if (!rows.length) {
+                    body.innerHTML =
+                        '<tr><td colspan="6" class="empty-state">Belum ada event yang diarsipkan pada periode ini.</td></tr>';
+                    return;
+                }
+
+                rows.sort((a, b) => {
+                    const diff = (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0);
+                    if (diff !== 0) return diff;
+                    return String(a.player).localeCompare(String(b.player), "id");
+                });
+
+                body.innerHTML = rows
+                    .map((row, index) => {
+                        const cards =
+                            Number(row.cards) || 0
+                                ? `${row.cards} <span style="font-size:0.7rem;color:#64748b;">(${row.yellow || 0}K/${row.red || 0}M)</span>`
+                                : "0";
+                        return `
+                            <tr>
+                                <td style="text-align:center;">${index + 1}</td>
+                                <td style="font-weight:600;">${window.KOP.escapeHtml(row.player || "-")}</td>
+                                <td style="text-align:center;">${Number(row.appearances) || 0}</td>
+                                <td style="text-align:center;font-weight:800;color:#1e8449;">${Number(row.goals) || 0}</td>
+                                <td style="text-align:center;font-weight:700;">${Number(row.assists) || 0}</td>
+                                <td style="text-align:center;">${cards}</td>
+                            </tr>`;
+                    })
+                    .join("");
+            }
+
+            async function pulihkanSnapshotTerbaru() {
+                const { data, error } = await _supabase
+                    .from("community_roster_snapshots")
+                    .select("id")
+                    .eq("community_id", context.community.id)
+                    .gte("expires_at", new Date().toISOString())
+                    .order("created_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (error || !data) {
+                    window.KOP.ui.toast(
+                        "Tidak ada snapshot pemain yang masih berlaku.",
+                        "error",
+                    );
+                    return;
+                }
+                await restoreSnapshot(data.id);
             }
         </script>
     </body>
