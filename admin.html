@@ -1930,11 +1930,16 @@
                                         <option value="CB">CB</option>
                                         <option value="LB">LB</option>
                                         <option value="RB">RB</option>
+                                        <option value="LWB">LWB</option>
+                                        <option value="RWB">RWB</option>
                                         <option value="DMF">DMF</option>
                                         <option value="CMF">CMF</option>
                                         <option value="AMF">AMF</option>
+                                        <option value="LMF">LMF</option>
+                                        <option value="RMF">RMF</option>
                                         <option value="LWF">LWF</option>
                                         <option value="RWF">RWF</option>
+                                        <option value="SS">SS</option>
                                         <option value="CF">CF</option>
                                         <option value="SPECTATOR (FAN)">PENONTON</option>
                                     </select>
@@ -1978,11 +1983,16 @@
                                         <option value="CB">CB</option>
                                         <option value="LB">LB</option>
                                         <option value="RB">RB</option>
+                                        <option value="LWB">LWB</option>
+                                        <option value="RWB">RWB</option>
                                         <option value="DMF">DMF</option>
                                         <option value="CMF">CMF</option>
                                         <option value="AMF">AMF</option>
+                                        <option value="LMF">LMF</option>
+                                        <option value="RMF">RMF</option>
                                         <option value="LWF">LWF</option>
                                         <option value="RWF">RWF</option>
+                                        <option value="SS">SS</option>
                                         <option value="CF">CF</option>
                                         <option value="SPECTATOR (FAN)">PENONTON</option>
                                     </select>
@@ -2194,7 +2204,7 @@
                             </div>
                             <div>
                                 <label for="jadwalMain">TANGGAL & JAM</label>
-                                <input type="text" id="jadwalMain" placeholder="Pilih tanggal & jam" readonly />
+                                <input type="text" id="jadwalMain" placeholder="Pilih tanggal & jam" />
                             </div>
                             <div>
                                 <label for="jerseyInfo">WARNA JERSEY</label>
@@ -2749,6 +2759,7 @@
             function renderAdminCommunitySelector() {
                 const select = document.getElementById("adminCommunitySelect");
                 select.replaceChildren();
+                select.setAttribute("aria-label", "Pilih komunitas admin");
                 context.communities
                     .filter((community) => ["owner", "admin"].includes(community.role))
                     .forEach((community) => {
@@ -2773,9 +2784,10 @@
                 renderAdminCommunitySelector();
                 initFlatpickr();
                 loadMembers();
-                muatPemain();
                 loadTeamAliases().then(() => loadDraft());
-                loadMatchInfo();
+                // muatPemain membaca currentMatch.match_version untuk status
+                // pembayaran, jadi tunggu loadMatchInfo selesai dulu.
+                loadMatchInfo().finally(() => muatPemain());
                 loadInvites();
                 loadMembersTable();
             }
@@ -2913,7 +2925,7 @@
                     : playerRowsCache;
 
                 if (rows.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">${
+                    tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">${
                         onlyUnpaidFilter
                             ? "Semua pemain sudah terverifikasi."
                             : "Belum ada pemain terdaftar."
@@ -3394,6 +3406,7 @@
                TAB 3: MATCH DAY
                ================================================== */
             function initFlatpickr() {
+                if (typeof flatpickr !== "function") return;
                 flatpickr("#jadwalMain", {
                     enableTime: true,
                     dateFormat: "Y-m-d | H:i",
@@ -3608,6 +3621,11 @@
                 };
 
                 if (viewer) {
+                    try {
+                        viewer.opener = null;
+                    } catch {
+                        /* ignore */
+                    }
                     try {
                         viewer.document.title = "Memuat bukti...";
                         viewer.document.body.textContent = "Memuat bukti transfer...";
@@ -4240,8 +4258,14 @@
                     .map((entry) => entry.team);
             }
 
-            function fillTeamOptions(select, teams, kind) {
+            function fillTeamOptions(select, teams, kind, placeholder = "") {
                 select.replaceChildren();
+                if (placeholder) {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = placeholder;
+                    select.appendChild(option);
+                }
                 teams.forEach((team) => {
                     const option = document.createElement("option");
                     option.value = team;
@@ -4291,9 +4315,14 @@
                 const teams = allowedTeamsForKind(index, kind);
                 const previousTeam = teamSelect.value;
                 const previousPlayer = playerSelect.value;
+                const keepEmpty = row.dataset.empty === "1";
 
-                fillTeamOptions(teamSelect, teams, kind);
-                const team = teams.includes(previousTeam) ? previousTeam : teams[0] || "";
+                fillTeamOptions(teamSelect, teams, kind, keepEmpty ? "Pilih tim" : "");
+                const team = teams.includes(previousTeam)
+                    ? previousTeam
+                    : keepEmpty
+                      ? ""
+                      : teams[0] || "";
                 teamSelect.value = team;
                 fillPlayerOptions(playerSelect, team);
 
@@ -4319,6 +4348,9 @@
                 row.className = "stat-row";
                 row.dataset.kind = kind;
                 row.dataset.fixtureIndex = String(fixtureIndex);
+                // Baris baru dimulai kosong supaya klik "TAMBAH" lalu langsung
+                // simpan tidak diam-diam mencatat pemain pertama sebagai event.
+                row.dataset.empty = "1";
 
                 const teamSelect = document.createElement("select");
                 teamSelect.dataset.field = "team";
@@ -4328,9 +4360,11 @@
                 playerSelect.dataset.field = "player";
 
                 teamSelect.addEventListener("change", () => {
+                    row.dataset.empty = "0";
                     fillPlayerOptions(playerSelect, teamSelect.value);
                 });
                 playerSelect.addEventListener("change", () => {
+                    row.dataset.empty = "0";
                     const [team] = playerSelect.value.split("||");
                     if (team) teamSelect.value = team;
                 });
@@ -4532,7 +4566,9 @@
                     (option) => option.value === `${entry.team}||${entry.player}`,
                 );
                 if (target) playerSelect.value = target.value;
-                row.querySelector('[data-field="minute"]').value = entry.minute ?? 0;
+                if (teamAllowed) row.dataset.empty = "0";
+                const minuteInput = row.querySelector('[data-field="minute"]');
+                if (minuteInput) minuteInput.value = entry.minute ?? 0;
                 if (kind === "card") {
                     row.querySelector('[data-field="type"]').value =
                         entry.type || "yellow";
@@ -4935,9 +4971,15 @@
 
                     const scoreCell = document.createElement("td");
                     const fixtures = Array.isArray(row.fixtures) ? row.fixtures : [];
+                    const hasScoreValue = (value) =>
+                        value !== null &&
+                        value !== undefined &&
+                        value !== "" &&
+                        Number.isFinite(Number(value));
                     const filled = fixtures.filter(
                         (fixture) =>
-                            Number(fixture.score_home) > 0 || Number(fixture.score_away) > 0,
+                            hasScoreValue(fixture.score_home) ||
+                            hasScoreValue(fixture.score_away),
                     );
                     if (filled.length) {
                         const wrap = document.createElement("div");

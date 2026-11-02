@@ -102,21 +102,29 @@
         }
 
         const rememberedId = localStorage.getItem(storageKey);
+        // Halaman ber-role (mis. admin.html) harus memilih komunitas yang
+        // memang mengizinkan role tersebut, bukan komunitas yang terakhir
+        // diingat. Tanpa filter ini, owner/admin komunitas lain bisa
+        // terlempar ke index hanya karena komunitas pertamanya adalah member.
+        const eligibleCommunities = options.roles
+            ? communities.filter((item) => options.roles.includes(item.role))
+            : communities;
         const community =
-            communities.find((item) => item.id === rememberedId) || communities[0] || null;
+            eligibleCommunities.find((item) => item.id === rememberedId) ||
+            eligibleCommunities[0] ||
+            null;
 
         if (options.requireCommunity !== false) {
             if (!community) {
+                if (options.roles && communities.length) {
+                    window.location.replace("index.html?error=admin_required");
+                    return null;
+                }
                 sessionStorage.setItem("kop_after_onboarding", currentPath());
                 window.location.replace("onboarding.html");
                 return null;
             }
             rememberCommunity(community.id);
-        }
-
-        if (community && options.roles && !options.roles.includes(community.role)) {
-            window.location.replace("index.html?error=admin_required");
-            return null;
         }
 
         const context = {
@@ -169,6 +177,7 @@
             const rememberedId = localStorage.getItem(storageKey);
             selectedCommunity = communities.find((item) => item.id === rememberedId) || communities[0];
             const select = addTextElement(bar, "select", "", "community-select");
+            select.setAttribute("aria-label", "Pilih komunitas");
             communities.forEach((community) => {
                 const option = document.createElement("option");
                 option.value = community.id;

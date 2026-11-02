@@ -352,6 +352,15 @@
                     const bar = document.getElementById("accountBar");
                     bar.innerHTML = '<a class="account-link" href="auth.html">MASUK / DAFTAR</a>';
                 });
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("error") === "admin_required" && window.KOP.ui) {
+                window.KOP.ui.toast(
+                    "Akun ini tidak memiliki akses owner/admin untuk komunitas tersebut.",
+                    "error",
+                );
+                window.history.replaceState({}, "", window.location.pathname);
+            }
         </script>
     </body>
 </html>

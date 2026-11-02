@@ -48,7 +48,8 @@
             .navbar {
                 background: rgba(4, 41, 58, 0.9);
                 backdrop-filter: blur(10px);
-                width: 100%;
+                box-sizing: border-box;
+                width: calc(100% - 24px);
                 max-width: 800px;
                 border-radius: 15px;
                 margin-bottom: 20px;
@@ -563,7 +564,7 @@
     <body>
         <div class="navbar">
             <div class="home-box">
-                <a href="index.html" class="home-link"
+                <a href="index.html" class="home-link" aria-label="Kembali ke beranda"
                     ><i class="fa-solid fa-arrow-left"></i
                 ></a>
             </div>
@@ -613,6 +614,13 @@
                 return TEAM_LABELS[team] || team;
             }
 
+            function teamClass(team) {
+                return String(team || "")
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9_-]+/g, "_");
+            }
+
             // The archived row already stores the team split, so the list stays
             // correct even after the player rows were deleted.
             function getTeamGroups(item) {
@@ -638,9 +646,14 @@
             }
 
             function fixtureHasScore(fixture) {
-                return (
-                    Number(fixture.score_home) > 0 || Number(fixture.score_away) > 0
-                );
+                // Skor 0 adalah hasil yang sah (0-0); hanya null/undefined/string
+                // kosong yang berarti skor belum diisi.
+                const hasValue = (value) =>
+                    value !== null &&
+                    value !== undefined &&
+                    value !== "" &&
+                    Number.isFinite(Number(value));
+                return hasValue(fixture.score_home) || hasValue(fixture.score_away);
             }
 
             // Each matchup is shown on its own so a 3-team round robin reads as
@@ -661,7 +674,7 @@
                             renderStatEntries(fixture.cards, "card"),
                         ].join("");
                         return `<div class="fixture-line">
-                            <span class="fixture-line-label">Round ${fixture.round || "-"}</span>
+                            <span class="fixture-line-label">Round ${window.KOP.escapeHtml(fixture.round || "-")}</span>
                             <span class="fixture-line-score">
                                 ${window.KOP.escapeHtml(teamLabel(home))}
                                 <b>${window.KOP.escapeHtml(score)}</b>
@@ -732,7 +745,7 @@
                         html += `<tr>
                             <td class="td-number">${start + i + 1}</td>
                             <td class="td-name">${window.KOP.escapeHtml(row.player)}</td>
-                            <td class="td-team team-${row.team.toLowerCase()}">Tim ${window.KOP.escapeHtml(teamLabel(row.team))}</td>
+                            <td class="td-team team-${teamClass(row.team)}">Tim ${window.KOP.escapeHtml(teamLabel(row.team))}</td>
                         </tr>`;
                     });
                     html += `</tbody></table>`;
@@ -764,7 +777,7 @@
                 )})</button>`];
                 groups.forEach((group) => {
                     options.push(
-                        `<button class="filter-chip team-chip-${group.team.toLowerCase()}" data-filter="${group.team}">Tim ${window.KOP.escapeHtml(
+                        `<button class="filter-chip team-chip-${teamClass(group.team)}" data-filter="${group.team}">Tim ${window.KOP.escapeHtml(
                             teamLabel(group.team),
                         )} (${group.players.length})</button>`,
                     );

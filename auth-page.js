@@ -95,7 +95,7 @@
         confirmPassword.setAttribute("autocomplete", "new-password");
         submitButton.textContent = signup ? "DAFTAR SEKARANG" : "MASUK";
         forgotButton.hidden = signup;
-        resendButton.hidden = false;
+        resendButton.hidden = !resendEmail;
         showMessage("");
     }
 

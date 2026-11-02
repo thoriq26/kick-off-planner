@@ -45,7 +45,8 @@
             .navbar {
                 background: rgba(44, 62, 80, 0.95);
                 backdrop-filter: blur(10px);
-                width: 100%;
+                box-sizing: border-box;
+                width: calc(100% - 24px);
                 max-width: 800px;
                 border-radius: 12px;
                 margin-bottom: 20px;
@@ -240,7 +241,7 @@
     </head>
     <body>
         <div class="navbar">
-            <a href="index.html" class="home-link">
+            <a href="index.html" class="home-link" aria-label="Kembali ke beranda">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
             <span class="nav-title">PEMBAGIAN TIM</span>
