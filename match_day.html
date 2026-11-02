@@ -868,7 +868,10 @@
                     .from("payment-proofs")
                     .upload(path, file, { contentType: file.type, upsert: false });
                 if (uploadError) {
-                    showPaymentMessage(`Upload gagal: ${uploadError.message}`, "error");
+                    showPaymentMessage(
+                        `Upload gagal: ${window.KOP.translateError(uploadError.message)}`,
+                        "error",
+                    );
                     setPaymentProofFormVisible(true);
                     return;
                 }
@@ -887,7 +890,10 @@
                     });
                 if (insertError) {
                     await _supabase.storage.from("payment-proofs").remove([path]);
-                    showPaymentMessage(`Bukti tidak dapat disimpan: ${insertError.message}`, "error");
+                    showPaymentMessage(
+                        `Bukti tidak dapat disimpan: ${window.KOP.translateError(insertError.message)}`,
+                        "error",
+                    );
                     setPaymentProofFormVisible(true);
                     return;
                 }
@@ -933,20 +939,22 @@
             }
 
             async function loadInfo() {
-                const { data } = await _supabase
+                const { data, error } = await _supabase
                     .from("community_matches")
                     .select("*")
                     .eq("community_id", context.community.id)
                     .maybeSingle();
 
-                if (!data) {
+                if (error || !data) {
                     currentMatch = null;
                     clearInterval(paymentProofPollTimer);
                     paymentProofCard.hidden = true;
                     document.querySelectorAll(".loading-text").forEach((el) =>
                         el.classList.remove("loading-text"),
                     );
-                    document.getElementById("displayEvent").innerText = "TBA";
+                    document.getElementById("displayEvent").innerText = error
+                        ? "Gagal memuat jadwal"
+                        : "TBA";
                     document.getElementById("displayNama").innerText = "TBA";
                     document.getElementById("displayDateTime").innerText = "Jadwal menyusul";
                     document.getElementById("displayJersey").innerText = "TBA";

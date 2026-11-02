@@ -49,6 +49,7 @@ drop function if exists public.community_player_registration_status(uuid, text) 
 drop function if exists public.promote_waitlisted_player() cascade;
 drop function if exists public.promote_community_player(uuid) cascade;
 drop function if exists public.community_player_stats(uuid, timestamptz, timestamptz) cascade;
+drop function if exists public.list_my_communities() cascade;
 drop function if exists public.list_community_members(uuid) cascade;
 drop function if exists public.set_community_member_status(uuid, uuid, boolean) cascade;
 drop function if exists public.remove_community_member(uuid, uuid) cascade;

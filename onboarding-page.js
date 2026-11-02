@@ -166,10 +166,20 @@
 
     function renderMemberships() {
         membershipList.replaceChildren();
+        const inactive = context.inactiveCommunities || [];
+        if (inactive.length) {
+            const note = document.createElement("p");
+            note.className = "form-message error";
+            note.textContent =
+                `Akun Anda dinonaktifkan di komunitas: ${inactive
+                    .map((community) => community.name)
+                    .join(", ")}. Hubungi owner/admin komunitas untuk diaktifkan kembali.`;
+            membershipList.appendChild(note);
+        }
         if (!context.communities.length) {
             const empty = document.createElement("p");
             empty.className = "subtitle";
-            empty.textContent = "Belum ada komunitas.";
+            empty.textContent = inactive.length ? "" : "Belum ada komunitas.";
             membershipList.appendChild(empty);
             return;
         }

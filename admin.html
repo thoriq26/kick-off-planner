@@ -2811,7 +2811,9 @@
                 const communityName = document.getElementById("memberCommunityName");
                 if (communityName) communityName.textContent = context.community.name;
                 if (tab === "members") loadMembersTable();
-                if (tab === "draft") loadArchivePlayers();
+                // Muat ulang grid tim saat tab dibuka supaya perubahan nama,
+                // posisi, atau pemain yang baru dihapus langsung terlihat.
+                if (tab === "draft") loadDraft();
                 if (tab === "players") {
                     muatPemain();
                     muatSnapshotPemain();
@@ -2890,6 +2892,7 @@
                     .from("community_payment_proofs")
                     .select("user_id, status, created_at")
                     .eq("community_id", context.community.id)
+                    .eq("match_id", currentMatch.id)
                     .eq("match_version", currentMatch.match_version || 1)
                     .order("created_at", { ascending: false });
                 if (error) return;
@@ -3189,11 +3192,14 @@
                     .neq("position", "SPECTATOR (FAN)")
                     .neq("status", "waitlisted");
                 if (error) return;
-                draftPlayersCache = players || [];
+                const draftPlayers = players || [];
+                draftPlayersCache = draftPlayers;
                 await loadPlayerLevels();
 
                 const grid = document.getElementById("mainGrid");
-                const alreadyShuffled = players.some((p) => p.team !== null && p.team !== "");
+                const alreadyShuffled = draftPlayers.some(
+                    (p) => p.team !== null && p.team !== "",
+                );
 
                 if (!alreadyShuffled) {
                     grid.innerHTML = `
@@ -3202,7 +3208,7 @@
                             <p>Hasil pembagian tim belum tersedia.</p>
                         </div>`;
                 } else {
-                    renderTeams(players);
+                    renderTeams(draftPlayers);
                 }
 
                 // The round options and fixture table live on this tab, so keep
@@ -3386,11 +3392,18 @@
             }
 
             async function resetTeams() {
-                const { data: players } = await _supabase
+                const { data: players, error } = await _supabase
                     .from("community_players")
                     .select("id")
                     .eq("community_id", context.community.id);
-                const resets = players.map((p) =>
+                if (error) {
+                    window.KOP.ui.toast(
+                        "Gagal memuat pemain: " + window.KOP.translateError(error.message),
+                        "error",
+                    );
+                    return;
+                }
+                const resets = (players || []).map((p) =>
                     _supabase
                         .from("community_players")
                         .update({ team: null })
@@ -3437,11 +3450,18 @@
             }
 
             async function loadMatchInfo() {
-                const { data } = await _supabase
+                const { data, error } = await _supabase
                     .from("community_matches")
                     .select("*")
                     .eq("community_id", context.community.id)
                     .maybeSingle();
+                if (error) {
+                    window.KOP.ui.toast(
+                        "Gagal memuat info match: " + window.KOP.translateError(error.message),
+                        "error",
+                    );
+                    return;
+                }
                 if (!data) {
                     currentMatch = null;
                     clearMatchForm();
@@ -4118,7 +4138,7 @@
             function renderFixtureTable() {
                 const body = document.getElementById("fixtureTableBody");
                 if (!body) return;
-                const teams = archiveActiveTeams();
+                const teams = editorActiveTeams();
 
                 if (teams.length < 2) {
                     body.innerHTML =
@@ -4162,14 +4182,14 @@
             function openFixtureEdit(index) {
                 const fixture = archiveFixtures[index];
                 if (!fixture) return;
-                const teams = archiveActiveTeams();
+                const teams = editorActiveTeams();
                 if (teams.length < 2) return;
 
                 const modal = document.createElement("div");
                 modal.className = "modal-overlay show";
                 modal.innerHTML = `
                     <div class="modal-box" style="max-width:420px;">
-                        <h3><i class="fa-solid fa-pen-to-square"></i> Edit Pertandingan (Ronde ${fixture.round || index + 1})</h3>
+                        <h3><i class="fa-solid fa-pen-to-square"></i> Edit Pertandingan (Ronde ${window.KOP.escapeHtml(String(fixture.round || index + 1))})</h3>
                         <p class="member-hint">Pilih tim kandang dan tim tandang dari tim yang tersedia.</p>
                         <div class="input-group" style="grid-template-columns:1fr;">
                             <div>
@@ -4211,6 +4231,18 @@
                 modal.querySelector("#fixSave").onclick = () => {
                     if (homeSel.value === awaySel.value) {
                         window.KOP.ui.alert("Tim kandang dan tandang tidak boleh sama.");
+                        return;
+                    }
+                    // Jadwal lawan dibuat otomatis oleh server. Menu ini hanya
+                    // untuk menukar posisi kandang/tandang, bukan mengganti
+                    // pasangan; perubahan pasangan akan dibuang saat arsip.
+                    const originalPair = [fixture.home, fixture.away].sort().join("|");
+                    const selectedPair = [homeSel.value, awaySel.value].sort().join("|");
+                    if (selectedPair !== originalPair) {
+                        window.KOP.ui.alert(
+                            "Jadwal pertandingan dibuat otomatis. Anda hanya bisa menukar tim kandang dan tandang; " +
+                                "untuk mengganti pembagian tim, gunakan Undi Tim lalu arsipkan ulang.",
+                        );
                         return;
                     }
                     archiveFixtures[index].home = homeSel.value;
@@ -4580,6 +4612,10 @@
                 // arsip berikutnya akan menimpa event lama.
                 window._editingArchiveId = null;
                 archiveEditTeams = null;
+                // Jangan pernah pakai jadwal event arsip yang sedang diedit untuk
+                // form arsip event saat ini. Bangun ulang dari roster live supaya
+                // skor/pemain lama tidak ikut terarsipkan setelah mode edit batal.
+                archiveFixtures = [];
                 const note = document.getElementById("archiveEditingNote");
                 if (note) {
                     note.textContent = "";
@@ -4599,7 +4635,7 @@
                 if (clear) {
                     clear.innerHTML = '<i class="fa-solid fa-rotate-left"></i> BERSIHKAN';
                 }
-                renderFixtureEditor(archiveFixtures);
+                refreshArchiveSchedule();
             }
 
             function collectFixtureResult(fixture, index) {
@@ -5116,8 +5152,9 @@
                 });
                 const body = document.getElementById("inviteTableBody");
                 if (error || !body) return;
-                body.innerHTML = data.length
-                    ? data.map((invite) => `
+                const invites = data || [];
+                body.innerHTML = invites.length
+                    ? invites.map((invite) => `
                         <tr>
                             <td>${invite.role}</td>
                             <td>${new Date(invite.expires_at).toLocaleString()}</td>
@@ -5216,8 +5253,14 @@
                     window.KOP.ui.alert("Gagal membuat undangan: " + window.KOP.translateError(error.message));
                     return;
                 }
-                const invite = data?.[0];
-                const code = invite.token;
+                const invite = Array.isArray(data) ? data[0] : data;
+                const code = invite?.token;
+                if (!code) {
+                    window.KOP.ui.alert(
+                        "Undangan dibuat tetapi kode tidak diterima dari server. Muat ulang halaman lalu coba lagi.",
+                    );
+                    return;
+                }
                 const inviteUrl = `${window.location.origin}/onboarding.html?code=${encodeURIComponent(code)}`;
                 const shareMessage =
                     `Halo! Saya mengundang kamu untuk bergabung di ${context.community.name}. ` +

@@ -361,6 +361,14 @@
                 );
                 window.history.replaceState({}, "", window.location.pathname);
             }
+            if (params.get("error") === "inactive_member" && window.KOP.ui) {
+                window.KOP.ui.toast(
+                    "Akun Anda dinonaktifkan di komunitas ini. Hubungi owner/admin untuk diaktifkan kembali.",
+                    "error",
+                    { duration: 10000 },
+                );
+                window.history.replaceState({}, "", window.location.pathname);
+            }
         </script>
     </body>
 </html>

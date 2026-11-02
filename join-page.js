@@ -57,6 +57,11 @@
             const role = membership.joined_role || membership.role;
             await window.KOP.auth.setSelectedCommunity(communityId);
             sessionStorage.removeItem("kop_pending_invite");
+            try {
+                localStorage.removeItem(PENDING_INVITE_KEY);
+            } catch {
+                // localStorage may be unavailable in private browsing.
+            }
             const pending = sessionStorage.getItem("kop_after_onboarding");
             sessionStorage.removeItem("kop_after_onboarding");
             const target = pending && !pending.includes("onboarding.html") ? pending : "";

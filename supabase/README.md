@@ -62,12 +62,13 @@ query once in the listed order. Do not continuously rerun completed migrations.
 15. Run [`migrations/20261029000000_quota_waitlist.sql`](migrations/20261029000000_quota_waitlist.sql) to add `community_matches.player_quota` and `community_players.status` (`active`/`waitlisted`). Registration is enforced in the database, new registrations go to the waitlist when the quota is full, and the oldest waitlisted player is promoted automatically when a slot opens. Spectators never count toward the quota, and a per-community advisory lock serializes simultaneous registrations.
 16. Run [`migrations/20261030000000_player_levels.sql`](migrations/20261030000000_player_levels.sql) to add admin-only `community_player_levels` (1–5). Levels power the optional weighted team balancing; regular members cannot read the table.
 17. Run [`migrations/20261031000000_player_stats.sql`](migrations/20261031000000_player_stats.sql) to add the `community_player_stats` aggregate RPC used by the admin Statistics tab. It checks community membership and aggregates archived fixtures in the database.
-18. In **Authentication → URL Configuration**, set the site URL to the production origin.
-19. Add the production auth redirect URLs:
+18. Run [`migrations/20261102000000_fix_archive_quota_membership.sql`](migrations/20261102000000_fix_archive_quota_membership.sql) to isolate payment proofs after an archive (`match_version`), reset `player_quota` on archive, enforce the quota when a spectator switches to a playing position, promote waitlisted players when an active player becomes a spectator, and add `list_my_communities` so deactivated members see their status instead of being treated as community-less.
+19. In **Authentication → URL Configuration**, set the site URL to the production origin.
+20. Add the production auth redirect URLs:
    - `https://YOUR-DOMAIN/auth.html`
    - `https://YOUR-DOMAIN/reset-password.html`
    - `https://YOUR-DOMAIN/join.html` (for older direct invite links)
-20. Keep email confirmation enabled for production. Configure SMTP before relying
+21. Keep email confirmation enabled for production. Configure SMTP before relying
     on password reset for real users.
 
 The migration creates new `community_*` tables and does not drop the old public

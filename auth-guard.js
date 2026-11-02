@@ -54,6 +54,23 @@
     }
 
     async function getCommunities(user) {
+        // RPC khusus karena RLS menyembunyikan membership nonaktif dari
+        // SELECT biasa. Tanpa ini pengguna yang dinonaktifkan terlihat seperti
+        // belum punya komunitas dan terjebak di halaman onboarding.
+        const { data: rpcRows, error: rpcError } = await sb.rpc("list_my_communities");
+        if (!rpcError) {
+            return (rpcRows || [])
+                .map((membership) => ({
+                    id: membership.community_id,
+                    name: membership.name,
+                    slug: membership.slug,
+                    role: membership.role,
+                    is_active: membership.is_active !== false,
+                }))
+                .filter((community) => community.id);
+        }
+
+        // Fallback untuk project yang belum menjalankan migration terbaru.
         const { data: memberships, error: membershipError } = await sb
             .from("community_members")
             .select("community_id, role")
@@ -75,6 +92,7 @@
             .map((membership) => ({
                 ...byId.get(membership.community_id),
                 role: membership.role,
+                is_active: true,
             }))
             .filter((community) => community.id);
     }
@@ -94,8 +112,15 @@
             return null;
         }
 
-        const communities = await getCommunities(user);
+        const allCommunities = await getCommunities(user);
+        const communities = allCommunities.filter((item) => item.is_active !== false);
+        const inactiveCommunities = allCommunities.filter((item) => item.is_active === false);
+
         if (options.requireCommunity !== false && communities.length === 0) {
+            if (inactiveCommunities.length) {
+                window.location.replace("index.html?error=inactive_member");
+                return null;
+            }
             sessionStorage.setItem("kop_after_onboarding", currentPath());
             window.location.replace("onboarding.html");
             return null;
@@ -132,6 +157,7 @@
             community,
             role: community?.role || null,
             communities,
+            inactiveCommunities,
         };
         window.KOP.context = context;
         return context;
@@ -168,9 +194,14 @@
         }
 
         addTextElement(bar, "span", user.email, "account-email");
-        const communities = await getCommunities(user);
+        const allCommunities = await getCommunities(user);
+        const communities = allCommunities.filter((item) => item.is_active !== false);
+        const hasInactiveMembership = allCommunities.some((item) => item.is_active === false);
         let selectedCommunity = null;
         if (communities.length === 0) {
+            if (hasInactiveMembership) {
+                addTextElement(bar, "span", "AKUN DINONAKTIFKAN", "account-email");
+            }
             const onboarding = addTextElement(bar, "a", "BUAT / GABUNG KOMUNITAS", "account-link");
             onboarding.href = "onboarding.html";
         } else {
