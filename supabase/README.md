@@ -30,9 +30,16 @@ Uploaded files are stored separately in the private `payment-proofs` bucket.
 Delete or empty that bucket from **Dashboard → Storage** if the actual proof
 files must also be removed. Do not expect SQL to delete `storage.objects`.
 
-For a completely clean slate including test login accounts, delete the test
-users separately from **Authentication → Users** after running the data reset.
-That action is intentionally not part of the SQL script.
+For a completely clean slate including test login accounts, run
+[`reset_all_data_include_auth.sql`](reset_all_data_include_auth.sql) once in the
+SQL Editor. It deletes all application rows, `public.profiles`, and every
+`auth.users` account (which also clears sessions and identities). This also
+deletes the owner account currently used for testing, so sign up again after the
+reset. Alternatively, run `reset_test_data.sql` and delete only unwanted test
+users from **Authentication → Users**.
+
+Neither reset script can delete files from the private `payment-proofs` Storage
+bucket; empty/delete that bucket from **Dashboard → Storage** as well.
 
 A schema-level reset is only needed when the tables/functions themselves must
 be recreated. Use [`reset_schema_preserve_auth.sql`](reset_schema_preserve_auth.sql)
