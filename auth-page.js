@@ -13,6 +13,24 @@
     }
     const next = `${nextUrl.pathname}${nextUrl.search}`;
 
+    // Carry the invitation into the new account's metadata. This survives an
+    // email confirmation link that opens in another tab/browser, where the
+    // localStorage copy is unavailable.
+    const PENDING_INVITE_KEY = "kop_pending_invite";
+    function readPendingInvite() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(PENDING_INVITE_KEY) || "null");
+            if (raw && raw.token) return raw.token;
+        } catch {
+            // Fall through to sessionStorage below.
+        }
+        try {
+            return sessionStorage.getItem(PENDING_INVITE_KEY) || "";
+        } catch {
+            return "";
+        }
+    }
+
     const title = document.getElementById("authTitle");
     const subtitle = document.getElementById("authSubtitle");
     const form = document.getElementById("authForm");
@@ -140,11 +158,20 @@
                 if (password.value !== confirmPassword.value) {
                     throw new Error("Konfirmasi password tidak sama.");
                 }
+                const userData = { full_name: fullName.value.trim() };
+                const pendingInvite =
+                    new URLSearchParams(nextUrl.search).get("code") ||
+                    readPendingInvite() ||
+                    "";
+                if (pendingInvite) {
+                    userData.pending_invite = pendingInvite;
+                    userData.pending_invite_saved_at = Date.now();
+                }
                 const { data, error } = await sb.auth.signUp({
                     email: email.value.trim(),
                     password: password.value,
                     options: {
-                        data: { full_name: fullName.value.trim() },
+                        data: userData,
                         emailRedirectTo: `${window.location.origin}/auth.html?next=${encodeURIComponent(next)}`,
                     },
                 });

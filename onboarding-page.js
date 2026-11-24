@@ -7,7 +7,7 @@
     const nameInput = document.getElementById("communityName");
     const slugInput = document.getElementById("communitySlug");
     const inviteInput = document.getElementById("inviteCode");
-    const inviteCodeFromUrl = new URLSearchParams(window.location.search).get("code");
+    const inviteCodeFromUrl = inviteCodeFromUrlValue();
     if (inviteCodeFromUrl) inviteInput.value = inviteCodeFromUrl;
     let context;
     let autoJoining = false;
@@ -17,12 +17,49 @@
     // without having to re-enter the code.
     const PENDING_INVITE_KEY = "kop_pending_invite";
 
+    function inviteCodeFromUrlValue() {
+        return new URLSearchParams(window.location.search).get("code");
+    }
+
+    // Save the code BEFORE the auth redirect. Sebelumnya kode hanya disimpan
+    // setelah login, sehingga tautan verifikasi email yang membuka halaman
+    // onboarding tanpa query ?code= membuat undangan hilang.
+    if (inviteCodeFromUrl) {
+        savePendingInvite(inviteCodeFromUrl);
+    } else {
+        const storedInviteCode = loadPendingInvite();
+        if (storedInviteCode) inviteInput.value = storedInviteCode;
+    }
+
     function savePendingInvite(code) {
         if (!code) return;
-        localStorage.setItem(
-            PENDING_INVITE_KEY,
-            JSON.stringify({ token: code, savedAt: Date.now() }),
-        );
+        try {
+            localStorage.setItem(
+                PENDING_INVITE_KEY,
+                JSON.stringify({ token: code, savedAt: Date.now() }),
+            );
+        } catch {
+            // Private browsing may block localStorage; the URL still carries
+            // the code until the auth redirect.
+        }
+        try {
+            sessionStorage.setItem(PENDING_INVITE_KEY, code);
+        } catch {
+            // Ignore storage access errors; the URL still carries the code.
+        }
+    }
+
+    function clearPendingInvite() {
+        try {
+            localStorage.removeItem(PENDING_INVITE_KEY);
+        } catch {
+            // Ignore storage access errors.
+        }
+        try {
+            sessionStorage.removeItem(PENDING_INVITE_KEY);
+        } catch {
+            // Ignore storage access errors.
+        }
     }
 
     function loadPendingInvite() {
@@ -31,12 +68,20 @@
             if (!raw || !raw.token) return null;
             // Ignore stale invites older than 30 days.
             if (Date.now() - (raw.savedAt || 0) > 30 * 24 * 60 * 60 * 1000) {
-                localStorage.removeItem(PENDING_INVITE_KEY);
+                try {
+                    localStorage.removeItem(PENDING_INVITE_KEY);
+                } catch {
+                    // Ignore storage access errors.
+                }
                 return null;
             }
             return raw.token;
         } catch {
-            localStorage.removeItem(PENDING_INVITE_KEY);
+            try {
+                localStorage.removeItem(PENDING_INVITE_KEY);
+            } catch {
+                // Ignore storage access errors.
+            }
             return null;
         }
     }
@@ -97,8 +142,18 @@
     async function autoJoinPendingInvite() {
         if (autoJoining) return;
         const urlCode = inviteCodeFromUrl ? extractInviteToken(inviteCodeFromUrl) : null;
-        const pendingCode = loadPendingInvite();
+        const storedCode = loadPendingInvite();
+        const metadataSavedAt = Number(context.user?.user_metadata?.pending_invite_saved_at || 0);
+        const metadataIsFresh =
+            !metadataSavedAt || Date.now() - metadataSavedAt <= 30 * 24 * 60 * 60 * 1000;
+        const metadataCode =
+            metadataIsFresh && typeof context.user?.user_metadata?.pending_invite === "string"
+                ? context.user.user_metadata.pending_invite.trim()
+                : "";
+        const pendingCode = storedCode || metadataCode;
         if (urlCode) savePendingInvite(urlCode);
+        if (metadataCode && !storedCode) savePendingInvite(metadataCode);
+        if (!inviteInput.value && pendingCode) inviteInput.value = pendingCode;
 
         const alreadyMember = (context.communities || []).length > 0;
         if (!urlCode && (alreadyMember || !pendingCode)) return;
@@ -110,7 +165,7 @@
         joinForm.querySelector('button[type="submit"]').disabled = true;
         try {
             const { communityId, role } = await acceptInvite(token);
-            localStorage.removeItem(PENDING_INVITE_KEY);
+            clearPendingInvite();
             await window.KOP.auth.setSelectedCommunity(communityId);
             showMessage("Berhasil bergabung dengan komunitas! Mengalihkan...", "success");
             setTimeout(() => redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html"), 600);
@@ -120,7 +175,7 @@
             const detail = error && error.message ? error.message : "";
             if (/expired|revoked|already used/i.test(detail)) {
                 // A stale remembered code should not nag forever.
-                if (!urlCode) localStorage.removeItem(PENDING_INVITE_KEY);
+                clearPendingInvite();
             }
             showMessage(formatInviteError(detail), "error");
         }
@@ -237,7 +292,7 @@
             }
             const communityId = membership.joined_community_id || membership.community_id;
             const role = membership.joined_role || membership.role;
-            localStorage.removeItem(PENDING_INVITE_KEY);
+            clearPendingInvite();
             await window.KOP.auth.setSelectedCommunity(communityId);
             redirectAfterOnboarding(role === "member" ? "index.html" : "admin.html");
         } catch (error) {

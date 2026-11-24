@@ -38,7 +38,10 @@
 
     function loginRedirect() {
         const pendingInvite = sessionStorage.getItem("kop_pending_invite");
-        const next = pendingInvite ? "join.html" : currentPath();
+        // Never let an older remembered invite override the code that is
+        // explicitly present in the current URL.
+        const currentHasCode = new URLSearchParams(window.location.search).has("code");
+        const next = pendingInvite && !currentHasCode ? "join.html" : currentPath();
         return `auth.html?next=${encodeURIComponent(next)}`;
     }
 
