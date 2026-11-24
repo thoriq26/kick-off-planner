@@ -3,6 +3,20 @@
 The browser code uses only the public anon key. Never put a service-role key in
 `supabase-client.js` or any HTML file.
 
+## Choosing the destructive script
+
+| Goal | File | Scope |
+| --- | --- | --- |
+| Clear one community's players/matches/history, but keep the community | [`clear_community_data.sql`](clear_community_data.sql) | One community by slug, UUID, or exact name |
+| Delete one whole community | [`delete_community.sql`](delete_community.sql) | One community by slug, UUID, or exact name |
+| Clear every community's data, but keep login accounts | [`reset_test_data.sql`](reset_test_data.sql) | All application data |
+| Delete all application data and all login accounts | [`reset_all_data_include_auth.sql`](reset_all_data_include_auth.sql) | Full data wipe |
+| Drop and recreate the application schema | [`reset_schema_preserve_auth.sql`](reset_schema_preserve_auth.sql) | Schema reset; Auth users kept |
+
+For day-to-day testing, use only the first two rows. The reset scripts are
+full-database operations and should not be used when one community should be
+changed.
+
 ## Reset application schema (optional)
 
 To start the application schema over while keeping Supabase Auth accounts,
@@ -41,6 +55,23 @@ users from **Authentication → Users**.
 Neither reset script can delete files from the private `payment-proofs` Storage
 bucket; empty/delete that bucket from **Dashboard → Storage** as well.
 
+## Clear one community's data but keep the community
+
+Run [`clear_community_data.sql`](clear_community_data.sql) when the community
+row, members, roles, and custom team names should remain, but its operational
+data should be removed. Set `target_key` to the target slug, UUID, or exact
+community name (the file is pre-filled with `tes` as an example), then run it
+in the SQL Editor.
+
+It removes players and the waitlist, matches, archived history, payment-proof
+metadata, invitations and invite usage, roster snapshots, player levels, and
+activity logs. It keeps the `communities` row, `community_members` (so the
+owner/admin still has access), `auth.users`, `public.profiles`, and custom team
+names. Payment-proof files in Storage must still be removed manually.
+
+If several communities share the same name, the script stops and asks for a
+slug/UUID instead of guessing.
+
 ## Delete one community without touching the others
 
 Do not use `reset_test_data.sql` when only one community should be removed; it
@@ -55,10 +86,11 @@ is intentionally a full application-data reset. Run
 3. The script stops with an error if the target is missing. If several
    communities share the same name, it also stops and asks for a slug/UUID, so
    it cannot delete every community by accident.
-4. Deleting the `communities` row cascades to members, players, matches,
-   invitations, history, payment-proof metadata, snapshots, activity logs,
-   player levels, and custom team names. Auth accounts and other communities
-   remain.
+4. The script removes child rows first (including members), then deletes the
+   parent community and its activity logs. This order avoids the
+   `community_activity_log` foreign-key error that occurs when a direct
+   `DELETE FROM communities` fires delete triggers after the parent row is
+   already gone. Auth accounts and other communities remain.
 5. Payment-proof files are not deleted by SQL. Remove the
    `payment-proofs/<community-id>/` folder from **Dashboard → Storage** if the
    physical files should also be removed.

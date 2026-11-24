@@ -23,7 +23,7 @@
 -- berhenti dan meminta slug/UUID. Jadi tidak akan menghapus komunitas lain
 -- secara tidak sengaja.
 --
--- Yang ikut terhapus lewat ON DELETE CASCADE:
+-- Yang ikut terhapus:
 --   * anggota komunitas
 --   * pemain
 --   * match dan bukti transfer (metadata)
@@ -33,6 +33,10 @@
 --   * activity log
 --   * level pemain
 --   * nama tim kustom
+--
+-- Data anak dihapus lebih dulu, baru baris komunitas. Ini penting karena
+-- trigger activity log menulis ke community_activity_log dan akan gagal jika
+-- baris komunitas sudah terhapus lebih dulu.
 --
 -- Yang TIDAK terhapus:
 --   * akun login auth.users
@@ -91,6 +95,26 @@ begin
     raise notice 'Menghapus komunitas "%" (slug: %, id: %).',
         target_name, target_slug, target_id;
     raise notice 'Folder Storage bukti transfer: payment-proofs/%/', target_id;
+
+    -- Jangan langsung DELETE communities. Trigger log pada child table akan
+    -- mencoba insert ke community_activity_log dengan community_id yang sudah
+    -- tidak ada (FK violation). Hapus child rows dulu saat parent masih ada.
+    perform set_config('kop.skip_promotion', 'on', true);
+
+    delete from public.community_payment_proofs where community_id = target_id;
+    delete from public.community_event_history where community_id = target_id;
+    delete from public.community_invite_uses where community_id = target_id;
+    delete from public.community_invites where community_id = target_id;
+    delete from public.community_players where community_id = target_id;
+    delete from public.community_matches where community_id = target_id;
+    delete from public.community_roster_snapshots where community_id = target_id;
+    delete from public.community_player_levels where community_id = target_id;
+    delete from public.community_team_names where community_id = target_id;
+    delete from public.community_members where community_id = target_id;
+
+    -- Trigger di atas menghasilkan log baru; bersihkan setelah semua child
+    -- rows selesai dihapus, lalu hapus baris komunitas.
+    delete from public.community_activity_log where community_id = target_id;
 
     delete from public.communities
      where id = target_id;
