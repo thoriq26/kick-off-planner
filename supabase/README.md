@@ -41,6 +41,28 @@ users from **Authentication → Users**.
 Neither reset script can delete files from the private `payment-proofs` Storage
 bucket; empty/delete that bucket from **Dashboard → Storage** as well.
 
+## Delete one community without touching the others
+
+Do not use `reset_test_data.sql` when only one community should be removed; it
+is intentionally a full application-data reset. Run
+[`delete_community.sql`](delete_community.sql) in the SQL Editor instead:
+
+1. Run `select id, name, slug from public.communities order by name;` to find
+   the target slug (or UUID).
+2. Open [`delete_community.sql`](delete_community.sql). Its `target_key` is
+   pre-filled with `tes` as an example; replace it with the target slug, UUID,
+   or exact community name, then run it once.
+3. The script stops with an error if the target is missing. If several
+   communities share the same name, it also stops and asks for a slug/UUID, so
+   it cannot delete every community by accident.
+4. Deleting the `communities` row cascades to members, players, matches,
+   invitations, history, payment-proof metadata, snapshots, activity logs,
+   player levels, and custom team names. Auth accounts and other communities
+   remain.
+5. Payment-proof files are not deleted by SQL. Remove the
+   `payment-proofs/<community-id>/` folder from **Dashboard → Storage** if the
+   physical files should also be removed.
+
 A schema-level reset is only needed when the tables/functions themselves must
 be recreated. Use [`reset_schema_preserve_auth.sql`](reset_schema_preserve_auth.sql)
 for that case, then rerun the migrations in order.
